@@ -30,6 +30,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+KeyMapper's AI tool activity tracking (`Sources/KeyMapperUsage/`: `Activity.swift`, `ActivityStore.swift`,
+`ActivityCollector.swift`, `CodexLogTail.swift`, `HookConfig.swift`, `HookReceiver.swift`) is likewise ported from AMG65
+Studio (`activity.py`, `activity_hooks.py`, `docs/ACTIVITY.md`). It contains no third-party code.
+
 ## AI usage engine (CodexBar)
 
 `Sources/KeyMapperUsage/` is ported from AMG65 Studio's UsageEngine, which adapts provider authentication formats,
