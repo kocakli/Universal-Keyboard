@@ -2,6 +2,20 @@
 
 A universal keyboard mapper for macOS that lives in the menu bar. Pick a connected keyboard and assign a layout (keymap) to it; KeyMapper chooses the right way to edit it from the keyboard's firmware.
 
+## Download
+
+**[Download KeyMapper for Mac (.dmg)](https://github.com/kocakli/Universal-Keyboard/releases/latest/download/KeyMapper.dmg)** · [all releases](https://github.com/kocakli/Universal-Keyboard/releases)
+
+Requires a Mac with Apple silicon and macOS 15 or later.
+
+1. Open the downloaded disk image and drag **KeyMapper** onto the **Applications** shortcut.
+2. Open KeyMapper from Applications. It is signed and notarized by Apple, so it opens without a security warning.
+3. KeyMapper lives in the menu bar (keyboard icon) and has no Dock icon; opening it again from Finder or Spotlight brings up the editor.
+
+macOS asks for **Bluetooth** permission the first time a Bluetooth LE keyboard is connected (used only to read its battery level) and for **Accessibility** only when you use an action that sends a key combination or types text.
+
+To build it yourself instead, see [Installation](#installation).
+
 | Keyboard type | Examples | How it is edited |
 |---|---|---|
 | **Vial** | Cornix, Corne (crkbd), Lily58, Sofle and every keyboard that works with vial.rocks | The definition is read from the keyboard itself (USB or Bluetooth) and the keymap is written to firmware |
