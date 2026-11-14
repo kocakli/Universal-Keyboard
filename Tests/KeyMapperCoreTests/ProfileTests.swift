@@ -64,6 +64,24 @@ import Testing
         #expect(back == layer)
     }
 
+    /// Regression: the editor used to keep "QWERTY" as the source after converting, so pressing
+    /// "apply" three times scrambled a Cornix base layer. Undoing the same steps restores it.
+    @Test func repeatedConversionIsReversible() {
+        let keycodes = KeycodeSet(version: .v6)
+        func row(_ names: String) -> [UInt16] { names.split(separator: " ").map { keycodes.parse(String($0))! } }
+        let original = [row("KC_TAB KC_Q KC_W KC_E KC_R KC_T"), row("KC_CAPS KC_A KC_S KC_D KC_F KC_G"),
+                        row("KC_BSPC KC_P KC_O KC_I KC_U KC_Y"), row("KC_ENT KC_BSLS KC_L KC_K KC_J KC_H"),
+                        row("KC_SLSH KC_UP KC_DOT KC_COMM KC_M KC_N")]
+        let scrambled = [row("KC_TAB KC_Q KC_W KC_B KC_O KC_D"), row("KC_CAPS KC_A KC_SCLN KC_P KC_V KC_G"),
+                         row("KC_BSPC KC_Y KC_N KC_I KC_U KC_K"), row("KC_ENT KC_BSLS KC_L KC_T KC_E KC_M"),
+                         row("KC_SLSH KC_UP KC_DOT KC_COMM KC_H KC_F")]
+        var layer = original
+        for _ in 0..<3 { layer = AlphaLayout.convert(layer: layer, from: .qwerty, to: .colemakDH, keycodes: keycodes) }
+        #expect(layer == scrambled)
+        for _ in 0..<3 { layer = AlphaLayout.convert(layer: layer, from: .colemakDH, to: .qwerty, keycodes: keycodes) }
+        #expect(layer == original)
+    }
+
     @Test func hidutilOutputParsing() {
         let output = """
         RegistryID  Key                   Value

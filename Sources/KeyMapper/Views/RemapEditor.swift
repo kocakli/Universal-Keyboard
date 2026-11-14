@@ -7,6 +7,7 @@ struct RemapEditor: View {
     @Environment(AppModel.self) private var model
     let device: KeyboardDevice
     @State private var selection: UInt16?
+    @State private var actionTarget: ActionsView.EditTarget?
 
     private let keycodes = KeycodeSet.v6
 
@@ -33,6 +34,10 @@ struct RemapEditor: View {
                         let usage = UInt16(key.col)
                         if let app = model.selectedApp[device.id] {
                             return model.appCap(code: remaps[usage] ?? usage, app: app, keycodes: keycodes)
+                        }
+                        if let target = remaps[usage], var cap = model.actionCap(code: target) {
+                            cap.isHighlighted = true
+                            return cap
                         }
                         if let target = remaps[usage] {
                             var label = keycodes.label(for: target)
@@ -86,7 +91,8 @@ struct RemapEditor: View {
                 Panel {
                     KeycodePicker(keycodes: keycodes, layerCount: 1, categories: PickerCategory.osRemap,
                                   filter: { (0x04...0xA4).contains($0) || (0xE0...0xE7).contains($0) },
-                                  annotations: model.actionNamesByUsage, details: model.actionDetailsByUsage) { code in
+                                  annotations: model.actionNamesByUsage, details: model.actionDetailsByUsage,
+                                  onCreateAction: startAction) { code in
                         guard let selection else { return }
                         model.setRemap(from: selection, to: code, device: device)
                     }
@@ -97,6 +103,24 @@ struct RemapEditor: View {
             }
             }
         }
+        .sheet(item: $actionTarget) { target in
+            ActionEditorSheet(target: target) { action in
+                actionTarget = nil
+                guard let selection else { return }
+                Task { await model.assignKeyAction(action, device: device, layer: 0, slot: .matrix(row: 0, col: Int(selection))) }
+            } cancel: {
+                actionTarget = nil
+            }
+        }
+    }
+
+    private func startAction(_ kind: KeyAction.Kind) {
+        guard let selection else {
+            model.errorMessage = L("Klavyeden bir tuş seçin")
+            return
+        }
+        let binding = model.binding(forUsage: model.currentRemaps(device).first { $0.from == selection }?.to ?? selection)
+        actionTarget = .init(bindingID: binding?.id, app: nil, initial: nil, kind: kind, title: L("Tuşa aksiyon ata"))
     }
 
     private func miniCap(_ code: UInt16, highlighted: Bool = false) -> some View {

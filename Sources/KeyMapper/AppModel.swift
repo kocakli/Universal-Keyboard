@@ -1,6 +1,7 @@
 import AppKit
 import KeyMapperCore
 import Observation
+import OSLog
 import ServiceManagement
 
 /// App state shared by the menu bar popover and the editor window.
@@ -47,6 +48,8 @@ final class AppModel {
     var selectedApp: [String: AppChoice] = [:]
     /// Firmware version / update info per device id (Keychron only for now).
     var firmware: [String: FirmwareStatus] = [:]
+    /// Battery charge per device id, when the device reports one.
+    var batteries: [String: BatteryStatus] = [:]
     /// Extra app tabs the user added per deviceKey (before any rule exists).
     var extraAppTabs: [String: [AppChoice]] = AppModel.loadExtraAppTabs()
     var accessibilityTrusted = ActionPerformer.isAccessibilityTrusted
@@ -57,15 +60,31 @@ final class AppModel {
     @ObservationIgnored private var knownDeviceIDs: Set<String> = []
     @ObservationIgnored private let monitor = HIDMonitor()
     @ObservationIgnored private let store = ProfileStore.shared
+    @ObservationIgnored private let bluetoothBattery = BluetoothBatteryMonitor()
+    @ObservationIgnored private var bluetoothLevels: [String: [Int]] = [:]
+    @ObservationIgnored private var batteryTimer: Timer?
 
     init() {
         reloadProfiles()
         monitor.onChange = { [weak self] devices in
             MainActor.assumeIsolated { self?.devicesChanged(devices) }
         }
+        bluetoothBattery.onChange = { [weak self] levels in
+            MainActor.assumeIsolated {
+                self?.bluetoothLevels = levels
+                self?.refreshBatteries()
+            }
+        }
         monitor.start()
         devicesChanged(monitor.snapshot())
         setUpActions()
+        // Battery levels change slowly; IORegistry has no change notification for them.
+        batteryTimer = Timer.scheduledTimer(withTimeInterval: 120, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.bluetoothBattery.refresh()
+                self?.refreshBatteries()
+            }
+        }
     }
 
     // MARK: Devices
@@ -91,7 +110,30 @@ final class AppModel {
             autoApply(device)
             Task { await refreshFirmware(device) }
         }
+        bluetoothBattery.watch(names: Set(list.filter(\.isBluetoothLE).map(\.name).filter { !$0.isEmpty }))
+        refreshBatteries()
     }
+
+    /// IORegistry first (Apple and Bluetooth Classic), then the GATT Battery Service for Bluetooth LE keyboards.
+    func refreshBatteries() {
+        let entries = BatteryReader.registryEntries()
+        var result: [String: BatteryStatus] = [:]
+        for device in devices {
+            if let status = BatteryReader.status(for: device, in: entries) {
+                result[device.id] = status
+            } else if device.isBluetoothLE, let levels = bluetoothLevels[device.name.lowercased()], !levels.isEmpty {
+                result[device.id] = BatteryStatus(levels: levels)
+            }
+        }
+        guard result != batteries else { return }
+        batteries = result
+        for device in devices {
+            let levels = result[device.id]?.levels.map(String.init).joined(separator: ",") ?? "-"
+            Self.batteryLog.info("battery \(device.deviceKey, privacy: .public) \(device.transportLabel, privacy: .public): \(levels, privacy: .public)")
+        }
+    }
+
+    private static let batteryLog = Logger(subsystem: "dev.keymapper.KeyMapper", category: "battery")
 
     private func dropSession(_ id: String) {
         sessions[id]?.close()
@@ -132,6 +174,12 @@ final class AppModel {
                 guard !Task.isCancelled else { return }
                 self.states[device.id] = state
                 self.phases[device.id] = .loaded
+                if let family = state.keychron?.family {
+                    let deviceID = device.id
+                    session.observeKeychronLayers(family: family) { [weak self] base, active in
+                        Task { @MainActor in self?.keychronLayersChanged(deviceID: deviceID, base: base, active: active) }
+                    }
+                }
             } catch {
                 guard !Task.isCancelled else { return }
                 self.sessions[device.id]?.close()
@@ -147,7 +195,10 @@ final class AppModel {
     // MARK: Editing
 
     func assign(_ code: UInt16, device: KeyboardDevice, layer: Int, slot: KeySlot) async {
-        guard let state = states[device.id], let session = sessions[device.id] else { return }
+        guard let state = states[device.id], let session = sessions[device.id], !session.isClosed else {
+            reconnectAfterLostSession(device)
+            return
+        }
         // Vial firmware ignores QK_BOOT assignments while locked.
         if device.isVial, code == state.keycodes.parse("QK_BOOT") {
             if let status = try? await session.vialUnlockStatus(), !status.unlocked {
@@ -188,16 +239,67 @@ final class AppModel {
         }
     }
 
-    /// Converts the alphabet keys of a layer between layouts (QWERTY → Colemak, ...).
-    func convertAlpha(device: KeyboardDevice, layer: Int, from source: AlphaLayout, to target: AlphaLayout) async {
-        guard let state = states[device.id], layer < state.keymap.layers.count else { return }
-        var updated = state.keymap
-        updated.layers[layer] = AlphaLayout.convert(layer: state.keymap.layers[layer], from: source, to: target, keycodes: state.keycodes)
-        await write(updated, to: device, message: "\(source.name) → \(target.name)")
+    /// Keychron firmware pushed a layer change (Fn held, Mac/Windows switch moved).
+    private func keychronLayersChanged(deviceID: String, base: Int?, active: Int?) {
+        guard states[deviceID]?.keychron != nil else { return }
+        if let base { states[deviceID]?.keychron?.defaultLayer = base }
+        states[deviceID]?.keychron?.activeLayer = active
     }
 
-    private func write(_ keymap: Keymap, to device: KeyboardDevice, message: String) async {
-        guard let state = states[device.id], let session = sessions[device.id] else { return }
+    // MARK: Alphabet layouts
+
+    /// Undo data for the last alphabet conversion of each keyboard.
+    struct AlphaUndo {
+        let layer: Int
+        let codes: [[UInt16]]
+        let layoutID: String
+    }
+    var alphaUndo: [String: AlphaUndo] = [:]
+
+    /// Layout id per "deviceKey#layer", persisted so a converted layer is not converted again later.
+    private var alphaLayoutIDs = UserDefaults.standard.dictionary(forKey: "alphaLayouts") as? [String: String] ?? [:]
+
+    /// The alphabet layout a layer is in, as last converted by KeyMapper (QWERTY until then).
+    func alphaLayout(device: KeyboardDevice, layer: Int) -> AlphaLayout {
+        let id = alphaLayoutIDs["\(device.deviceKey)#\(layer)"]
+        return AlphaLayout.all.first { $0.id == id } ?? .qwerty
+    }
+
+    func setAlphaLayout(_ layout: AlphaLayout, device: KeyboardDevice, layer: Int) {
+        alphaLayoutIDs["\(device.deviceKey)#\(layer)"] = layout == .qwerty ? nil : layout.id
+        UserDefaults.standard.set(alphaLayoutIDs, forKey: "alphaLayouts")
+    }
+
+    /// Converts the alphabet keys of a layer from its current layout to `target`. The current layout is
+    /// remembered afterwards, so pressing the button again cannot convert an already converted layer twice.
+    func convertAlpha(device: KeyboardDevice, layer: Int, to target: AlphaLayout) async {
+        guard let state = states[device.id], layer < state.keymap.layers.count else { return }
+        let source = alphaLayout(device: device, layer: layer)
+        guard source != target else { return }
+        let previous = state.keymap.layers[layer]
+        var updated = state.keymap
+        updated.layers[layer] = AlphaLayout.convert(layer: previous, from: source, to: target, keycodes: state.keycodes)
+        guard await write(updated, to: device, message: "\(source.name) → \(target.name)") else { return }
+        setAlphaLayout(target, device: device, layer: layer)
+        alphaUndo[device.id] = AlphaUndo(layer: layer, codes: previous, layoutID: source.id)
+    }
+
+    /// Puts back the layer as it was before the last alphabet conversion.
+    func undoAlpha(device: KeyboardDevice) async {
+        guard let undo = alphaUndo[device.id], let state = states[device.id], undo.layer < state.keymap.layers.count else { return }
+        var updated = state.keymap
+        updated.layers[undo.layer] = undo.codes
+        guard await write(updated, to: device, message: L("Alfabe dönüşümü geri alındı")) else { return }
+        if let layout = AlphaLayout.all.first(where: { $0.id == undo.layoutID }) { setAlphaLayout(layout, device: device, layer: undo.layer) }
+        alphaUndo[device.id] = nil
+    }
+
+    @discardableResult
+    private func write(_ keymap: Keymap, to device: KeyboardDevice, message: String) async -> Bool {
+        guard let state = states[device.id], let session = sessions[device.id], !session.isClosed else {
+            reconnectAfterLostSession(device)
+            return false
+        }
         activity[device.id] = L("%@: yazılıyor…", "\(message)")
         defer { activity[device.id] = nil }
         do {
@@ -207,10 +309,18 @@ final class AppModel {
             }
             states[device.id]?.keymap = keymap
             notice = count == 0 ? L("%@: değişiklik yok.", "\(message)") : L("%@: %@ tuş güncellendi.", "\(message)", "\(count)")
+            return true
         } catch {
             fail(error, device: device)
             await ensureLoaded(device, force: true)
+            return false
         }
+    }
+
+    /// The keyboard went away (e.g. Bluetooth sleep): say so and read it again.
+    private func reconnectAfterLostSession(_ device: KeyboardDevice) {
+        errorMessage = L("Klavyeye ulaşılamadı; değişiklik yazılmadı. Klavye yeniden okunuyor; Bluetooth klavyeyi bir tuşa basarak uyandırıp tekrar deneyin.")
+        Task { await ensureLoaded(device, force: true) }
     }
 
     private func fail(_ error: Error, device: KeyboardDevice) {

@@ -11,6 +11,8 @@ public struct KeyboardState: Sendable {
     public var layoutOptions: [Int]
     /// Vendor firmware version string when the keyboard reports one (Keychron 0xA1).
     public var firmwareVersion: String?
+    /// Keychron Launcher status (family, active layer, radios) for Keychron firmware.
+    public var keychron: KeychronStatus?
 
     public var layerCount: Int { keymap.layerCount }
 }
@@ -42,6 +44,15 @@ public final class KeyboardSession: @unchecked Sendable {
 
     public var isClosed: Bool { client.connection.isClosed }
 
+    /// Calls `handler(defaultLayer, activeLayer)` whenever Keychron firmware pushes a layer change.
+    public func observeKeychronLayers(family: KeychronStatus.Family, _ handler: @escaping @Sendable (Int?, Int?) -> Void) {
+        client.connection.setUnsolicitedHandler { report in
+            guard report.first == KeychronProtocol.layer else { return }
+            let layers = KeychronProtocol.layers(reply: report, family: family)
+            handler(layers.default, layers.active)
+        }
+    }
+
     public func close() {
         queue.async { [client] in client.connection.close() }
     }
@@ -66,10 +77,11 @@ public final class KeyboardSession: @unchecked Sendable {
             return (via, id.protocol, id.uid, json)
         }
         let isKeychron = device.vendorID == KeychronLauncher.vendorID
-        let vendorInfo = try await perform { client -> (variant: Int, firmware: String?) in
-            guard isKeychron else { return (0, nil) }
+        let vendorInfo = try await perform { client -> (variant: Int, firmware: String?, status: KeychronStatus?) in
+            guard isKeychron else { return (0, nil, nil) }
             let value = (try? client.firmwareValue()) ?? 0
-            return (value <= 100 ? Int(value) : 0, try? client.keychronFirmwareVersion())
+            let firmware = (try? client.keychronFirmwareVersion()) ?? nil
+            return (value <= 100 ? Int(value) : 0, firmware, client.keychronStatus())
         }
 
         let definition: KeyboardDefinition
@@ -122,7 +134,8 @@ public final class KeyboardSession: @unchecked Sendable {
             vialProtocol: info.1,
             vialUID: info.2,
             layoutOptions: definition.selectedOptions(packed: packedOptions),
-            firmwareVersion: vendorInfo.firmware
+            firmwareVersion: vendorInfo.firmware,
+            keychron: vendorInfo.status
         )
     }
 

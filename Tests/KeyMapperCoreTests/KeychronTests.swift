@@ -5,6 +5,31 @@ import Testing
 @Suite struct KeychronTests {
     init() { L10n.current = .turkish }
 
+    @Test func launcherRepliesParseForBothFirmwareFamilies() {
+        func reply(_ bytes: [UInt8]) -> [UInt8] { bytes + [UInt8](repeating: 0, count: 32 - bytes.count) }
+        // QMK (keychron/qmk_firmware 2025q3): [A0, 2, 0, 2], [A3, default, active], features in byte 2.
+        #expect(KeychronProtocol.family(protocolReply: reply([0xA0, 2, 0, 2])) == .qmk)
+        let qmk = KeychronProtocol.layers(reply: reply([0xA3, 2, 3]), family: .qmk)
+        #expect(qmk.default == 2 && qmk.active == 3)
+        let features = KeychronProtocol.features(reply: reply([0xA2, 0, 0x07, 0x02]), family: .qmk)
+        #expect(features.bluetooth && features.wireless24G)
+        #expect(KeychronProtocol.reportRate(reply: reply([0xA7, 0x0D, 0, 3])) == 1000)
+        #expect(KeychronProtocol.reportRate(reply: reply([0xA7, 0x0D, 1, 3])) == nil)
+        // ZMK launcher (Nape Pro reply read from the device): [A0, 1, 0, 1], [A3, active].
+        #expect(KeychronProtocol.family(protocolReply: reply([0xA0, 1, 0, 1])) == .zmk)
+        let zmk = KeychronProtocol.layers(reply: reply([0xA3, 1]), family: .zmk)
+        #expect(zmk.default == nil && zmk.active == 1)
+        var status = KeychronStatus(family: .zmk, activeLayer: 1)
+        #expect(status.baseLayer == 1)
+        status.defaultLayer = 0
+        #expect(status.baseLayer == 0)
+        // Garbage and other firmware.
+        #expect(KeychronProtocol.family(protocolReply: reply([0xFF])) == nil)
+        #expect(KeychronProtocol.layers(reply: reply([0xA3, 200, 1]), family: .qmk).default == nil)
+        #expect(KeychronProtocol.isUnsolicited(reply([0xA3, 0, 1])))
+        #expect(!KeychronProtocol.isUnsolicited(reply([0x04, 0, 0])))
+    }
+
     @Test func trackballDefinitionBecomesAButtonRow() throws {
         let definition = try KeychronLauncher.parseDefinition(fixture("keychron-nape-pro"), vendorID: 0x3434, productID: 0x0440)
         #expect(definition.name == "Nape Pro")

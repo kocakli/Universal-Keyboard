@@ -9,11 +9,15 @@ struct ActionsView: View {
     /// Which action is being edited in the sheet.
     struct EditTarget: Identifiable {
         let id = UUID()
-        let bindingID: UUID
+        /// nil while the action does not exist yet (assigned straight to a key).
+        let bindingID: UUID?
         /// The app rule being edited; nil with an `app` = a new rule, nil without = the default action.
         var ruleID: UUID?
         var app: AppChoice?
         var initial: KeyAction?
+        /// Action type to start with when there is no initial action.
+        var kind: KeyAction.Kind?
+        var title: String?
     }
 
     var body: some View {
@@ -89,7 +93,7 @@ struct ActionsView: View {
     private var howTo: some View {
         HStack(alignment: .top, spacing: 18) {
             step("1", L("Tetik tuşu"), L("Her aksiyon F16–F20 veya F13 gibi normal klavyelerde olmayan bir tuşu kullanır; KeyMapper bu tuşu yakalar, öndeki uygulama görmez."))
-            step("2", L("Klavyeye ata"), L("Klavye editöründe paletin \"Aksiyon\" sekmesinden bir fiziksel tuşa atayın (VIA/Vial'de firmware'e, diğer klavyelerde macOS eşlemesi olarak)."))
+            step("2", L("Klavyeye ata"), L("Klavye editöründe bir tuş seçip paletin \"Uygulama ve aksiyon\" sekmesinden aksiyonu doğrudan atayın; tetik tuşunu KeyMapper ayarlar (VIA/Vial'de firmware'e, diğer klavyelerde macOS eşlemesi olarak)."))
             step("3", L("Uygulamaya göre"), L("Varsayılan işlemi ve belirli uygulamalar öndeyken çalışacak farklı işlemleri seçin."))
         }
     }
@@ -406,6 +410,7 @@ struct ActionEditorSheet: View {
     }
 
     private var title: String {
+        if let title = target.title { return title }
         if let app = target.app { return L("%@ öndeyken", "\(app.name)") }
         return L("Diğer tüm uygulamalarda")
     }
@@ -501,7 +506,7 @@ struct ActionEditorSheet: View {
 
     private func load() {
         guard let action = target.initial else {
-            kind = target.app == nil ? .openApp : .keystroke
+            kind = target.kind ?? (target.app == nil ? .openApp : .keystroke)
             return
         }
         kind = action.kind

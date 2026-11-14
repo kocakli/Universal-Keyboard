@@ -1,3 +1,4 @@
+import AppKit
 import KeyMapperCore
 import SwiftUI
 
@@ -7,6 +8,8 @@ struct KeyCapModel {
     var kind: CapKind = .alpha
     var subColor: Color = Theme.accent
     var isHighlighted = false
+    /// App icon for keys that open an app.
+    var icon: NSImage?
     var tooltip: String = ""
 }
 
@@ -37,7 +40,7 @@ struct KeyboardCanvas: View {
                     } label: {
                         Keycap(kind: model.kind, isSelected: selected == item.key.slot, isHighlighted: model.isHighlighted,
                                radius: unit * 0.18, depth: max(4, unit * 0.12)) {
-                            KeyLegend(label: model.label, unit: unit, kind: model.kind, subColor: model.subColor)
+                            KeyLegend(label: model.label, unit: unit, kind: model.kind, subColor: model.subColor, icon: model.icon)
                         }
                         .frame(width: item.key.w * unit - 6, height: item.key.h * unit - 6)
                     }
@@ -88,8 +91,29 @@ struct KeyLegend: View {
     let unit: CGFloat
     let kind: CapKind
     var subColor: Color = Theme.accent
+    var icon: NSImage?
 
     var body: some View {
+        if let icon {
+            VStack(spacing: 2) {
+                Image(nsImage: icon)
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: unit * 0.42, height: unit * 0.42)
+                Text(label.main)
+                    .font(.system(size: unit * 0.15, weight: .semibold))
+                    .foregroundStyle(kind.legend)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 2)
+        } else {
+            legend
+        }
+    }
+
+    private var legend: some View {
         VStack(spacing: 1) {
             if let top = label.top {
                 Text(top).font(.system(size: unit * 0.17)).foregroundStyle(Theme.textTertiary)

@@ -34,7 +34,9 @@ public final class RawHIDConnection: @unchecked Sendable {
     private let requestLock = NSLock()
     private let stateLock = NSLock()
     private var awaiting = false
+    private var expectedEcho: UInt8?
     private var response: [UInt8] = []
+    private var unsolicited: (@Sendable ([UInt8]) -> Void)?
     private var closed = false
     private var removed = false
 
@@ -89,27 +91,33 @@ public final class RawHIDConnection: @unchecked Sendable {
         responseSignal.signal()
     }
 
-    /// Sends one 32 byte report and waits for the next input report.
-    public func exchange(_ request: [UInt8], timeout: TimeInterval = 1.0, retries: Int = 2) throws -> [UInt8] {
+    /// Called on the HID queue for input reports nobody was waiting for (e.g. Keychron layer pushes).
+    public func setUnsolicitedHandler(_ handler: (@Sendable ([UInt8]) -> Void)?) {
+        stateLock.lock(); unsolicited = handler; stateLock.unlock()
+    }
+
+    /// Sends one 32 byte report and waits for the reply. With `expecting`, only a report whose
+    /// first byte echoes that id (or 0xFF, "unhandled") counts; anything else is passed on as unsolicited.
+    public func exchange(_ request: [UInt8], timeout: TimeInterval = 1.0, retries: Int = 2, expecting: UInt8? = nil) throws -> [UInt8] {
         requestLock.lock(); defer { requestLock.unlock() }
         var attempt = 0
         while true {
             do {
-                return try exchangeOnce(request, timeout: timeout)
+                return try exchangeOnce(request, timeout: timeout, expecting: expecting)
             } catch HIDError.timeout where attempt < retries {
                 attempt += 1
             }
         }
     }
 
-    private func exchangeOnce(_ request: [UInt8], timeout: TimeInterval) throws -> [UInt8] {
+    private func exchangeOnce(_ request: [UInt8], timeout: TimeInterval, expecting: UInt8?) throws -> [UInt8] {
         if isClosed { throw HIDError.disconnected }
         var report = [UInt8](repeating: 0, count: Self.reportSize)
         for (index, byte) in request.prefix(Self.reportSize).enumerated() { report[index] = byte }
 
         // Drop any stale report before sending.
         while responseSignal.wait(timeout: .now()) == .success {}
-        stateLock.lock(); awaiting = true; response = []; stateLock.unlock()
+        stateLock.lock(); awaiting = true; expectedEcho = expecting; response = []; stateLock.unlock()
 
         let result = IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput, 0, report, report.count)
         guard result == kIOReturnSuccess else {
@@ -130,7 +138,13 @@ public final class RawHIDConnection: @unchecked Sendable {
 
     private func received(_ report: [UInt8]) {
         stateLock.lock()
-        guard awaiting else { stateLock.unlock(); return }
+        let isReply = awaiting && (expectedEcho.map { report.first == $0 || report.first == 0xFF } ?? true)
+        guard isReply else {
+            let handler = unsolicited
+            stateLock.unlock()
+            handler?(report)
+            return
+        }
         awaiting = false
         response = report
         stateLock.unlock()

@@ -55,7 +55,7 @@ public final class VIAClient: @unchecked Sendable {
 
     @discardableResult
     func command(_ id: VIACommand, _ payload: [UInt8] = [], checkEcho: Bool = true) throws -> [UInt8] {
-        let response = try connection.exchange([id.rawValue] + payload)
+        let response = try connection.exchange([id.rawValue] + payload, expecting: checkEcho ? id.rawValue : nil)
         if checkEcho {
             if response[0] == VIACommand.unhandled.rawValue && id != .unhandled {
                 throw HIDError.unexpectedResponse(L("komut 0x%@ desteklenmiyor", "\(String(id.rawValue, radix: 16))"))
@@ -99,15 +99,6 @@ public final class VIAClient: @unchecked Sendable {
     public func firmwareValue() throws -> UInt32 {
         let r = try command(.getKeyboardValue, [0x04])
         return UInt32(r[2]) << 24 | UInt32(r[3]) << 16 | UInt32(r[4]) << 8 | UInt32(r[5])
-    }
-
-    /// Keychron firmware version string (raw HID 0xA1), e.g. "v1.2.1 2025-06-17-10:09:52".
-    public func keychronFirmwareVersion() throws -> String? {
-        let r = try connection.exchange([0xA1], timeout: 0.5, retries: 0)
-        guard r[0] == 0xA1 else { return nil }
-        let bytes = r.dropFirst().prefix { $0 != 0 }
-        let text = String(decoding: bytes, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
-        return text.isEmpty || !text.unicodeScalars.allSatisfy({ $0.isASCII && $0.value >= 0x20 }) ? nil : text
     }
 
     public func keycode(layer: Int, row: Int, col: Int) throws -> UInt16 {

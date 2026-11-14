@@ -39,13 +39,26 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <array><string>tr</string><string>en</string><string>es</string><string>ja</string><string>zh-Hans</string></array>
     <key>CFBundleAllowMixedLocalizations</key><true/>
     <key>CFBundleVersion</key><string>1</string>
+    <key>NSHumanReadableCopyright</key><string>© 2026 Oğuzhan Koçaklı</string>
     <key>LSMinimumSystemVersion</key><string>15.0</string>
     <key>LSUIElement</key><true/>
     <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
     <key>NSHighResolutionCapable</key><true/>
+    <key>NSBluetoothAlwaysUsageDescription</key><string>KeyMapper, Bluetooth klavyelerinizin pil seviyesini göstermek için Bluetooth kullanır.</string>
 </dict>
 </plist>
 PLIST
+
+# Localized text for the Bluetooth permission prompt.
+write_infoplist_strings() {
+    mkdir -p "$APP/Contents/Resources/$1.lproj"
+    printf '"NSBluetoothAlwaysUsageDescription" = "%s";\n' "$2" > "$APP/Contents/Resources/$1.lproj/InfoPlist.strings"
+}
+write_infoplist_strings tr "KeyMapper, Bluetooth klavyelerinizin pil seviyesini göstermek için Bluetooth kullanır."
+write_infoplist_strings en "KeyMapper uses Bluetooth to show the battery level of your Bluetooth keyboards."
+write_infoplist_strings es "KeyMapper usa Bluetooth para mostrar el nivel de batería de tus teclados Bluetooth."
+write_infoplist_strings ja "KeyMapper は Bluetooth キーボードのバッテリー残量を表示するために Bluetooth を使用します。"
+write_infoplist_strings zh-Hans "KeyMapper 使用蓝牙来显示蓝牙键盘的电池电量。"
 
 codesign --force --deep --sign - "$APP"
 # Let Finder and the Dock pick up a changed icon.

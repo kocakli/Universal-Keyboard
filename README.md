@@ -21,13 +21,14 @@ Yöntem markaya göre değil, cihazın sunduğu arayüze göre seçilir: QMK raw
 - **İçe / dışa aktarma**: Vial `.vil` (vial.rocks'tan kaydedilen dosyalar), VIA `.json` layout dosyaları ve KeyMapper profilleri.
 - **Vial kilidi**: `QK_BOOT` gibi korumalı tuşlar için Vial kilit açma akışı.
 - **Aksiyonlar** (Logitech Options+'taki uygulamaya özel ayarlar gibi): bir tuşa uygulama açma, adres/dosya açma, Kestirmeler çalıştırma, kısayol gönderme veya metin yazma atanır; aynı tuş öndeki uygulamaya göre farklı iş yapabilir (ör. Safari'de yeni sekme, VS Code'da komut paleti, diğer her yerde Spotlight). Safari, Chrome, Finder, VS Code, Zoom, Slack ve Photoshop için hazır kısayollar vardır.
+- **Pil seviyesi**: bağlı klavyelerin şarjı menü çubuğunda, kenar çubuğunda ve editör başlığında görünür; %20 ve altı kırmızıdır. Apple klavyeleri macOS üzerinden, Bluetooth LE klavyeler (ör. Cornix) standart Bluetooth pil servisinden okunur; ilk seferde Bluetooth izni istenir. Split klavyelerde en düşük yarım gösterilir. Keychron'un raw HID protokolünde pil komutu olmadığı için USB'ye bağlı bir Keychron'da pil görünmez.
 - **Girişte başlat** seçeneği.
 - **Diller**: Türkçe, English, Español, 日本語 ve 简体中文. Varsayılan olarak macOS dilini izler; menü çubuğundan veya editörün kenar çubuğundan anında değiştirilebilir. `kmctl` aynı dil seçimini kullanır (`KEYMAPPER_LANG=ja kmctl list` ile geçici olarak değiştirilebilir).
 
 ## Aksiyonlar nasıl çalışır
 
 1. Her aksiyon bir tetik tuşu kullanır: önce F16–F20, sonra F13, en son F14/F15 (macOS F14/F15'i ekran parlaklığı için kullanır). Bu tuşlar normal klavyelerde olmadığı için hiçbir şeyle çakışmaz.
-2. Klavye editöründe paletin **Aksiyon** sekmesinden tetik tuşunu fiziksel bir tuşa atayın. VIA/Vial klavyelerde bu firmware'e yazılır; diğer klavyelerde macOS eşlemesi olarak (ör. Caps Lock → F16) uygulanır.
+2. Klavye editöründe bir tuş seçin ve paletin **Uygulama ve aksiyon** sekmesinden doğrudan **Uygulama aç**, **Adres / dosya aç**, **Kestirme çalıştır**, **Tuş kombinasyonu gönder**, **Metin yaz** veya **Medya / sistem tuşu** seçin. KeyMapper boş bir tetik tuşu ayırır, aksiyonu ona bağlar ve tuşa yazar (VIA/Vial'de firmware'e, diğer klavyelerde macOS eşlemesi olarak). Uygulama açan tuşların üstünde uygulamanın simgesi görünür; tuşun aksiyonu seçili tuş kartındaki **Aksiyonu düzenle** ile değiştirilir.
 3. KeyMapper tetik tuşunu macOS'un global kısayol API'siyle (Carbon `RegisterEventHotKey`) yakalar; tuş öndeki uygulamaya ulaşmaz. O anda öndeki uygulamanın kuralı varsa o, yoksa varsayılan işlem çalışır.
 
 ### Uygulama sekmeleri (Logi Options+ gibi)
@@ -44,7 +45,15 @@ Gereksinim: macOS 15+, Xcode 16+ (Swift 6 araç zinciri).
 scripts/build-app.sh --install
 ```
 
-Bu komut `build/KeyMapper.app` dosyasını oluşturur ve `/Applications` içine kopyalar. Sadece derlemek için `--install` olmadan çalıştırın. Uygulama Dock'ta görünmez; menü çubuğundaki klavye simgesinden erişilir. Uygulamayı Finder veya Spotlight'tan tekrar açmak editör penceresini getirir.
+Bu komut `build/KeyMapper.app` dosyasını oluşturur ve `/Applications` içine kopyalar. Sadece derlemek için `--install` olmadan çalıştırın.
+
+Kurulabilir paket (disk görüntüsü) için:
+
+```bash
+scripts/make-dmg.sh
+```
+
+`build/KeyMapper-<sürüm>.dmg` oluşur; açıp KeyMapper'ı Applications kısayolunun üzerine sürükleyerek kurulur. `--install` eklenirse paketin içindeki uygulama doğrudan `/Applications` içine kurulur (çalışan kopya önce kapatılır). Paket ad-hoc imzalıdır ve notarize edilmemiştir: başka bir Mac'e indirildiğinde macOS ilk açılışı engeller; **Sistem Ayarları → Gizlilik ve Güvenlik** bölümündeki **Yine de Aç** düğmesiyle izin verilir. Uygulama Dock'ta görünmez; menü çubuğundaki klavye simgesinden erişilir. Uygulamayı Finder veya Spotlight'tan tekrar açmak editör penceresini getirir.
 
 Geliştirme sırasında:
 

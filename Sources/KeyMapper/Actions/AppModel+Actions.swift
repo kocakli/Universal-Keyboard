@@ -109,8 +109,8 @@ extension AppModel {
 
 extension AppModel {
     /// Sets the action for one app (or the default when `app` is nil); nil action removes it.
-    func setAction(_ action: KeyAction?, bindingID: UUID, app: AppChoice?) {
-        guard var binding = bindings.first(where: { $0.id == bindingID }) else { return }
+    func setAction(_ action: KeyAction?, bindingID: UUID?, app: AppChoice?) {
+        guard let bindingID, var binding = bindings.first(where: { $0.id == bindingID }) else { return }
         if let app {
             if let index = binding.appRules.firstIndex(where: { $0.bundleID == app.bundleID }) {
                 if let action { binding.appRules[index].action = action } else { binding.appRules.remove(at: index) }
@@ -220,7 +220,7 @@ extension AppModel {
         }
         if let rule = binding.appRules.first(where: { $0.bundleID == app.bundleID }) {
             return KeyCapModel(label: KeyLabel(main: rule.action.capTitle, sub: app.name), kind: .alpha, subColor: Theme.accent,
-                               isHighlighted: true, tooltip: "\(app.name): \(rule.action.summary)")
+                               isHighlighted: true, icon: Self.appIcon(for: rule.action), tooltip: "\(app.name): \(rule.action.summary)")
         }
         let fallback = binding.defaultAction?.capTitle ?? "—"
         return KeyCapModel(label: KeyLabel(main: fallback, sub: L("varsayılan")), kind: .modifier, subColor: Theme.textTertiary,
@@ -234,5 +234,62 @@ extension AppModel {
 
     private func saveExtraAppTabs() {
         UserDefaults.standard.set(extraAppTabs.mapValues { $0.map { [$0.bundleID, $0.name] } }, forKey: "appTabs")
+    }
+}
+
+// MARK: - Actions assigned straight to a key
+
+extension AppModel {
+    /// What the key sends now: the firmware keycode, or the macOS remap target.
+    func currentCode(device: KeyboardDevice, layer: Int, slot: KeySlot) -> UInt16? {
+        switch (device.capability, slot) {
+        case let (.osRemap, .matrix(_, col)):
+            let usage = UInt16(col)
+            return currentRemaps(device).first { $0.from == usage }?.to ?? usage
+        default:
+            return states[device.id]?.keymap.keycode(layer: layer, slot: slot)
+        }
+    }
+
+    /// Makes a key run `action` (open an app, a URL, a Shortcut, …) everywhere.
+    /// A key that already fires an action gets its action replaced; otherwise a free trigger key
+    /// is bound to the action and written to the key (firmware keymap or macOS remap).
+    func assignKeyAction(_ action: KeyAction?, device: KeyboardDevice, layer: Int, slot: KeySlot) async {
+        if let code = currentCode(device: device, layer: layer, slot: slot), var existing = binding(forUsage: code) {
+            existing.defaultAction = action
+            if let action { existing.name = action.capTitle }
+            update(existing)
+            return
+        }
+        guard let action else { return }
+        guard let trigger = ActionStore.nextFreeTrigger(in: bindings) else {
+            errorMessage = L("Tüm tetik tuşları (F13–F20) kullanımda; Aksiyonlar sayfasından birini silin.")
+            return
+        }
+        let binding = ActionBinding(name: action.capTitle, trigger: trigger.combo, defaultAction: action)
+        bindings.append(binding)
+        update(binding)
+        switch (device.capability, slot) {
+        case let (.osRemap, .matrix(_, col)):
+            setRemap(from: UInt16(col), to: trigger.usage, device: device)
+        default:
+            await assign(trigger.usage, device: device, layer: layer, slot: slot)
+        }
+        notice = L("Aksiyon: %@", action.summary)
+    }
+
+    /// Keycap for a key that fires an action, shown in the "all apps" view.
+    func actionCap(code: UInt16) -> KeyCapModel? {
+        guard let binding = binding(forUsage: code) else { return nil }
+        let action = binding.defaultAction
+        let extra = binding.appRules.isEmpty ? nil : L("+%@ uygulama", "\(binding.appRules.count)")
+        return KeyCapModel(label: KeyLabel(main: action?.capTitle ?? binding.name, sub: extra), kind: .alpha,
+                           subColor: Theme.accent, icon: action.flatMap(Self.appIcon(for:)),
+                           tooltip: actionDetailsByUsage[code] ?? "")
+    }
+
+    static func appIcon(for action: KeyAction) -> NSImage? {
+        if case let .openApp(bundleID, _) = action { return AppChoice.icon(for: bundleID) }
+        return nil
     }
 }

@@ -42,9 +42,15 @@ switch args.first {
 case "list", nil:
     let list = devices()
     if list.isEmpty { print(L("Bağlı klavye yok.")) }
+    let batteries = BatteryReader.registryEntries()
     for (index, device) in list.enumerated() {
-        let line = String(format: "[%d] %@  %@  %@  %@  (%@)", index, device.displayName, device.deviceKey,
+        var line = String(format: "[%d] %@  %@  %@  %@  (%@)", index, device.displayName, device.deviceKey,
                           device.transportLabel, device.capability.title, device.brand.name)
+        // Bluetooth LE levels need CoreBluetooth and a permission prompt; only the app reads those.
+        if let battery = BatteryReader.status(for: device, in: batteries) {
+            let percent = (Double(battery.level) / 100).formatted(.percent.precision(.fractionLength(0)).locale(L10n.current.locale))
+            line += "  " + L("pil %@", percent)
+        }
         print(line)
     }
 
@@ -57,6 +63,12 @@ case "dump":
         print(L("%@ — VIA protokol %@%@, keycode %@", "\(state.definition.name)", "\(state.viaProtocol)", "\(state.vialProtocol.map { L(", Vial protokol %@", "\($0)") } ?? "")", "\(state.keycodes.version.rawValue)"))
         print(L("Matris %@x%@, %@ katman, %@ tuş, kaynak: %@", "\(state.definition.rows)", "\(state.definition.cols)", "\(state.layerCount)", "\(state.definition.keys.count)", "\(state.definition.source.title)"))
         if let firmware = state.firmwareVersion ?? target.firmwareVersion { print(L("Firmware: %@", firmware)) }
+        if let keychron = state.keychron {
+            let active = keychron.activeLayer.map(String.init) ?? "?"
+            let base = keychron.defaultLayer.map(String.init) ?? "-"
+            print("Keychron: \(keychron.family.rawValue.uppercased()) · " + L("etkin katman %@, temel katman %@", active, base)
+                  + (keychron.reportRateHz.map { " · \($0) Hz" } ?? ""))
+        }
         for layer in 0..<state.layerCount where onlyLayer == nil || onlyLayer == layer {
             print(L("\n— Katman %@", "\(layer)"))
             for (row, codes) in state.keymap.layers[layer].enumerated() {

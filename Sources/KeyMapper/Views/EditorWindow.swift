@@ -96,6 +96,7 @@ private struct Sidebar: View {
                 .controlSize(.mini)
                 .tint(Theme.accent)
                 LanguageMenu()
+                AboutButton()
             }
             .padding(14)
             .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.raised))
@@ -125,7 +126,10 @@ private struct DeviceCard: View {
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(device.displayName).font(.system(size: 14, weight: .semibold)).lineLimit(1)
-                    Text("\(device.brand.name) · \(device.transportLabel)").font(.system(size: 12)).foregroundStyle(Theme.textSecondary).lineLimit(1)
+                    HStack(spacing: 8) {
+                        Text("\(device.brand.name) · \(device.transportLabel)").font(.system(size: 12)).foregroundStyle(Theme.textSecondary).lineLimit(1)
+                        if let battery = model.batteries[device.id] { BatteryBadge(status: battery) }
+                    }
                 }
                 HStack(spacing: 6) {
                     if let profile = model.assignedProfile(for: device) {
@@ -253,6 +257,7 @@ private struct DeviceHeader: View {
                     Text(device.capability.title)
                     Text(device.transportLabel)
                     Text(device.deviceKey).monospacedDigit()
+                    if let battery = model.batteries[device.id] { BatteryBadge(status: battery) }
                 }
                 .font(.system(size: 12))
                 .foregroundStyle(Theme.textSecondary)
@@ -308,6 +313,7 @@ private struct DeviceHeader: View {
         var list = [L("%@ katman", "\(state.layerCount)"), L("%@×%@ matris", "\(state.definition.rows)", "\(state.definition.cols)")]
         if state.definition.encoderCount > 0 { list.append(L("%@ encoder", "\(state.definition.encoderCount)")) }
         list.append(L("Tanım: %@", "\(state.definition.source.title.lowercased(with: L10n.current.locale))"))
+        if let active = state.keychron?.baseLayer { list.append(L("Etkin katman %@", "\(active)")) }
         return list
     }
 
@@ -379,16 +385,18 @@ private struct FirmwareEditor: View {
     @State private var layer = 0
     @State private var selection: KeySlot?
     @State private var expression = ""
-    @State private var alphaSource = AlphaLayout.qwerty
     @State private var alphaTarget = AlphaLayout.colemakDH
     /// Explanation of the hold chip under the pointer.
     @State private var hoveredHold: String?
+    /// Action being assigned to (or edited on) the selected key.
+    @State private var actionTarget: ActionsView.EditTarget?
 
     var body: some View {
         let keys = state.definition.visibleKeys(options: state.layoutOptions).filter { !$0.isEncoder }
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 12) {
                 layerPills
+                if let base = baseLayer, base != layer { baseLayerHint(base) }
                 Spacer(minLength: 12)
                 if app == nil { alphaControls }
             }
@@ -406,7 +414,8 @@ private struct FirmwareEditor: View {
                     inspector.frame(width: 360)
                     Panel {
                         KeycodePicker(keycodes: state.keycodes, layerCount: state.layerCount, categories: PickerCategory.allCases,
-                                      annotations: model.actionNamesByUsage, details: model.actionDetailsByUsage) { assign($0) }
+                                      annotations: model.actionNamesByUsage, details: model.actionDetailsByUsage,
+                                      onCreateAction: startAction) { assign($0) }
                             // Stays hoverable without a selection so descriptions can be read first.
                             .opacity(selection == nil ? 0.6 : 1)
                     }
@@ -415,9 +424,26 @@ private struct FirmwareEditor: View {
             }
         }
         .onChange(of: layer) { _, _ in expression = currentCode.map { state.keycodes.name(for: $0) } ?? "" }
+        // Keychron: start on the layer the keyboard is typing on, so edits take effect right away.
+        .onAppear { if let base = baseLayer { layer = base } }
+        .sheet(item: $actionTarget) { target in
+            ActionEditorSheet(target: target) { action in
+                actionTarget = nil
+                guard let slot = selection else { return }
+                Task { await model.assignKeyAction(action, device: device, layer: layer, slot: slot) }
+            } cancel: {
+                actionTarget = nil
+            }
+        }
     }
 
     private var app: AppChoice? { model.selectedApp[device.id] }
+
+    /// Layer a Keychron keyboard types on without holding a layer key (reported by the firmware).
+    private var baseLayer: Int? {
+        guard let base = state.keychron?.baseLayer, base < state.layerCount else { return nil }
+        return base
+    }
 
     // MARK: Pieces
 
@@ -426,7 +452,13 @@ private struct FirmwareEditor: View {
             ForEach(0..<state.layerCount, id: \.self) { index in
                 Button("\(index)") { layer = index }
                     .buttonStyle(PillButtonStyle(isOn: layer == index, style: .plain))
-                    .accessibilityLabel(L("Katman %@", "\(index)"))
+                    .overlay(alignment: .bottom) {
+                        if index == baseLayer {
+                            Circle().fill(Color.accentColor).frame(width: 4, height: 4).offset(y: -2)
+                        }
+                    }
+                    .help(index == baseLayer ? L("Klavye şu an bu katmanla yazıyor.") : "")
+                    .accessibilityLabel(index == baseLayer ? L("Katman %@, etkin", "\(index)") : L("Katman %@", "\(index)"))
             }
         }
         .padding(4)
@@ -434,18 +466,38 @@ private struct FirmwareEditor: View {
         .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
     }
 
+    private func baseLayerHint(_ base: Int) -> some View {
+        Button {
+            layer = base
+        } label: {
+            Label(L("Klavye şu an %@. katmanda", "\(base)"), systemImage: "exclamationmark.circle")
+                .font(.system(size: 12))
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Theme.textSecondary)
+        .help(L("Bu katmanda yaptığınız atamalar ancak bu katmana geçildiğinde çalışır. Tıklayınca etkin katmana geçilir."))
+    }
+
     private var alphaControls: some View {
-        HStack(spacing: 8) {
+        let current = model.alphaLayout(device: device, layer: layer)
+        let source = Binding(get: { current }, set: { model.setAlphaLayout($0, device: device, layer: layer) })
+        return HStack(spacing: 8) {
             Text(L("Alfabe")).font(.system(size: 13)).foregroundStyle(Theme.textTertiary)
-            layoutMenu(selection: $alphaSource)
+            layoutMenu(selection: source)
+                .help(L("Bu katmanın şu anki harf düzeni. KeyMapper her dönüşümden sonra bunu günceller; düzeni başka bir araçla değiştirdiyseniz buradan düzeltin."))
             Image(systemName: "arrow.right").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.textTertiary)
             layoutMenu(selection: $alphaTarget)
             Button(L("%@. katmana uygula", "\(layer)")) {
-                Task { await model.convertAlpha(device: device, layer: layer, from: alphaSource, to: alphaTarget) }
+                Task { await model.convertAlpha(device: device, layer: layer, to: alphaTarget) }
             }
             .buttonStyle(SecondaryButtonStyle(height: 32, emphasized: true))
-            .disabled(alphaSource == alphaTarget)
+            .disabled(current == alphaTarget)
             .help(L("Harf tuşlarını seçilen düzene çevirir; home-row mod ve layer-tap gibi basılı tutma işlevleri korunur."))
+            if model.alphaUndo[device.id]?.layer == layer {
+                Button(L("Geri al")) { Task { await model.undoAlpha(device: device) } }
+                    .buttonStyle(SecondaryButtonStyle(height: 32))
+                    .help(L("Katmanı son dönüşümden önceki haline döndürür."))
+            }
         }
     }
 
@@ -469,24 +521,65 @@ private struct FirmwareEditor: View {
         .fixedSize()
     }
 
+    /// Knob rotations: each direction gets its own function; pressing the knob is a normal key on the board.
     private var encoderRow: some View {
-        HStack(spacing: 10) {
-            ForEach(0..<state.definition.encoderCount, id: \.self) { index in
-                HStack(spacing: 10) {
-                    KnobIcon()
-                    Text(L("Encoder %@", "\(index)")).font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
-                    ForEach([false, true], id: \.self) { clockwise in
-                        let slot = KeySlot.encoder(index: index, clockwise: clockwise)
-                        let code = state.keymap.keycode(layer: layer, slot: slot) ?? 0
-                        let legend = app.map { model.appCap(code: code, app: $0, keycodes: state.keycodes).label.main } ?? state.keycodes.shortLabel(code)
-                        Button("\(clockwise ? "↻" : "↺") \(legend)") { select(slot) }
-                            .buttonStyle(PillButtonStyle(isOn: selection == slot, height: 26))
-                    }
-                }
-                .padding(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 8))
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.surface))
-                .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Text(L("Döner düğmeler")).font(Theme.label).foregroundStyle(Theme.textSecondary)
+                Text(L("Çevirme yönlerine ayrı işlev atanır; düğmeye basmak klavyede ayrı bir tuştur."))
+                    .font(.system(size: 11))
+                    .foregroundStyle(Theme.textTertiary)
             }
+            FlowLayout(spacing: 10) {
+                ForEach(0..<state.definition.encoderCount, id: \.self) { index in
+                    HStack(spacing: 8) {
+                        KnobIcon()
+                        Text(L("Düğme %@", "\(index + 1)")).font(.system(size: 12, weight: .medium))
+                        ForEach([false, true], id: \.self) { clockwise in
+                            let slot = KeySlot.encoder(index: index, clockwise: clockwise)
+                            let code = state.keymap.keycode(layer: layer, slot: slot) ?? 0
+                            let legend = app.map { model.appCap(code: code, app: $0, keycodes: state.keycodes).label.main }
+                                ?? state.keycodes.title(for: code)
+                            Button("\(clockwise ? "↻" : "↺") \(legend)") { select(slot) }
+                                .buttonStyle(PillButtonStyle(isOn: selection == slot, height: 26))
+                                .help(clockwise ? L("Sağa çevir") : L("Sola çevir"))
+                        }
+                        if app == nil { knobPresetMenu(index) }
+                    }
+                    .padding(EdgeInsets(top: 6, leading: 10, bottom: 6, trailing: 8))
+                    .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.surface))
+                    .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
+                }
+            }
+        }
+    }
+
+    private func knobPresetMenu(_ index: Int) -> some View {
+        Menu {
+            ForEach(KnobPreset.all, id: \.title) { preset in
+                Button(L(preset.title)) { applyKnobPreset(preset, index: index) }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Text(L("Hazır ayar"))
+                Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
+            }
+            .font(.system(size: 12))
+            .foregroundStyle(Theme.accent)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(L("İki yönü birden ayarla"))
+    }
+
+    private func applyKnobPreset(_ preset: KnobPreset, index: Int) {
+        guard let ccw = state.keycodes.parse(preset.ccw), let cw = state.keycodes.parse(preset.cw) else { return }
+        Task {
+            await model.assign(ccw, device: device, layer: layer, slot: .encoder(index: index, clockwise: false))
+            await model.assign(cw, device: device, layer: layer, slot: .encoder(index: index, clockwise: true))
+            if model.errorMessage == nil { model.notice = L("Düğme %@: %@", "\(index + 1)", L(preset.title)) }
         }
     }
 
@@ -505,8 +598,14 @@ private struct FirmwareEditor: View {
                     VStack(alignment: .leading, spacing: 3) {
                         if let selection, let code = currentCode {
                             Eyebrow(text: L("Seçili tuş · %@", "\(describe(selection))"))
-                            Text(state.keycodes.title(for: code)).font(.system(size: 17, weight: .semibold)).lineLimit(2)
-                            Text(state.keycodes.name(for: code)).font(Theme.mono(12)).foregroundStyle(Theme.textTertiary).textSelection(.enabled)
+                            if let binding = model.binding(forUsage: code) {
+                                Text(binding.defaultAction?.summary ?? binding.name).font(.system(size: 17, weight: .semibold)).lineLimit(2)
+                                Button(L("Aksiyonu düzenle"), action: editAction)
+                                    .buttonStyle(SecondaryButtonStyle(height: 26))
+                            } else {
+                                Text(state.keycodes.title(for: code)).font(.system(size: 17, weight: .semibold)).lineLimit(2)
+                                Text(state.keycodes.name(for: code)).font(Theme.mono(12)).foregroundStyle(Theme.textTertiary).textSelection(.enabled)
+                            }
                         } else {
                             Eyebrow(text: L("Seçili tuş"))
                             Text(L("Klavyeden bir tuş seçin")).font(.system(size: 17, weight: .semibold))
@@ -632,11 +731,30 @@ private struct FirmwareEditor: View {
         return Theme.accent
     }
 
+    /// Opens the action editor for the selected key (palette "Uygulama ve aksiyon" buttons).
+    private func startAction(_ kind: KeyAction.Kind) {
+        guard selection != nil else {
+            model.errorMessage = L("Klavyeden bir tuş seçin")
+            return
+        }
+        if let code = currentCode, let binding = model.binding(forUsage: code) {
+            actionTarget = .init(bindingID: binding.id, app: nil, initial: nil, kind: kind, title: L("Tuşa aksiyon ata"))
+        } else {
+            actionTarget = .init(bindingID: nil, app: nil, initial: nil, kind: kind, title: L("Tuşa aksiyon ata"))
+        }
+    }
+
+    private func editAction() {
+        guard let code = currentCode, let binding = model.binding(forUsage: code) else { return }
+        actionTarget = .init(bindingID: binding.id, app: nil, initial: binding.defaultAction, title: L("Aksiyonu düzenle"))
+    }
+
     private func cap(for key: LayoutKey) -> KeyCapModel {
         guard let code = state.keymap.keycode(layer: layer, slot: key.slot) else {
             return KeyCapModel(label: KeyLabel(main: ""), kind: .empty)
         }
         if let app { return model.appCap(code: code, app: app, keycodes: state.keycodes) }
+        if let actionCap = model.actionCap(code: code) { return actionCap }
         var label = state.keycodes.label(for: code)
         if let action = model.actionNamesByUsage[code] { label.sub = action }
         return KeyCapModel(

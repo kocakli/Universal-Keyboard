@@ -49,6 +49,7 @@ struct MenuBarContent: View {
                 .tint(Theme.accent)
                 Spacer()
                 LanguageMenu()
+                AboutButton()
                 Button(L("Çıkış  ⌘Q")) { NSApp.terminate(nil) }
                     .buttonStyle(.plain)
                     .font(.system(size: 12))
@@ -130,7 +131,10 @@ private struct DeviceMenuCard: View {
                 .frame(width: 44, height: 44)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(device.displayName).font(.system(size: 14, weight: .semibold)).lineLimit(1)
-                    Text("\(device.brand.name) · \(device.transportLabel)").font(.system(size: 12)).foregroundStyle(Theme.textSecondary).lineLimit(1)
+                    HStack(spacing: 8) {
+                        Text("\(device.brand.name) · \(device.transportLabel)").font(.system(size: 12)).foregroundStyle(Theme.textSecondary).lineLimit(1)
+                        if let battery = model.batteries[device.id] { BatteryBadge(status: battery) }
+                    }
                 }
                 Spacer(minLength: 4)
                 CapabilityBadge(capability: device.capability)

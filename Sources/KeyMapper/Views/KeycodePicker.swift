@@ -16,7 +16,7 @@ enum PickerCategory: String, CaseIterable, Identifiable {
         case .mouse: return L("Fare")
         case .layers: return L("Katman")
         case .special: return L("Özel")
-        case .actions: return L("Aksiyon")
+        case .actions: return L("Uygulama ve aksiyon")
         case .international: return L("Uluslararası")
         }
     }
@@ -36,6 +36,8 @@ struct KeycodePicker: View {
     var annotations: [UInt16: String] = [:]
     /// Longer description per keycode that replaces the generic explanation (e.g. what an action does).
     var details: [UInt16: String] = [:]
+    /// Starts assigning a new action (open an app, URL, Shortcut, …) to the selected key.
+    var onCreateAction: ((KeyAction.Kind) -> Void)?
     let onPick: (UInt16) -> Void
 
     @State private var category: PickerCategory = .basic
@@ -57,6 +59,7 @@ struct KeycodePicker: View {
                 SearchField(text: $search)
                     .frame(width: 200)
             }
+            if category == .actions, search.isEmpty, let onCreateAction { actionCreator(onCreateAction) }
             ScrollView {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 56, maximum: 84), spacing: 8)], spacing: 8) {
                     ForEach(codes, id: \.self) { code in
@@ -83,6 +86,27 @@ struct KeycodePicker: View {
             }
             .scrollIndicators(.automatic)
             infoStrip
+        }
+    }
+
+    /// One button per action type; existing actions follow below as keycaps.
+    private func actionCreator(_ create: @escaping (KeyAction.Kind) -> Void) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(L("Bu tuşa basınca")).font(Theme.label).foregroundStyle(Theme.textSecondary)
+            FlowLayout(spacing: 6) {
+                ForEach(KeyAction.Kind.allCases) { kind in
+                    Button {
+                        create(kind)
+                    } label: {
+                        Label(kind.title, systemImage: kind.symbol)
+                    }
+                    .buttonStyle(PillButtonStyle(isOn: kind == .openApp, height: 30))
+                    .help(kind.explanation)
+                }
+            }
+            if !codes.isEmpty {
+                Text(L("Mevcut aksiyonlar")).font(Theme.label).foregroundStyle(Theme.textSecondary).padding(.top, 4)
+            }
         }
     }
 
@@ -171,7 +195,8 @@ struct KeycodePicker: View {
         case .media: return group(.media)
         case .mouse: return group(.mouse)
         case .international: return group(.international)
-        case .actions: return TriggerKey.all.map(\.usage)
+        // Existing actions only; bare F13–F20 stay under navigation / function keys.
+        case .actions: return TriggerKey.all.map(\.usage).filter { annotations[$0] != nil }
         case .layers:
             var list: [UInt16] = []
             for function in [LayerFunction.MO, .TG, .TO, .TT, .OSL, .DF] {
