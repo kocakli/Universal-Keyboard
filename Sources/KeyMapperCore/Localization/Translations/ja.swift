@@ -658,7 +658,7 @@ extension L10n {
         "Alfabe dönüşümü geri alındı": "アルファベット配列の変換を取り消しました",
         "Klavyeye ulaşılamadı; değişiklik yazılmadı. Klavye yeniden okunuyor; Bluetooth klavyeyi bir tuşa basarak uyandırıp tekrar deneyin.": "キーボードに接続できなかったため、変更は書き込まれていません。キーボードを再読み込みしています。Bluetoothキーボードはキーを押してスリープを解除してから、もう一度お試しください。",
         "Geliştiren: %@": "開発: %@",
-        "Kaynak kodu": "ソースコード",
+        "Kaynak kodu:": "ソースコード:",
         "KeyMapper hakkında": "KeyMapperについて",
         "Sürüm, geliştirici ve GitHub bağlantısı": "バージョン、開発者、GitHubリンク",
         "Etkin katman %@": "アクティブレイヤー %@",

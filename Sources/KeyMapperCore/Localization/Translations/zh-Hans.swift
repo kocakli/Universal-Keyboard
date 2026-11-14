@@ -658,7 +658,7 @@ extension L10n {
         "Alfabe dönüşümü geri alındı": "已撤销字母布局转换",
         "Klavyeye ulaşılamadı; değişiklik yazılmadı. Klavye yeniden okunuyor; Bluetooth klavyeyi bir tuşa basarak uyandırıp tekrar deneyin.": "无法连接键盘，更改未写入。正在重新读取键盘；请按任意键唤醒蓝牙键盘后重试。",
         "Geliştiren: %@": "开发者：%@",
-        "Kaynak kodu": "源代码",
+        "Kaynak kodu:": "源代码：",
         "KeyMapper hakkında": "关于 KeyMapper",
         "Sürüm, geliştirici ve GitHub bağlantısı": "版本、开发者和 GitHub 链接",
         "Etkin katman %@": "当前层 %@",
