@@ -77,11 +77,11 @@ public enum DefinitionSource: String, Codable, Sendable {
 
     public var title: String {
         switch self {
-        case .vialFirmware: return "Klavyeden (Vial)"
-        case .viaRepository: return "VIA deposu"
-        case .userFile: return "İçe aktarılan dosya"
-        case .builtIn: return "Yerleşik"
-        case .vendor: return "Keychron Launcher"
+        case .vialFirmware: return L("Klavyeden (Vial)")
+        case .viaRepository: return L("VIA deposu")
+        case .userFile: return L("İçe aktarılan dosya")
+        case .builtIn: return L("Yerleşik")
+        case .vendor: return L("Keychron Launcher")
         }
     }
 }

@@ -44,9 +44,9 @@ public enum DeviceCapability: String, Codable, Sendable {
 
     public var detail: String {
         switch self {
-        case .vial: return "Firmware keymap (Vial)"
-        case .via: return "Firmware keymap (VIA/QMK)"
-        case .osRemap: return "macOS seviyesinde tuş eşleme"
+        case .vial: return L("Firmware keymap (Vial)")
+        case .via: return L("Firmware keymap (VIA/QMK)")
+        case .osRemap: return L("macOS seviyesinde tuş eşleme")
         }
     }
 }
@@ -98,12 +98,12 @@ public struct KeyboardDevice: Identifiable, Hashable, Sendable {
         switch transport.lowercased() {
         case "usb": return "USB"
         case "bluetooth": return "Bluetooth"
-        case "bluetooth low energy": return "Bluetooth LE"
+        case "bluetooth low energy": return L("Bluetooth LE")
         default: return transport.isEmpty ? "?" : transport
         }
     }
 
-    public var displayName: String { name.isEmpty ? "Klavye \(deviceKey)" : name }
+    public var displayName: String { name.isEmpty ? L("Klavye %@", "\(deviceKey)") : name }
 
     /// bcdDevice as a dotted version (0x0133 → "1.3.3"), nil when the device reports none.
     public var firmwareVersion: String? {

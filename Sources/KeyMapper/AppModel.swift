@@ -34,6 +34,9 @@ final class AppModel {
     var notice: String?
     var unlock: UnlockFlow?
     var launchAtLogin = SMAppService.mainApp.status == .enabled
+    /// Language the UI is shown in, and the user's explicit choice (nil = follow macOS).
+    var language: AppLanguage = L10n.current
+    var languageOverride: AppLanguage? = L10n.override
 
     // Actions (trigger keys → open app / shortcut / keystroke, per app)
     var bindings: [ActionBinding] = []
@@ -171,7 +174,7 @@ final class AppModel {
                 unlock?.counter = poll.counter
                 if poll.unlocked {
                     unlock = nil
-                    notice = "Vial kilidi açıldı."
+                    notice = L("Vial kilidi açıldı.")
                     if let pending = flow.pending, let device = devices.first(where: { $0.id == flow.deviceID }) {
                         await assign(pending.code, device: device, layer: pending.layer, slot: pending.slot)
                     }
@@ -195,7 +198,7 @@ final class AppModel {
 
     private func write(_ keymap: Keymap, to device: KeyboardDevice, message: String) async {
         guard let state = states[device.id], let session = sessions[device.id] else { return }
-        activity[device.id] = "\(message): yazılıyor…"
+        activity[device.id] = L("%@: yazılıyor…", "\(message)")
         defer { activity[device.id] = nil }
         do {
             let deviceID = device.id
@@ -203,7 +206,7 @@ final class AppModel {
                 Task { @MainActor in self?.activity[deviceID] = "\(message): \(done)/\(total)" }
             }
             states[device.id]?.keymap = keymap
-            notice = count == 0 ? "\(message): değişiklik yok." : "\(message): \(count) tuş güncellendi."
+            notice = count == 0 ? L("%@: değişiklik yok.", "\(message)") : L("%@: %@ tuş güncellendi.", "\(message)", "\(count)")
         } catch {
             fail(error, device: device)
             await ensureLoaded(device, force: true)
@@ -248,7 +251,7 @@ final class AppModel {
             let resolved = profile.resolve(onto: state.keymap, keycodes: state.keycodes)
             await write(resolved.keymap, to: device, message: profile.name)
             if !resolved.unknown.isEmpty {
-                errorMessage = "Tanınmayan keycode'lar atlandı: " + Set(resolved.unknown).sorted().prefix(12).joined(separator: ", ")
+                errorMessage = L("Tanınmayan keycode'lar atlandı: ") + Set(resolved.unknown).sorted().prefix(12).joined(separator: ", ")
             }
             store.assign(profile, to: device.deviceKey)
             reloadProfiles()
@@ -267,7 +270,7 @@ final class AppModel {
             try store.save(profile)
             store.assign(profile, to: device.deviceKey)
             reloadProfiles()
-            notice = "Profil kaydedildi: \(name)"
+            notice = L("Profil kaydedildi: %@", "\(name)")
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -279,17 +282,17 @@ final class AppModel {
     }
 
     func importLayoutFile(for device: KeyboardDevice) {
-        guard let url = Panels.open(title: "Layout dosyası seç (.vil, VIA .json, KeyMapper profili)", extensions: ["vil", "json"]) else { return }
+        guard let url = Panels.open(title: L("Layout dosyası seç (.vil, VIA .json, KeyMapper profili)"), extensions: ["vil", "json"]) else { return }
         do {
             var profile = try LayoutFiles.importProfile(from: url, deviceKey: device.deviceKey, cols: states[device.id]?.definition.cols)
             if profile.kind != expectedKind(device) {
-                errorMessage = "Bu dosya \(device.displayName) için uygun değil."
+                errorMessage = L("Bu dosya %@ için uygun değil.", "\(device.displayName)")
                 return
             }
             profile.name = uniqueName(profile.name, device: device)
             try store.save(profile)
             reloadProfiles()
-            notice = "İçe aktarıldı: \(profile.name). Uygulamak için Profil menüsünden seçin."
+            notice = L("İçe aktarıldı: %@. Uygulamak için Profil menüsünden seçin.", "\(profile.name)")
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -298,7 +301,7 @@ final class AppModel {
     func export(_ device: KeyboardDevice, format: ExportFormat) {
         guard let state = states[device.id] else { return }
         let base = state.definition.name.replacingOccurrences(of: "/", with: "-")
-        guard let url = Panels.save(title: "Dışa aktar", name: "\(base).\(format.fileExtension)") else { return }
+        guard let url = Panels.save(title: L("Dışa aktar"), name: "\(base).\(format.fileExtension)") else { return }
         do {
             let data: Data
             switch format {
@@ -312,7 +315,7 @@ final class AppModel {
                 data = try LayoutFiles.profileData(.snapshot(name: base, deviceKey: device.deviceKey, keymap: state.keymap, keycodes: state.keycodes))
             }
             try data.write(to: url, options: .atomic)
-            notice = "Kaydedildi: \(url.lastPathComponent)"
+            notice = L("Kaydedildi: %@", url.lastPathComponent)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -324,7 +327,7 @@ final class AppModel {
     }
 
     func importDefinition(for device: KeyboardDevice) {
-        guard let url = Panels.open(title: "VIA tanım dosyası seç (.json)", extensions: ["json"]) else { return }
+        guard let url = Panels.open(title: L("VIA tanım dosyası seç (.json)"), extensions: ["json"]) else { return }
         do {
             try DefinitionStore.shared.importUserDefinition(from: url, vendorID: device.vendorID, productID: device.productID)
             Task { await ensureLoaded(device, force: true) }
@@ -381,7 +384,7 @@ final class AppModel {
         }
         guard persist else { return }
         var profile = assignedProfile(for: device).flatMap { $0.kind == .osRemap ? $0 : nil }
-            ?? LayoutProfile(name: "Varsayılan", deviceKey: device.deviceKey, kind: .osRemap)
+            ?? LayoutProfile(name: L("Varsayılan"), deviceKey: device.deviceKey, kind: .osRemap)
         profile.remaps = sorted
         try? store.save(profile)
         store.assign(profile, to: device.deviceKey)
@@ -390,11 +393,21 @@ final class AppModel {
 
     // MARK: Misc
 
+    func setLanguage(_ choice: AppLanguage?) {
+        L10n.setOverride(choice)
+        languageOverride = choice
+        language = L10n.current
+        notice = nil
+        errorMessage = nil
+        // Release notes come in the selected language.
+        for device in devices { Task { await refreshFirmware(device) } }
+    }
+
     func setLaunchAtLogin(_ enabled: Bool) {
         do {
             if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
         } catch {
-            errorMessage = "Girişte başlatma ayarlanamadı: \(error.localizedDescription) (uygulamanın .app olarak kurulu olması gerekir)"
+            errorMessage = L("Girişte başlatma ayarlanamadı: %@ (uygulamanın .app olarak kurulu olması gerekir)", "\(error.localizedDescription)")
         }
         launchAtLogin = SMAppService.mainApp.status == .enabled
     }

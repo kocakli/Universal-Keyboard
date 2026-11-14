@@ -10,7 +10,7 @@ struct AppTabBar: View {
     var body: some View {
         let selected = model.selectedApp[device.id]
         HStack(spacing: 6) {
-            tab(isOn: selected == nil, help: "Tüm uygulamalar") {
+            tab(isOn: selected == nil, help: L("Tüm uygulamalar")) {
                 Image(systemName: "square.grid.2x2")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(selected == nil ? Theme.text : Theme.textSecondary)
@@ -24,21 +24,21 @@ struct AppTabBar: View {
                     model.selectedApp[device.id] = app
                 }
                 .contextMenu {
-                    Button("\(app.name) sekmesini kaldır", role: .destructive) { model.removeAppTab(app, device: device) }
+                    Button(L("%@ sekmesini kaldır", "\(app.name)"), role: .destructive) { model.removeAppTab(app, device: device) }
                 }
             }
             addMenu
         }
         .padding(4)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.surface))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.lineSoft, lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.surface))
+        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
     }
 
     private func tab<Label: View>(isOn: Bool, help: String, @ViewBuilder label: () -> Label, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 4) {
                 label().frame(width: 30, height: 26)
-                Capsule().fill(isOn ? Theme.signal : .clear).frame(width: 22, height: 3)
+                Capsule().fill(isOn ? Theme.accent : .clear).frame(width: 22, height: 3)
             }
             .padding(.horizontal, 4)
             .padding(.top, 4)
@@ -52,18 +52,18 @@ struct AppTabBar: View {
 
     private var addMenu: some View {
         Menu {
-            Section("Açık uygulamalar") {
+            Section(L("Açık uygulamalar")) {
                 ForEach(AppChoice.running.filter { app in !model.appTabs(for: device).contains(app) }) { app in
                     Button(app.name) { model.addAppTab(app, device: device) }
                 }
             }
-            Section("Hazır kısayolu olanlar") {
+            Section(L("Hazır kısayolu olanlar")) {
                 ForEach(ActionPresets.apps) { preset in
                     Button(preset.appName) { model.addAppTab(AppChoice(bundleID: preset.bundleID, name: preset.appName), device: device) }
                 }
             }
             Divider()
-            Button("Başka bir uygulama seç…") { if let app = AppChoice.choose() { model.addAppTab(app, device: device) } }
+            Button(L("Başka bir uygulama seç…")) { if let app = AppChoice.choose() { model.addAppTab(app, device: device) } }
         } label: {
             Image(systemName: "plus")
                 .font(.system(size: 14, weight: .semibold))
@@ -75,8 +75,8 @@ struct AppTabBar: View {
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
-        .help("Uygulama ekle")
-        .accessibilityLabel("Uygulama ekle")
+        .help(L("Uygulama ekle"))
+        .accessibilityLabel(L("Uygulama ekle"))
     }
 }
 
@@ -101,14 +101,14 @@ struct AppKeyPanel: View {
                     HStack(spacing: 12) {
                         AppIcon(bundleID: app.bundleID).frame(width: 40, height: 40)
                         VStack(alignment: .leading, spacing: 2) {
-                            Eyebrow(text: "Uygulamaya özel")
-                            Text("\(app.name) öndeyken").font(.system(size: 17, weight: .semibold))
+                            Eyebrow(text: L("Uygulamaya özel"))
+                            Text(L("%@ öndeyken", "\(app.name)")).font(.system(size: 17, weight: .semibold))
                         }
                     }
                     if let slot, let code {
                         selectedKey(slot: slot, code: code)
                     } else {
-                        Text("Klavyeden bir tuş seçin. Seçtiğiniz tuşa yalnızca \(app.name) öndeyken çalışacak bir kısayol, uygulama veya medya işlevi atayabilirsiniz.")
+                        Text(L("Klavyeden bir tuş seçin. Seçtiğiniz tuşa yalnızca %@ öndeyken çalışacak bir kısayol, uygulama veya medya işlevi atayabilirsiniz.", "\(app.name)"))
                             .font(.system(size: 13))
                             .foregroundStyle(Theme.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -120,9 +120,9 @@ struct AppKeyPanel: View {
 
             Panel {
                 VStack(alignment: .leading, spacing: 12) {
-                    Eyebrow(text: "\(app.name) için hazır kısayollar")
+                    Eyebrow(text: L("%@ için hazır kısayollar", "\(app.name)"))
                     if presets.isEmpty {
-                        Text("Bu uygulama için hazır liste yok; \"Özel aksiyon\" ile kısayolu kaydedin.")
+                        Text(L("Bu uygulama için hazır liste yok; \"Özel aksiyon\" ile kısayolu kaydedin."))
                             .font(.system(size: 13))
                             .foregroundStyle(Theme.textSecondary)
                     }
@@ -132,22 +132,22 @@ struct AppKeyPanel: View {
                                 Task { await apply(.keystroke(preset.combo)) }
                             } label: {
                                 HStack(spacing: 8) {
-                                    Text(preset.title)
-                                    Text(preset.combo.display).font(Theme.rounded(12)).foregroundStyle(Theme.signalSoft)
+                                    Text(L(preset.title))
+                                    Text(preset.combo.display).font(Theme.rounded(12)).foregroundStyle(Theme.accent)
                                 }
                             }
                             .buttonStyle(PillButtonStyle(isOn: currentRule?.action == .keystroke(preset.combo), height: 34))
                             .disabled(slot == nil || refusal != nil)
-                            .help("\(app.name) öndeyken \(preset.combo.display) kısayolunu gönderir: \(preset.title.lowercased(with: Locale(identifier: "tr_TR"))).")
+                            .help(L("%@ öndeyken %@ kısayolunu gönderir: %@.", "\(app.name)", "\(preset.combo.display)", "\(L(preset.title).lowercased(with: L10n.current.locale))"))
                         }
                         Button {
                             Task { await openCustomEditor() }
                         } label: {
-                            Label("Özel aksiyon…", systemImage: "slider.horizontal.3")
+                            Label(L("Özel aksiyon…"), systemImage: "slider.horizontal.3")
                         }
                         .buttonStyle(PillButtonStyle(isOn: false, height: 34))
                         .disabled(slot == nil || refusal != nil)
-                        .help("Uygulama açma, adres, Kestirme, kısayol, metin veya medya tuşu seçin.")
+                        .help(L("Uygulama açma, adres, Kestirme, kısayol, metin veya medya tuşu seçin."))
                     }
                     Spacer(minLength: 0)
                 }
@@ -177,13 +177,13 @@ struct AppKeyPanel: View {
     private func selectedKey(slot: KeySlot, code: UInt16) -> some View {
         if let binding {
             VStack(alignment: .leading, spacing: 10) {
-                row(title: app.name, value: currentRule?.action.summary ?? "Varsayılanı kullanır", highlighted: currentRule != nil,
+                row(title: app.name, value: currentRule?.action.summary ?? L("Varsayılanı kullanır"), highlighted: currentRule != nil,
                     edit: { editing = .init(bindingID: binding.id, app: app, initial: currentRule?.action) },
                     remove: currentRule == nil ? nil : { model.setAction(nil, bindingID: binding.id, app: app) })
-                row(title: "Diğer uygulamalar", value: binding.defaultAction?.summary ?? "Hiçbir şey yapmaz", highlighted: false,
+                row(title: L("Diğer uygulamalar"), value: binding.defaultAction?.summary ?? L("Hiçbir şey yapmaz"), highlighted: false,
                     edit: { editing = .init(bindingID: binding.id, app: nil, initial: binding.defaultAction) },
                     remove: nil)
-                Text("Akıllı tuş · tetik \(binding.trigger.display)").font(.system(size: 11)).foregroundStyle(Theme.textTertiary)
+                Text(L("Akıllı tuş · tetik %@", "\(binding.trigger.display)")).font(.system(size: 11)).foregroundStyle(Theme.textTertiary)
             }
         } else if let refusal {
             Label(refusal, systemImage: "exclamationmark.circle")
@@ -192,16 +192,16 @@ struct AppKeyPanel: View {
                 .fixedSize(horizontal: false, vertical: true)
         } else {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Bu tuş şu an her uygulamada \"\(keycodes.shortLabel(code).isEmpty ? keycodes.name(for: code) : keycodes.shortLabel(code))\". Bir kısayol seçtiğinizde KeyMapper onu akıllı tuşa çevirir: \(app.name)'ta yeni işlevi yapar, diğer uygulamalarda eskisi gibi çalışır.")
+                Text(L("Bu tuş şu an her uygulamada \"%@\". Bir kısayol seçtiğinizde KeyMapper onu akıllı tuşa çevirir: %@'ta yeni işlevi yapar, diğer uygulamalarda eskisi gibi çalışır.", "\(keycodes.shortLabel(code).isEmpty ? keycodes.name(for: code) : keycodes.shortLabel(code))", "\(app.name)"))
                     .font(.system(size: 13))
                     .foregroundStyle(Theme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if SmartKeys.emulation(of: code, keycodes: keycodes) == nil {
-                    Label("Bu tuşun şimdiki işlevi taklit edilemiyor; diğer uygulamalarda bir şey yapmayacak.", systemImage: "info.circle")
+                    Label(L("Bu tuşun şimdiki işlevi taklit edilemiyor; diğer uygulamalarda bir şey yapmayacak."), systemImage: "info.circle")
                         .font(.system(size: 12))
-                        .foregroundStyle(Theme.signalSoft)
+                        .foregroundStyle(Theme.accent)
                 }
-                if working { ProgressView().controlSize(.small).tint(Theme.signal) }
+                if working { ProgressView().controlSize(.small).tint(Theme.accent) }
             }
         }
     }
@@ -210,19 +210,19 @@ struct AppKeyPanel: View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
-                Text(value).font(.system(size: 14, weight: .semibold)).foregroundStyle(highlighted ? Theme.signalSoft : Theme.text).lineLimit(1)
+                Text(value).font(.system(size: 14, weight: .semibold)).foregroundStyle(highlighted ? Theme.accent : Theme.text).lineLimit(1)
             }
             Spacer()
-            Button("Düzenle", action: edit).buttonStyle(SecondaryButtonStyle(height: 28))
+            Button(L("Düzenle"), action: edit).buttonStyle(SecondaryButtonStyle(height: 28))
             if let remove {
                 Button(action: remove) { Image(systemName: "xmark") }
                     .buttonStyle(SecondaryButtonStyle(height: 28))
-                    .accessibilityLabel("Kaldır")
+                    .accessibilityLabel(L("Kaldır"))
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.ground))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(highlighted ? Theme.signal.opacity(0.6) : Theme.lineSoft, lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.ground))
+        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(highlighted ? Theme.accent.opacity(0.6) : Theme.line, lineWidth: 1))
     }
 
     /// Ensures the key is a smart key, then stores the action for this app.

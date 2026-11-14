@@ -10,22 +10,22 @@ struct MenuBarContent: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 10) {
                 AppMark(size: 26)
-                Text("KeyMapper").font(.system(size: 15, weight: .bold)).tracking(-0.2)
+                Text("KeyMapper").font(.system(size: 14, weight: .semibold))
                 Spacer()
-                Text("\(model.devices.count) klavye").font(.system(size: 12)).foregroundStyle(Theme.textTertiary)
+                Text(L("%@ klavye", "\(model.devices.count)")).font(.system(size: 12)).foregroundStyle(Theme.textTertiary)
             }
 
             if model.devices.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Bağlı klavye yok").font(.system(size: 14, weight: .semibold))
-                    Text("Bluetooth klavyeler uykudaysa bir tuşa basarak uyandırın.")
+                    Text(L("Bağlı klavye yok")).font(.system(size: 14, weight: .semibold))
+                    Text(L("Bluetooth klavyeler uykudaysa bir tuşa basarak uyandırın."))
                         .font(.system(size: 12))
                         .foregroundStyle(Theme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(hex: 0x1B1D22)))
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.raised))
             } else {
                 ForEach(model.devices) { device in
                     DeviceMenuCard(device: device, openEditor: { openEditor(device) })
@@ -36,19 +36,20 @@ struct MenuBarContent: View {
 
             StatusBanner()
 
-            Button("Editörü aç") { openEditor(model.selectedDevice) }
+            Button(L("Editörü aç")) { openEditor(model.selectedDevice) }
                 .buttonStyle(PrimaryButtonStyle(height: 40))
                 .frame(maxWidth: .infinity)
                 .keyboardShortcut("e")
 
             HStack {
                 Toggle(isOn: Binding(get: { model.launchAtLogin }, set: { model.setLaunchAtLogin($0) })) {
-                    Text("Girişte başlat").font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
+                    Text(L("Girişte başlat")).font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
                 }
                 .toggleStyle(.checkbox)
-                .tint(Theme.signal)
+                .tint(Theme.accent)
                 Spacer()
-                Button("Çıkış  ⌘Q") { NSApp.terminate(nil) }
+                LanguageMenu()
+                Button(L("Çıkış  ⌘Q")) { NSApp.terminate(nil) }
                     .buttonStyle(.plain)
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.textSecondary)
@@ -57,9 +58,9 @@ struct MenuBarContent: View {
         }
         .padding(16)
         .frame(width: 360)
-        .background(Theme.surface)
         .foregroundStyle(Theme.text)
-        .preferredColorScheme(.dark)
+        .environment(\.locale, model.language.locale)
+        .id(model.language)
     }
 
     private func openEditor(_ device: KeyboardDevice?) {
@@ -76,21 +77,21 @@ struct MenuBarContent: View {
         HStack(spacing: 12) {
             Image(systemName: "bolt.horizontal.fill")
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Theme.signal)
+                .foregroundStyle(Theme.accent)
                 .frame(width: 32, height: 32)
-                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Theme.signalTint))
+                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Theme.accentTint))
             VStack(alignment: .leading, spacing: 2) {
-                Text("Aksiyonlar").font(.system(size: 13, weight: .semibold))
+                Text(L("Aksiyonlar")).font(.system(size: 13, weight: .semibold))
                 Text(actionsSubtitle).font(.system(size: 12)).foregroundStyle(Theme.textSecondary).lineLimit(1)
             }
             Spacer(minLength: 4)
             Toggle("", isOn: Binding(get: { model.actionsEnabled }, set: { model.setActionsEnabled($0) }))
                 .toggleStyle(.switch)
                 .controlSize(.mini)
-                .tint(Theme.signal)
+                .tint(Theme.accent)
                 .labelsHidden()
-                .accessibilityLabel("Aksiyonları aç/kapat")
-            Button("Düzenle") {
+                .accessibilityLabel(L("Aksiyonları aç/kapat"))
+            Button(L("Düzenle")) {
                 model.showingActions = true
                 openWindow(id: EditorWindow.id)
                 NSApp.activate(ignoringOtherApps: true)
@@ -98,14 +99,14 @@ struct MenuBarContent: View {
             .buttonStyle(SecondaryButtonStyle(height: 28, emphasized: true))
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(hex: 0x1B1D22)))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.raised))
+        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
     }
 
     private var actionsSubtitle: String {
         let active = model.bindings.filter(\.isEnabled)
-        guard model.actionsEnabled else { return "Kapalı" }
-        if active.isEmpty { return "Tuşa uygulama veya kısayol atayın" }
+        guard model.actionsEnabled else { return L("Kapalı") }
+        if active.isEmpty { return L("Tuşa uygulama veya kısayol atayın") }
         let names = active.prefix(3).map { "\($0.trigger.display) \($0.name)" }.joined(separator: " · ")
         return names
     }
@@ -120,10 +121,10 @@ private struct DeviceMenuCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(device.capability == .osRemap ? Color(hex: 0x1F2229) : Color(hex: 0x2A1C14))
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(device.capability == .osRemap ? Theme.raised : Theme.accentTint)
                     KeyboardSilhouette(keys: model.states[device.id]?.definition.keys ?? [],
-                                       color: device.capability == .osRemap ? Theme.textTertiary : Theme.signal)
+                                       color: device.capability == .osRemap ? Theme.textTertiary : Theme.accent)
                         .frame(width: 26, height: 16)
                 }
                 .frame(width: 44, height: 44)
@@ -136,7 +137,7 @@ private struct DeviceMenuCard: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Eyebrow(text: "Layout")
+                Eyebrow(text: L("Layout"))
                 FlowLayout(spacing: 6) {
                     ForEach(model.profiles(for: device)) { profile in
                         let isOn = model.assignedProfile(for: device)?.id == profile.id
@@ -149,36 +150,36 @@ private struct DeviceMenuCard: View {
             }
 
             HStack(spacing: 8) {
-                Circle().fill(device.capability == .osRemap ? Theme.cobalt : Theme.signal).frame(width: 6, height: 6)
+                Circle().fill(device.capability == .osRemap ? Theme.layerText : Theme.accent).frame(width: 6, height: 6)
                 Text(status).font(.system(size: 12)).foregroundStyle(Theme.textSecondary).lineLimit(1)
                 Spacer(minLength: 4)
-                if model.activity[device.id] != nil { ProgressView().controlSize(.mini).tint(Theme.signal) }
-                Button("Düzenle", action: openEditor)
+                if model.activity[device.id] != nil { ProgressView().controlSize(.mini).tint(Theme.accent) }
+                Button(L("Düzenle"), action: openEditor)
                     .buttonStyle(SecondaryButtonStyle(height: 28, emphasized: true))
             }
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(hex: 0x1B1D22)))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.raised))
+        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
     }
 
     private var status: String {
         if let activity = model.activity[device.id] { return activity }
         if let firmware = model.firmware[device.id], firmware.isUpdateAvailable, let latest = firmware.latest {
-            return "Firmware güncellemesi var: \(latest.version)"
+            return L("Firmware güncellemesi var: %@", "\(latest.version)")
         }
         if device.capability == .osRemap {
             let count = model.currentRemaps(device).count
-            return count == 0 ? "macOS eşlemesi yok" : "\(count) eşleme · bağlanınca yeniden uygulanır"
+            return count == 0 ? L("macOS eşlemesi yok") : L("%@ eşleme · bağlanınca yeniden uygulanır", "\(count)")
         }
-        if let profile = model.assignedProfile(for: device) { return "\(profile.name) uygulandı" }
-        return "Henüz profil yok"
+        if let profile = model.assignedProfile(for: device) { return L("%@ uygulandı", "\(profile.name)") }
+        return L("Henüz profil yok")
     }
 
     /// "+": import a file, plus ready made remaps for macOS-level keyboards.
     private var addMenu: some View {
         Menu {
-            Button("Dosyadan içe aktar (.vil / VIA .json)…") {
+            Button(L("Dosyadan içe aktar (.vil / VIA .json)…")) {
                 Task {
                     await model.ensureLoaded(device)
                     model.importLayoutFile(for: device)
@@ -187,27 +188,27 @@ private struct DeviceMenuCard: View {
             if device.capability == .osRemap {
                 Divider()
                 ForEach(AlphaLayout.all.dropFirst()) { layout in
-                    Button("Alfabe: \(layout.name)") { model.mergeRemaps(AlphaLayout.remaps(to: layout), device: device) }
+                    Button(L("Alfabe: %@", layout.name)) { model.mergeRemaps(AlphaLayout.remaps(to: layout), device: device) }
                 }
                 ForEach(HIDUtilRemapper.presets, id: \.name) { preset in
-                    Button(preset.name) { model.mergeRemaps(preset.remaps, device: device) }
+                    Button(L(preset.name)) { model.mergeRemaps(preset.remaps, device: device) }
                 }
                 Divider()
-                Button("Tüm eşlemeleri kaldır") { model.setRemaps([], device: device, persist: true) }
+                Button(L("Tüm eşlemeleri kaldır")) { model.setRemaps([], device: device, persist: true) }
             }
         } label: {
             Image(systemName: "plus")
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(Theme.textSecondary)
                 .frame(width: 30, height: 30)
-                .overlay(Circle().strokeBorder(Color(hex: 0x3A3E48), style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
-                .contentShape(Circle())
+                .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
+                .contentShape(Rectangle())
         }
         .menuStyle(.button)
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
-        .accessibilityLabel("Layout ekle")
+        .accessibilityLabel(L("Layout ekle"))
     }
 }
 
@@ -217,9 +218,9 @@ struct StatusBanner: View {
 
     var body: some View {
         if let error = model.errorMessage {
-            toast(error, icon: "exclamationmark.triangle.fill", color: Color(hex: 0xFF8E8E)) { model.errorMessage = nil }
+            toast(error, icon: "exclamationmark.triangle.fill", color: Theme.error) { model.errorMessage = nil }
         } else if let notice = model.notice {
-            toast(notice, icon: "checkmark.circle.fill", color: Theme.signal) { model.notice = nil }
+            toast(notice, icon: "checkmark.circle.fill", color: Theme.accent) { model.notice = nil }
         }
     }
 
@@ -231,13 +232,13 @@ struct StatusBanner: View {
             Button(action: dismiss) { Image(systemName: "xmark").font(.system(size: 10, weight: .bold)) }
                 .buttonStyle(.plain)
                 .foregroundStyle(Theme.textSecondary)
-                .accessibilityLabel("Kapat")
+                .accessibilityLabel(L("Kapat"))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .frame(maxWidth: 520)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.raised))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
-        .shadow(color: .black.opacity(0.4), radius: 16, y: 8)
+        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.raised))
+        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
+        .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
     }
 }

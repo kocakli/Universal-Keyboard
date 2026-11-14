@@ -5,7 +5,7 @@ public enum RemapError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case let .hidutilFailed(output): return "hidutil başarısız oldu: \(output)"
+        case let .hidutilFailed(output): return L("hidutil başarısız oldu: %@", output)
         }
     }
 }
@@ -80,12 +80,12 @@ public enum HIDUtilRemapper {
 
     /// Ready made remaps that are popular on macOS.
     public static let presets: [(name: String, remaps: [KeyRemap])] = [
-        ("Caps Lock → Escape", [KeyRemap(from: 0x39, to: 0x29)]),
-        ("Caps Lock → Control", [KeyRemap(from: 0x39, to: 0xE0)]),
-        ("Windows klavye: Alt ⇄ Win (Mac düzeni)", [
+        (LK("Caps Lock → Escape"), [KeyRemap(from: 0x39, to: 0x29)]),
+        (LK("Caps Lock → Control"), [KeyRemap(from: 0x39, to: 0xE0)]),
+        (LK("Windows klavye: Alt ⇄ Win (Mac düzeni)"), [
             KeyRemap(from: 0xE2, to: 0xE3), KeyRemap(from: 0xE3, to: 0xE2),
             KeyRemap(from: 0xE6, to: 0xE7), KeyRemap(from: 0xE7, to: 0xE6),
         ]),
-        ("ISO § / ` düzelt (§ ⇄ `)", [KeyRemap(from: 0x64, to: 0x35), KeyRemap(from: 0x35, to: 0x64)]),
+        (LK("ISO § / ` düzelt (§ ⇄ `)"), [KeyRemap(from: 0x64, to: 0x35), KeyRemap(from: 0x35, to: 0x64)]),
     ]
 }

@@ -22,6 +22,7 @@ Yöntem markaya göre değil, cihazın sunduğu arayüze göre seçilir: QMK raw
 - **Vial kilidi**: `QK_BOOT` gibi korumalı tuşlar için Vial kilit açma akışı.
 - **Aksiyonlar** (Logitech Options+'taki uygulamaya özel ayarlar gibi): bir tuşa uygulama açma, adres/dosya açma, Kestirmeler çalıştırma, kısayol gönderme veya metin yazma atanır; aynı tuş öndeki uygulamaya göre farklı iş yapabilir (ör. Safari'de yeni sekme, VS Code'da komut paleti, diğer her yerde Spotlight). Safari, Chrome, Finder, VS Code, Zoom, Slack ve Photoshop için hazır kısayollar vardır.
 - **Girişte başlat** seçeneği.
+- **Diller**: Türkçe, English, Español, 日本語 ve 简体中文. Varsayılan olarak macOS dilini izler; menü çubuğundan veya editörün kenar çubuğundan anında değiştirilebilir. `kmctl` aynı dil seçimini kullanır (`KEYMAPPER_LANG=ja kmctl list` ile geçici olarak değiştirilebilir).
 
 ## Aksiyonlar nasıl çalışır
 
@@ -110,6 +111,13 @@ Sources/
     Brands/             Üretici (VID) veritabanı
   KeyMapper/            SwiftUI menü çubuğu uygulaması + editör
   kmctl/                Komut satırı aracı
+Resources/
+  AppIcon.icon/         Uygulama ikonu (Icon Composer belgesi; Liquid Glass)
+  Glyph.png             Şeffaf glif: uygulama içi logo ve menü çubuğu simgesi
 ```
+
+İkon `Resources/AppIcon.icon` belgesinden derleme sırasında `actool` ile üretilir: macOS 26 ve sonrası için `Assets.car` (açık, koyu, renkli ve şeffaf ikon stilleri sistem tarafından otomatik), daha eski macOS için `AppIcon.icns`. Belge Xcode ile gelen Icon Composer'da açılıp düzenlenebilir.
+
+Çeviriler `Sources/KeyMapperCore/Localization/` altındadır: arayüz metinleri kaynakta Türkçe yazılır ve `L("…")` ile işaretlenir; her dilin sözlüğü bu Türkçe metinleri anahtar olarak kullanır. Testler her işaretli metnin tüm dillerde, aynı yer tutucularla (`%@`) çevrildiğini doğrular.
 
 Veriler `~/Library/Application Support/KeyMapper/` altında tutulur (profiller, VIA tanım önbelleği, kullanıcı tanımları).

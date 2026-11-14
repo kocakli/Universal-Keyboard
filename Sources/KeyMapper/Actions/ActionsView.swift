@@ -46,22 +46,22 @@ struct ActionsView: View {
     private var header: some View {
         HStack(alignment: .bottom, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
-                Eyebrow(text: "Aksiyonlar", color: Theme.signal)
-                Text("Uygulamalar ve kısayollar").font(.system(size: 30, weight: .bold)).tracking(-0.6)
-                Text("Bir tuşa basınca uygulama açın, kestirme çalıştırın veya öndeki uygulamaya göre farklı bir kısayol gönderin.")
+                Eyebrow(text: L("Aksiyonlar"))
+                Text(L("Uygulamalar ve kısayollar")).font(.title.weight(.semibold))
+                Text(L("Bir tuşa basınca uygulama açın, kestirme çalıştırın veya öndeki uygulamaya göre farklı bir kısayol gönderin."))
                     .font(.system(size: 13))
                     .foregroundStyle(Theme.textSecondary)
             }
             Spacer(minLength: 12)
             Toggle(isOn: Binding(get: { model.actionsEnabled }, set: { model.setActionsEnabled($0) })) {
-                Text("Açık").font(.system(size: 13)).foregroundStyle(Theme.textMuted)
+                Text(L("Açık")).font(.system(size: 13)).foregroundStyle(Theme.textSecondary)
             }
             .toggleStyle(.switch)
-            .tint(Theme.signal)
+            .tint(Theme.accent)
             Button {
                 model.addBinding()
             } label: {
-                Label("Yeni aksiyon", systemImage: "plus")
+                Label(L("Yeni aksiyon"), systemImage: "plus")
             }
             .buttonStyle(PrimaryButtonStyle())
             .disabled(ActionStore.nextFreeTrigger(in: model.bindings) == nil)
@@ -70,27 +70,27 @@ struct ActionsView: View {
 
     private var accessibilityBanner: some View {
         HStack(spacing: 12) {
-            Image(systemName: "hand.raised.fill").foregroundStyle(Theme.signal)
+            Image(systemName: "hand.raised.fill").foregroundStyle(Theme.accent)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Tuş göndermek için izin gerekiyor").font(.system(size: 13, weight: .semibold))
-                Text("Kısayol ve metin aksiyonları macOS Erişilebilirlik izni ister. Uygulama açma ve kestirmeler izinsiz çalışır.")
+                Text(L("Tuş göndermek için izin gerekiyor")).font(.system(size: 13, weight: .semibold))
+                Text(L("Kısayol ve metin aksiyonları macOS Erişilebilirlik izni ister. Uygulama açma ve kestirmeler izinsiz çalışır."))
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.textSecondary)
             }
             Spacer()
-            Button("İzin ver") { ActionPerformer.requestAccessibility() }
+            Button(L("İzin ver")) { ActionPerformer.requestAccessibility() }
                 .buttonStyle(PrimaryButtonStyle(height: 32))
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.signalTint.opacity(0.6)))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.signal.opacity(0.5), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.accentTint.opacity(0.6)))
+        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.accent.opacity(0.5), lineWidth: 1))
     }
 
     private var howTo: some View {
         HStack(alignment: .top, spacing: 18) {
-            step("1", "Tetik tuşu", "Her aksiyon F16–F20 veya F13 gibi normal klavyelerde olmayan bir tuşu kullanır; KeyMapper bu tuşu yakalar, öndeki uygulama görmez.")
-            step("2", "Klavyeye ata", "Klavye editöründe paletin \"Aksiyon\" sekmesinden bir fiziksel tuşa atayın (VIA/Vial'de firmware'e, diğer klavyelerde macOS eşlemesi olarak).")
-            step("3", "Uygulamaya göre", "Varsayılan işlemi ve belirli uygulamalar öndeyken çalışacak farklı işlemleri seçin.")
+            step("1", L("Tetik tuşu"), L("Her aksiyon F16–F20 veya F13 gibi normal klavyelerde olmayan bir tuşu kullanır; KeyMapper bu tuşu yakalar, öndeki uygulama görmez."))
+            step("2", L("Klavyeye ata"), L("Klavye editöründe paletin \"Aksiyon\" sekmesinden bir fiziksel tuşa atayın (VIA/Vial'de firmware'e, diğer klavyelerde macOS eşlemesi olarak)."))
+            step("3", L("Uygulamaya göre"), L("Varsayılan işlemi ve belirli uygulamalar öndeyken çalışacak farklı işlemleri seçin."))
         }
     }
 
@@ -98,9 +98,9 @@ struct ActionsView: View {
         HStack(alignment: .top, spacing: 10) {
             Text(number)
                 .font(Theme.rounded(13))
-                .foregroundStyle(Theme.onSignal)
+                .foregroundStyle(Theme.onAccent)
                 .frame(width: 24, height: 24)
-                .background(Circle().fill(Theme.signal))
+                .background(Circle().fill(Theme.accent))
             VStack(alignment: .leading, spacing: 3) {
                 Text(title).font(.system(size: 13, weight: .semibold))
                 Text(text).font(.system(size: 12)).foregroundStyle(Theme.textSecondary).fixedSize(horizontal: false, vertical: true)
@@ -112,14 +112,14 @@ struct ActionsView: View {
     private var emptyState: some View {
         KeyboardStage {
             VStack(spacing: 12) {
-                Image(systemName: "bolt.horizontal.circle").font(.system(size: 34)).foregroundStyle(Theme.signal)
-                Text("Henüz aksiyon yok").font(.system(size: 17, weight: .semibold))
-                Text("Örnek: F13'e basınca Safari'de yeni sekme, VS Code'da komut paleti, diğer her yerde Spotlight.")
+                Image(systemName: "bolt.horizontal.circle").font(.system(size: 34)).foregroundStyle(Theme.accent)
+                Text(L("Henüz aksiyon yok")).font(.system(size: 17, weight: .semibold))
+                Text(L("Örnek: F13'e basınca Safari'de yeni sekme, VS Code'da komut paleti, diğer her yerde Spotlight."))
                     .font(.system(size: 13))
                     .foregroundStyle(Theme.textSecondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 460)
-                Button("İlk aksiyonu oluştur") { model.addBinding() }
+                Button(L("İlk aksiyonu oluştur")) { model.addBinding() }
                     .buttonStyle(PrimaryButtonStyle())
             }
             .frame(minHeight: 220)
@@ -145,17 +145,17 @@ private struct BindingCard: View {
                 HStack(spacing: 14) {
                     triggerMenu
                     VStack(alignment: .leading, spacing: 4) {
-                        TextField("Aksiyon adı", text: $name)
+                        TextField(L("Aksiyon adı"), text: $name)
                             .textFieldStyle(.plain)
                             .font(.system(size: 17, weight: .semibold))
                             .onSubmit(rename)
                             .onChange(of: name) { _, _ in rename() }
                         if model.refusedBindings.contains(binding.id) {
-                            Text("\(binding.trigger.display) başka bir uygulama tarafından kullanılıyor; farklı bir tetik seçin.")
+                            Text(L("%@ başka bir uygulama tarafından kullanılıyor; farklı bir tetik seçin.", "\(binding.trigger.display)"))
                                 .font(.system(size: 12))
-                                .foregroundStyle(Color(hex: 0xFF8E8E))
+                                .foregroundStyle(Theme.error)
                         } else {
-                            Text("Tetik: \(binding.trigger.display) · \(binding.appRules.count) uygulamaya özel kural")
+                            Text(L("Tetik: %@ · %@ uygulamaya özel kural", "\(binding.trigger.display)", "\(binding.appRules.count)"))
                                 .font(.system(size: 12))
                                 .foregroundStyle(Theme.textSecondary)
                         }
@@ -165,16 +165,16 @@ private struct BindingCard: View {
                         var copy = binding; copy.isEnabled = value; model.update(copy)
                     }))
                     .toggleStyle(.switch)
-                    .tint(Theme.signal)
+                    .tint(Theme.accent)
                     .labelsHidden()
-                    .accessibilityLabel("Aksiyonu etkinleştir")
+                    .accessibilityLabel(L("Aksiyonu etkinleştir"))
                     Button(role: .destructive) { model.delete(binding) } label: { Image(systemName: "trash") }
                         .buttonStyle(SecondaryButtonStyle(height: 32))
-                        .accessibilityLabel("Aksiyonu sil")
+                        .accessibilityLabel(L("Aksiyonu sil"))
                 }
 
-                ActionRow(icon: AnyView(GlobeBadge()), title: "Diğer tüm uygulamalarda", action: binding.defaultAction,
-                          placeholder: "Hiçbir şey yapma",
+                ActionRow(icon: AnyView(GlobeBadge()), title: L("Diğer tüm uygulamalarda"), action: binding.defaultAction,
+                          placeholder: L("Hiçbir şey yapma"),
                           edit: { edit(.init(bindingID: binding.id, ruleID: nil, initial: binding.defaultAction)) },
                           remove: nil)
 
@@ -206,7 +206,7 @@ private struct BindingCard: View {
         Menu {
             ForEach(TriggerKey.all) { trigger in
                 let inUse = model.bindings.contains { $0.id != binding.id && $0.trigger == trigger.combo }
-                Button(trigger.name + (inUse ? " (kullanımda)" : "")) {
+                Button(trigger.name + (inUse ? L(" (kullanımda)") : "")) {
                     var copy = binding; copy.trigger = trigger.combo; model.update(copy)
                 }
                 .disabled(inUse)
@@ -214,7 +214,7 @@ private struct BindingCard: View {
         } label: {
             Keycap(kind: .layer, isSelected: false, radius: 12, depth: 8) {
                 VStack(spacing: 1) {
-                    Text(binding.trigger.display).font(Theme.rounded(15)).foregroundStyle(Theme.cobaltText)
+                    Text(binding.trigger.display).font(Theme.rounded(15)).foregroundStyle(Theme.layerText)
                     Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold)).foregroundStyle(Theme.textTertiary)
                 }
             }
@@ -224,21 +224,21 @@ private struct BindingCard: View {
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
-        .help("Tetik tuşunu değiştir")
+        .help(L("Tetik tuşunu değiştir"))
     }
 
     private var addAppMenu: some View {
         Menu {
-            Section("Açık uygulamalar") {
+            Section(L("Açık uygulamalar")) {
                 ForEach(AppChoice.running.filter { app in !binding.appRules.contains { $0.bundleID == app.bundleID } }) { app in
                     Button(app.name) { edit(.init(bindingID: binding.id, app: app)) }
                 }
             }
-            Menu("Hazır kısayollar") {
+            Menu(L("Hazır kısayollar")) {
                 ForEach(ActionPresets.apps) { preset in
                     Menu(preset.appName) {
                         ForEach(preset.shortcuts, id: \.title) { shortcut in
-                            Button("\(shortcut.title)  \(shortcut.combo.display)") {
+                            Button("\(L(shortcut.title))  \(shortcut.combo.display)") {
                                 var copy = binding
                                 copy.appRules.removeAll { $0.bundleID == preset.bundleID }
                                 copy.appRules.append(AppRule(bundleID: preset.bundleID, appName: preset.appName, action: .keystroke(shortcut.combo)))
@@ -249,17 +249,17 @@ private struct BindingCard: View {
                 }
             }
             Divider()
-            Button("Başka bir uygulama seç…") {
+            Button(L("Başka bir uygulama seç…")) {
                 if let app = AppChoice.choose() { edit(.init(bindingID: binding.id, app: app)) }
             }
         } label: {
-            Label("Uygulamaya özel kural ekle", systemImage: "plus")
+            Label(L("Uygulamaya özel kural ekle"), systemImage: "plus")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Theme.textMuted)
+                .foregroundStyle(Theme.textSecondary)
                 .padding(.horizontal, 12)
                 .frame(height: 30)
-                .overlay(Capsule().strokeBorder(Color(hex: 0x3A3E48), style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
-                .contentShape(Capsule())
+                .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
+                .contentShape(Rectangle())
         }
         .menuStyle(.button)
         .buttonStyle(.plain)
@@ -284,22 +284,22 @@ private struct ActionRow: View {
             if let action {
                 Label(action.summary, systemImage: action.kind.symbol)
                     .font(.system(size: 13))
-                    .foregroundStyle(action.kind == .keystroke ? Theme.signalSoft : Theme.text)
+                    .foregroundStyle(action.kind == .keystroke ? Theme.accent : Theme.text)
                     .lineLimit(1)
             } else {
                 Text(placeholder).font(.system(size: 13)).foregroundStyle(Theme.textTertiary)
             }
             Spacer()
-            Button("Düzenle", action: edit).buttonStyle(SecondaryButtonStyle(height: 28))
+            Button(L("Düzenle"), action: edit).buttonStyle(SecondaryButtonStyle(height: 28))
             if let remove {
                 Button(action: remove) { Image(systemName: "xmark") }
                     .buttonStyle(SecondaryButtonStyle(height: 28))
-                    .accessibilityLabel("Kuralı kaldır")
+                    .accessibilityLabel(L("Kuralı kaldır"))
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.ground))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.lineSoft, lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.ground))
+        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
     }
 }
 
@@ -364,16 +364,16 @@ struct ActionEditorSheet: View {
             }
             Text((hoveredKind ?? kind).explanation)
                 .font(.system(size: 12))
-                .foregroundStyle(hoveredKind == nil ? Theme.textSecondary : Theme.signalSoft)
+                .foregroundStyle(hoveredKind == nil ? Theme.textSecondary : Theme.accent)
                 .fixedSize(horizontal: false, vertical: true)
 
             Group {
                 switch kind {
                 case .openApp: appFields
-                case .openURL: field("https://… , ~/Belgeler/rapor.pdf veya zoommtg://…", text: $url)
+                case .openURL: field(L("https://… , ~/Belgeler/rapor.pdf veya zoommtg://…"), text: $url)
                 case .runShortcut: shortcutFields
                 case .keystroke: keystrokeFields
-                case .typeText: field("Yazılacak metin", text: $text)
+                case .typeText: field(L("Yazılacak metin"), text: $text)
                 case .systemKey:
                     FlowLayout(spacing: 6) {
                         ForEach(SystemKey.allCases) { key in
@@ -387,29 +387,27 @@ struct ActionEditorSheet: View {
 
             HStack {
                 if target.initial != nil {
-                    Button("Kaldır") { save(nil) }.buttonStyle(SecondaryButtonStyle())
+                    Button(L("Kaldır")) { save(nil) }.buttonStyle(SecondaryButtonStyle())
                 }
                 Spacer()
-                Button("Vazgeç", action: cancel)
+                Button(L("Vazgeç"), action: cancel)
                     .buttonStyle(SecondaryButtonStyle())
                     .keyboardShortcut(.cancelAction)
-                Button("Kaydet") { save(currentAction) }
+                Button(L("Kaydet")) { save(currentAction) }
                     .buttonStyle(PrimaryButtonStyle())
                     .disabled(currentAction == nil)
             }
         }
         .padding(22)
         .frame(width: 560)
-        .background(Theme.surface)
         .foregroundStyle(Theme.text)
-        .preferredColorScheme(.dark)
         .onAppear(perform: load)
         .task { shortcuts = await ActionPerformer.shortcutNames() }
     }
 
     private var title: String {
-        if let app = target.app { return "\(app.name) öndeyken" }
-        return "Diğer tüm uygulamalarda"
+        if let app = target.app { return L("%@ öndeyken", "\(app.name)") }
+        return L("Diğer tüm uygulamalarda")
     }
 
     private var appFields: some View {
@@ -418,30 +416,30 @@ struct ActionEditorSheet: View {
                 AppIcon(bundleID: app.bundleID).frame(width: 32, height: 32)
                 Text(app.name).font(.system(size: 14, weight: .semibold))
             } else {
-                Text("Uygulama seçilmedi").foregroundStyle(Theme.textTertiary)
+                Text(L("Uygulama seçilmedi")).foregroundStyle(Theme.textTertiary)
             }
             Spacer()
             Menu {
                 ForEach(AppChoice.running) { choice in Button(choice.name) { app = choice } }
             } label: {
-                Text("Açık uygulamalar").font(.system(size: 13)).padding(.horizontal, 12).frame(height: 32)
+                Text(L("Açık uygulamalar")).font(.system(size: 13)).padding(.horizontal, 12).frame(height: 32)
                     .background(RoundedRectangle(cornerRadius: 10).fill(Theme.control))
                     .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.line))
             }
             .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
-            Button("Seç…") { if let choice = AppChoice.choose() { app = choice } }
+            Button(L("Seç…")) { if let choice = AppChoice.choose() { app = choice } }
                 .buttonStyle(SecondaryButtonStyle(height: 32))
         }
     }
 
     private var shortcutFields: some View {
         HStack(spacing: 10) {
-            field("Kestirme adı", text: $shortcut)
+            field(L("Kestirme adı"), text: $shortcut)
             if !shortcuts.isEmpty {
                 Menu {
                     ForEach(shortcuts, id: \.self) { name in Button(name) { shortcut = name } }
                 } label: {
-                    Text("Listeden seç").font(.system(size: 13)).padding(.horizontal, 12).frame(height: 36)
+                    Text(L("Listeden seç")).font(.system(size: 13)).padding(.horizontal, 12).frame(height: 36)
                         .background(RoundedRectangle(cornerRadius: 10).fill(Theme.control))
                         .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.line))
                 }
@@ -458,23 +456,23 @@ struct ActionEditorSheet: View {
                     if let app = target.app, let preset = ActionPresets.apps.first(where: { $0.bundleID == app.bundleID }) {
                         Section(preset.appName) {
                             ForEach(preset.shortcuts, id: \.title) { item in
-                                Button("\(item.title)  \(item.combo.display)") { combo = item.combo }
+                                Button("\(L(item.title))  \(item.combo.display)") { combo = item.combo }
                             }
                         }
                     }
-                    Section("Sistem") {
+                    Section(L("Sistem")) {
                         ForEach(ActionPresets.system, id: \.title) { item in
-                            Button("\(item.title)  \(item.combo.display)") { combo = item.combo }
+                            Button("\(L(item.title))  \(item.combo.display)") { combo = item.combo }
                         }
                     }
                 } label: {
-                    Text("Hazır").font(.system(size: 13)).padding(.horizontal, 12).frame(height: 36)
+                    Text(L("Hazır")).font(.system(size: 13)).padding(.horizontal, 12).frame(height: 36)
                         .background(RoundedRectangle(cornerRadius: 10).fill(Theme.control))
                         .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.line))
                 }
                 .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
             }
-            Text("Kaydet'e tıklayıp göndermek istediğiniz kısayola basın (ör. ⌘⇧P).")
+            Text(L("Kaydet'e tıklayıp göndermek istediğiniz kısayola basın (ör. ⌘⇧P)."))
                 .font(.system(size: 12))
                 .foregroundStyle(Theme.textSecondary)
         }
@@ -530,15 +528,15 @@ struct KeyRecorder: View {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: recording ? "record.circle" : "keyboard")
-                    .foregroundStyle(recording ? Theme.signal : Theme.textSecondary)
-                Text(recording ? "Kısayola basın…" : (combo?.display ?? "Kısayol kaydet"))
+                    .foregroundStyle(recording ? Theme.accent : Theme.textSecondary)
+                Text(recording ? L("Kısayola basın…") : (combo?.display ?? L("Kısayol kaydet")))
                     .font(combo == nil || recording ? .system(size: 13) : Theme.rounded(15))
-                    .foregroundStyle(recording ? Theme.signalSoft : Theme.text)
+                    .foregroundStyle(recording ? Theme.accent : Theme.text)
             }
             .padding(.horizontal, 14)
             .frame(minWidth: 200, minHeight: 36, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(recording ? Theme.signalTint : Theme.ground))
-            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(recording ? Theme.signal : Theme.line, lineWidth: 1))
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(recording ? Theme.accentTint : Theme.ground))
+            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(recording ? Theme.accent : Theme.line, lineWidth: 1))
         }
         .buttonStyle(.plain)
         .onDisappear(perform: stop)
@@ -599,27 +597,27 @@ struct ActionsNavCard: View {
             HStack(spacing: 10) {
                 Image(systemName: "bolt.horizontal.fill")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(isSelected ? Theme.onSignal : Theme.signal)
+                    .foregroundStyle(isSelected ? Theme.onAccent : Theme.accent)
                     .frame(width: 28, height: 28)
-                    .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(isSelected ? Theme.signal : Theme.signalTint))
+                    .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(isSelected ? Theme.accent : Theme.accentTint))
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Aksiyonlar").font(.system(size: 14, weight: .semibold))
+                    Text(L("Aksiyonlar")).font(.system(size: 14, weight: .semibold))
                     Text(subtitle).font(.system(size: 12)).foregroundStyle(Theme.textSecondary).lineLimit(1)
                 }
                 Spacer(minLength: 0)
             }
             .padding(10)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(isSelected ? Theme.raised : .clear))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(isSelected ? Color(hex: 0x30343D) : .clear, lineWidth: 1))
+            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(isSelected ? Theme.selectedFill : .clear))
+            .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Color.clear, lineWidth: 0))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
 
     private var subtitle: String {
-        guard model.actionsEnabled else { return "Kapalı" }
+        guard model.actionsEnabled else { return L("Kapalı") }
         let count = model.bindings.filter(\.isEnabled).count
-        return count == 0 ? "Uygulama aç, kısayol gönder" : "\(count) aktif aksiyon"
+        return count == 0 ? L("Uygulama aç, kısayol gönder") : L("%@ aktif aksiyon", "\(count)")
     }
 }

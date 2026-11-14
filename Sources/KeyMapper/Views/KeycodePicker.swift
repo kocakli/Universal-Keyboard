@@ -2,18 +2,24 @@ import KeyMapperCore
 import SwiftUI
 
 enum PickerCategory: String, CaseIterable, Identifiable {
-    case basic = "Temel"
-    case modifiers = "Değiştirici"
-    case navigation = "Gezinme / F"
-    case numpad = "Numpad"
-    case media = "Medya"
-    case mouse = "Fare"
-    case layers = "Katman"
-    case special = "Özel"
-    case actions = "Aksiyon"
-    case international = "Uluslararası"
+    case basic, modifiers, navigation, numpad, media, mouse, layers, special, actions, international
 
     var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .basic: return L("Temel")
+        case .modifiers: return L("Değiştirici")
+        case .navigation: return L("Gezinme / F")
+        case .numpad: return L("Numpad")
+        case .media: return L("Medya")
+        case .mouse: return L("Fare")
+        case .layers: return L("Katman")
+        case .special: return L("Özel")
+        case .actions: return L("Aksiyon")
+        case .international: return L("Uluslararası")
+        }
+    }
 
     /// Categories that make sense for macOS level (HID keyboard page) remapping.
     static let osRemap: [PickerCategory] = [.basic, .modifiers, .navigation, .numpad, .actions, .international]
@@ -43,7 +49,7 @@ struct KeycodePicker: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 4) {
                         ForEach(categories) { item in
-                            Button(item.rawValue) { category = item; search = "" }
+                            Button(item.title) { category = item; search = "" }
                                 .buttonStyle(PillButtonStyle(isOn: category == item && search.isEmpty, style: .inverted))
                         }
                     }
@@ -60,7 +66,7 @@ struct KeycodePicker: View {
                         } label: {
                             Keycap(kind: kind == .empty ? .modifier : kind, radius: 9, depth: 6) {
                                 KeyLegend(label: label(for: code), unit: 50, kind: kind == .empty ? .modifier : kind,
-                                          subColor: kind == .layer ? Theme.cobaltText : Theme.signal)
+                                          subColor: kind == .layer ? Theme.layerText : Theme.accent)
                             }
                             .frame(height: 50)
                         }
@@ -69,7 +75,7 @@ struct KeycodePicker: View {
                             if inside { hovered = code } else if hovered == code { hovered = nil }
                         }
                         .help("\(title(for: code))\n\(explanation(for: code))")
-                        .accessibilityLabel("Ata: \(title(for: code))")
+                        .accessibilityLabel(L("Ata: %@", title(for: code)))
                         .accessibilityHint(explanation(for: code))
                     }
                 }
@@ -87,7 +93,7 @@ struct KeycodePicker: View {
                 let kind = CapKind.of(code, keycodes: keycodes)
                 Keycap(kind: kind == .empty ? .modifier : kind, radius: 7, depth: 4) {
                     KeyLegend(label: label(for: code), unit: 36, kind: kind == .empty ? .modifier : kind,
-                              subColor: kind == .layer ? Theme.cobaltText : Theme.signal)
+                              subColor: kind == .layer ? Theme.layerText : Theme.accent)
                 }
                 .frame(width: 38, height: 38)
                 VStack(alignment: .leading, spacing: 2) {
@@ -105,7 +111,7 @@ struct KeycodePicker: View {
                     .lineLimit(1)
             } else {
                 Image(systemName: "info.circle").foregroundStyle(Theme.textTertiary)
-                Text("Bir işlevin üzerine gelince ne yaptığı burada görünür.")
+                Text(L("Bir işlevin üzerine gelince ne yaptığı burada görünür."))
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.textTertiary)
                 Spacer(minLength: 0)
@@ -114,12 +120,12 @@ struct KeycodePicker: View {
         .padding(.horizontal, 10)
         .frame(height: 52)
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.ground))
-        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.lineSoft, lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
         .animation(.easeOut(duration: 0.12), value: hovered)
     }
 
     private func title(for code: UInt16) -> String {
-        if let name = annotations[code] { return "Aksiyon: \(name)" }
+        if let name = annotations[code] { return L("Aksiyon: %@", name) }
         return keycodes.title(for: code)
     }
 
@@ -192,7 +198,7 @@ extension KeyLabel {
 
 struct SearchField: View {
     @Binding var text: String
-    var prompt = "Ara: space, LT, mute…"
+    var prompt = L("Ara: space, LT, mute…")
 
     var body: some View {
         HStack(spacing: 8) {
@@ -204,7 +210,7 @@ struct SearchField: View {
             if !text.isEmpty {
                 Button { text = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(Theme.textTertiary) }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Aramayı temizle")
+                    .accessibilityLabel(L("Aramayı temizle"))
             }
         }
         .padding(.horizontal, 12)

@@ -60,7 +60,7 @@ public enum BrandDatabase {
         if vendorID == 0x1D50 && productID == 0x615E { return Brand(name: "ZMK", ecosystem: "ZMK Studio") }
         if let brand = vendors[vendorID] { return brand }
         let trimmed = manufacturer.trimmingCharacters(in: .whitespaces)
-        return Brand(name: trimmed.isEmpty ? "Bilinmeyen üretici" : trimmed, ecosystem: "—")
+        return Brand(name: trimmed.isEmpty ? L("Bilinmeyen üretici") : trimmed, ecosystem: "—")
     }
 
     /// Brands listed in the UI as "supported".

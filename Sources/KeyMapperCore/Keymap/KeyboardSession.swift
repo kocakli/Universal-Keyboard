@@ -21,8 +21,8 @@ public enum SessionError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .notProgrammable: return "Bu klavye VIA/Vial raw HID arayüzü sunmuyor."
-        case .locked: return "Bu tuş (QK_BOOT) için Vial kilidinin açılması gerekiyor."
+        case .notProgrammable: return L("Bu klavye VIA/Vial raw HID arayüzü sunmuyor.")
+        case .locked: return L("Bu tuş (QK_BOOT) için Vial kilidinin açılması gerekiyor.")
         }
     }
 }

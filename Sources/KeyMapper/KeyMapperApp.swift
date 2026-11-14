@@ -35,8 +35,17 @@ extension Notification.Name {
 private struct MenuBarLabel: View {
     @Environment(\.openWindow) private var openWindow
 
+    @ViewBuilder
+    private var menuBarIcon: some View {
+        if let glyph = BrandGlyph.menuBar {
+            Image(nsImage: glyph)
+        } else {
+            Image(systemName: "keyboard.badge.ellipsis")
+        }
+    }
+
     var body: some View {
-        Image(systemName: "keyboard.badge.ellipsis")
+        menuBarIcon
             .onReceive(NotificationCenter.default.publisher(for: .openEditor)) { _ in
                 openWindow(id: EditorWindow.id)
                 NSApp.activate(ignoringOtherApps: true)

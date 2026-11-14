@@ -81,9 +81,9 @@ enum ActionError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case let .appNotFound(name): return "\(name) bulunamadı."
-        case let .badURL(text): return "Geçersiz adres: \(text)"
-        case .needsAccessibility: return "Tuş göndermek için KeyMapper'a Erişilebilirlik izni verin (Sistem Ayarları › Gizlilik ve Güvenlik › Erişilebilirlik)."
+        case let .appNotFound(name): return L("%@ bulunamadı.", "\(name)")
+        case let .badURL(text): return L("Geçersiz adres: %@", "\(text)")
+        case .needsAccessibility: return L("Tuş göndermek için KeyMapper'a Erişilebilirlik izni verin (Sistem Ayarları › Gizlilik ve Güvenlik › Erişilebilirlik).")
         }
     }
 }
@@ -217,7 +217,7 @@ struct AppChoice: Identifiable, Hashable {
     static func choose() -> AppChoice? {
         NSApp.activate(ignoringOtherApps: true)
         let panel = NSOpenPanel()
-        panel.title = "Uygulama seç"
+        panel.title = L("Uygulama seç")
         panel.directoryURL = URL(fileURLWithPath: "/Applications")
         panel.allowedContentTypes = [.applicationBundle]
         panel.allowsMultipleSelection = false

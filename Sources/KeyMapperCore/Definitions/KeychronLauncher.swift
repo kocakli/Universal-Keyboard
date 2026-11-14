@@ -114,13 +114,13 @@ public enum KeychronLauncher {
         return URL(string: trimmed, relativeTo: files)?.absoluteURL
     }
 
-    /// Picks Turkish, then English notes.
+    /// Picks notes in the app language, then English.
     static func releaseNotes(_ entries: [[String: Any]]) -> String? {
         let byLanguage = Dictionary(entries.compactMap { entry -> (String, String)? in
             guard let language = entry["language"] as? String, let text = entry["description"] as? String else { return nil }
             return (language, text)
         }, uniquingKeysWith: { a, _ in a })
-        return byLanguage["tr-TR"] ?? byLanguage["en-US"] ?? byLanguage.values.first
+        return byLanguage[L10n.current.releaseNotesTag] ?? byLanguage["en-US"] ?? byLanguage.values.first
     }
 
     /// Keyboards come as VIA's compiled format; trackballs / mice as a button list placed on a product image.

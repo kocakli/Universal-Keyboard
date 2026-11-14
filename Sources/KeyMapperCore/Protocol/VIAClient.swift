@@ -58,10 +58,10 @@ public final class VIAClient: @unchecked Sendable {
         let response = try connection.exchange([id.rawValue] + payload)
         if checkEcho {
             if response[0] == VIACommand.unhandled.rawValue && id != .unhandled {
-                throw HIDError.unexpectedResponse("komut 0x\(String(id.rawValue, radix: 16)) desteklenmiyor")
+                throw HIDError.unexpectedResponse(L("komut 0x%@ desteklenmiyor", "\(String(id.rawValue, radix: 16))"))
             }
             if response[0] != id.rawValue {
-                throw HIDError.unexpectedResponse("komut 0x\(String(id.rawValue, radix: 16)) yanıtı 0x\(String(response[0], radix: 16))")
+                throw HIDError.unexpectedResponse(L("komut 0x%@ yanıtı 0x%@", "\(String(id.rawValue, radix: 16))", "\(String(response[0], radix: 16))"))
             }
         }
         return response
@@ -74,7 +74,7 @@ public final class VIAClient: @unchecked Sendable {
 
     public func layerCount() throws -> Int {
         let count = Int(try command(.getLayerCount)[1])
-        guard (1...Self.maxLayers).contains(count) else { throw HIDError.unexpectedResponse("geçersiz katman sayısı \(count)") }
+        guard (1...Self.maxLayers).contains(count) else { throw HIDError.unexpectedResponse(L("geçersiz katman sayısı %@", "\(count)")) }
         return count
     }
 
@@ -85,7 +85,7 @@ public final class VIAClient: @unchecked Sendable {
 
     /// Range-checked conversion for protocol fields (bad definitions must not crash the app).
     private func byte(_ value: Int) throws -> UInt8 {
-        guard let result = UInt8(exactly: value) else { throw HIDError.unexpectedResponse("aralık dışı değer \(value)") }
+        guard let result = UInt8(exactly: value) else { throw HIDError.unexpectedResponse(L("aralık dışı değer %@", "\(value)")) }
         return result
     }
 
@@ -123,10 +123,10 @@ public final class VIAClient: @unchecked Sendable {
     public func readKeymap(layers: Int, rows: Int, cols: Int) throws -> [[[UInt16]]] {
         // The VIA buffer offset is 16 bit; anything larger is a bogus definition or reply.
         guard (1...Self.maxLayers).contains(layers), (1...Self.maxMatrix).contains(rows), (1...Self.maxMatrix).contains(cols) else {
-            throw HIDError.unexpectedResponse("geçersiz keymap boyutu \(layers)x\(rows)x\(cols)")
+            throw HIDError.unexpectedResponse(L("geçersiz keymap boyutu %@x%@x%@", "\(layers)", "\(rows)", "\(cols)"))
         }
         let total = layers * rows * cols * 2
-        guard total <= 0x10000 else { throw HIDError.unexpectedResponse("keymap VIA tamponuna sığmıyor (\(total) bayt)") }
+        guard total <= 0x10000 else { throw HIDError.unexpectedResponse(L("keymap VIA tamponuna sığmıyor (%@ bayt)", "\(total)")) }
         var bytes: [UInt8] = []
         bytes.reserveCapacity(total)
         var offset = 0
@@ -176,7 +176,7 @@ public final class VIAClient: @unchecked Sendable {
     public func vialDefinitionJSON() throws -> Data {
         let r = try vial(.getSize)
         let size = Int(r[0]) | Int(r[1]) << 8 | Int(r[2]) << 16 | Int(r[3]) << 24
-        guard size > 0, size < 1 << 20 else { throw HIDError.unexpectedResponse("geçersiz Vial tanım boyutu \(size)") }
+        guard size > 0, size < 1 << 20 else { throw HIDError.unexpectedResponse(L("geçersiz Vial tanım boyutu %@", "\(size)")) }
         var blob: [UInt8] = []
         var block: UInt32 = 0
         while blob.count < size {
@@ -228,7 +228,7 @@ public enum LZMA {
             guard let base = raw.bindMemory(to: UInt8.self).baseAddress else { return 0 }
             return compression_decode_buffer(destination, capacity, base, data.count, nil, COMPRESSION_LZMA)
         }
-        guard count > 0 else { throw HIDError.unexpectedResponse("Vial tanımı açılamadı (LZMA)") }
+        guard count > 0 else { throw HIDError.unexpectedResponse(L("Vial tanımı açılamadı (LZMA)")) }
         return Data(bytes: destination, count: count)
     }
 

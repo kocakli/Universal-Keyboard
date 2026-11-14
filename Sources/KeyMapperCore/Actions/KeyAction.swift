@@ -69,12 +69,12 @@ public enum KeyAction: Codable, Hashable, Sendable {
 
         public var title: String {
             switch self {
-            case .openApp: return "Uygulama aç"
-            case .openURL: return "Adres / dosya aç"
-            case .runShortcut: return "Kestirme çalıştır"
-            case .keystroke: return "Tuş kombinasyonu gönder"
-            case .typeText: return "Metin yaz"
-            case .systemKey: return "Medya / sistem tuşu"
+            case .openApp: return L("Uygulama aç")
+            case .openURL: return L("Adres / dosya aç")
+            case .runShortcut: return L("Kestirme çalıştır")
+            case .keystroke: return L("Tuş kombinasyonu gönder")
+            case .typeText: return L("Metin yaz")
+            case .systemKey: return L("Medya / sistem tuşu")
             }
         }
 
@@ -92,12 +92,12 @@ public enum KeyAction: Codable, Hashable, Sendable {
         /// One line shown when hovering over the action type.
         public var explanation: String {
             switch self {
-            case .openApp: return "Seçtiğin uygulamayı açar; zaten açıksa öne getirir."
-            case .openURL: return "Bir web adresini, dosyayı, klasörü veya uygulama bağlantısını (ör. zoommtg://) açar."
-            case .runShortcut: return "Kestirmeler uygulamasındaki bir kestirmeyi çalıştırır."
-            case .keystroke: return "Öndeki uygulamaya bir tuş kombinasyonu gönderir (ör. ⌘⇧P). Erişilebilirlik izni gerekir."
-            case .typeText: return "Hazır bir metni yazar (imza, e-posta adresi, kod parçası…). Erişilebilirlik izni gerekir."
-            case .systemKey: return "Ses, oynat/duraklat veya ekran parlaklığı gibi bir medya tuşu gönderir. Erişilebilirlik izni gerekir."
+            case .openApp: return L("Seçtiğin uygulamayı açar; zaten açıksa öne getirir.")
+            case .openURL: return L("Bir web adresini, dosyayı, klasörü veya uygulama bağlantısını (ör. zoommtg://) açar.")
+            case .runShortcut: return L("Kestirmeler uygulamasındaki bir kestirmeyi çalıştırır.")
+            case .keystroke: return L("Öndeki uygulamaya bir tuş kombinasyonu gönderir (ör. ⌘⇧P). Erişilebilirlik izni gerekir.")
+            case .typeText: return L("Hazır bir metni yazar (imza, e-posta adresi, kod parçası…). Erişilebilirlik izni gerekir.")
+            case .systemKey: return L("Ses, oynat/duraklat veya ekran parlaklığı gibi bir medya tuşu gönderir. Erişilebilirlik izni gerekir.")
             }
         }
 
@@ -107,9 +107,9 @@ public enum KeyAction: Codable, Hashable, Sendable {
 
     public var summary: String {
         switch self {
-        case let .openApp(_, name): return "\(name) aç"
+        case let .openApp(_, name): return L("%@ aç", "\(name)")
         case let .openURL(url): return url
-        case let .runShortcut(name): return "Kestirme: \(name)"
+        case let .runShortcut(name): return L("Kestirme: %@", name)
         case let .keystroke(combo): return combo.display
         case let .typeText(text): return "“\(text.count > 24 ? String(text.prefix(24)) + "…" : text)”"
         case let .systemKey(key): return key.title
@@ -122,10 +122,10 @@ public enum KeyAction: Codable, Hashable, Sendable {
     public var capTitle: String {
         switch self {
         case let .openApp(_, name): return name
-        case .openURL: return "Bağlantı"
+        case .openURL: return L("Bağlantı")
         case let .runShortcut(name): return name
         case let .keystroke(combo): return combo.display
-        case .typeText: return "Metin"
+        case .typeText: return L("Metin")
         case let .systemKey(key): return key.title
         }
     }

@@ -7,9 +7,9 @@ public enum DefinitionError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .invalidJSON: return "Tanım dosyası okunamadı (geçersiz JSON)."
-        case let .missingField(field): return "Tanım dosyasında '\(field)' alanı yok."
-        case let .invalidMatrix(rows, cols): return "Tanımdaki matris boyutu geçersiz (\(rows)x\(cols))."
+        case .invalidJSON: return L("Tanım dosyası okunamadı (geçersiz JSON).")
+        case let .missingField(field): return L("Tanım dosyasında '%@' alanı yok.", "\(field)")
+        case let .invalidMatrix(rows, cols): return L("Tanımdaki matris boyutu geçersiz (%@x%@).", "\(rows)", "\(cols)")
         }
     }
 }
@@ -72,7 +72,7 @@ public enum DefinitionParser {
         }
 
         return KeyboardDefinition(
-            name: json["name"] as? String ?? "Klavye",
+            name: json["name"] as? String ?? L("Klavye"),
             vendorID: vendorID,
             productID: productID,
             rows: rows,

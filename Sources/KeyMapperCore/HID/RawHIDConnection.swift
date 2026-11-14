@@ -12,12 +12,12 @@ public enum HIDError: LocalizedError, Equatable {
 
     public var errorDescription: String? {
         switch self {
-        case .deviceNotFound: return "Cihaz bulunamadı (bağlantı kesilmiş olabilir)."
-        case let .openFailed(code): return "HID arayüzü açılamadı (0x\(String(UInt32(bitPattern: code), radix: 16)))."
-        case let .writeFailed(code): return "Klavyeye yazılamadı (0x\(String(UInt32(bitPattern: code), radix: 16)))."
-        case .timeout: return "Klavye yanıt vermedi (zaman aşımı)."
-        case .disconnected: return "Klavyenin bağlantısı kesildi."
-        case let .unexpectedResponse(detail): return "Beklenmeyen yanıt: \(detail)"
+        case .deviceNotFound: return L("Cihaz bulunamadı (bağlantı kesilmiş olabilir).")
+        case let .openFailed(code): return L("HID arayüzü açılamadı (0x%@).", "\(String(UInt32(bitPattern: code), radix: 16))")
+        case let .writeFailed(code): return L("Klavyeye yazılamadı (0x%@).", "\(String(UInt32(bitPattern: code), radix: 16))")
+        case .timeout: return L("Klavye yanıt vermedi (zaman aşımı).")
+        case .disconnected: return L("Klavyenin bağlantısı kesildi.")
+        case let .unexpectedResponse(detail): return L("Beklenmeyen yanıt: %@", "\(detail)")
         }
     }
 }

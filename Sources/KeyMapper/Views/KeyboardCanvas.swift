@@ -5,7 +5,7 @@ import SwiftUI
 struct KeyCapModel {
     var label: KeyLabel
     var kind: CapKind = .alpha
-    var subColor: Color = Theme.signal
+    var subColor: Color = Theme.accent
     var isHighlighted = false
     var tooltip: String = ""
 }
@@ -45,7 +45,7 @@ struct KeyboardCanvas: View {
                     .rotationEffect(.degrees(item.key.r))
                     .position(x: item.center.x * unit, y: item.center.y * unit)
                     .help(model.tooltip)
-                    .accessibilityLabel(model.label.main.isEmpty ? "Boş tuş" : model.label.main)
+                    .accessibilityLabel(model.label.main.isEmpty ? L("Boş tuş") : model.label.main)
                 }
             }
             .frame(width: geometry.size.width * unit, height: geometry.size.height * unit, alignment: .topLeading)
@@ -87,7 +87,7 @@ struct KeyLegend: View {
     let label: KeyLabel
     let unit: CGFloat
     let kind: CapKind
-    var subColor: Color = Theme.signal
+    var subColor: Color = Theme.accent
 
     var body: some View {
         VStack(spacing: 1) {
@@ -115,20 +115,15 @@ struct KeyLegend: View {
     }
 }
 
-/// Stage behind a keyboard: sunken panel with a dot grid.
+/// Stage behind a keyboard: a flat, slightly recessed area.
 struct KeyboardStage<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        VStack(spacing: 18) { content() }
-            .padding(26)
+        VStack(spacing: 16) { content() }
+            .padding(24)
             .frame(maxWidth: .infinity)
-            .background {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.surfaceSunken)
-                    DotGrid().clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                }
-            }
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color(hex: 0x1D1F25), lineWidth: 1))
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.stage))
+            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
     }
 }

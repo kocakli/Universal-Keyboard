@@ -6,8 +6,8 @@ public enum LayoutFileError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .unsupported: return "Dosya tanınmadı. Vial (.vil), VIA (.json) veya KeyMapper profili bekleniyor."
-        case .missingCols: return "VIA dosyasını açmak için klavyenin matris bilgisi gerekiyor."
+        case .unsupported: return L("Dosya tanınmadı. Vial (.vil), VIA (.json) veya KeyMapper profili bekleniyor.")
+        case .missingCols: return L("VIA dosyasını açmak için klavyenin matris bilgisi gerekiyor.")
         }
     }
 }
@@ -33,7 +33,7 @@ public enum LayoutFiles {
         if let layout = json["layout"] as? [[[Any]]] {
             let layers = layout.map { layer in layer.map { row in row.map(cellString) } }
             let encoders = (json["encoder_layout"] as? [[[Any]]])?.map { layer in layer.map { pair in pair.map(cellString) } }
-            return LayoutProfile(name: name, deviceKey: deviceKey, kind: .firmware, note: "Vial dosyasından", layers: layers, encoders: encoders)
+            return LayoutProfile(name: name, deviceKey: deviceKey, kind: .firmware, note: L("Vial dosyasından"), layers: layers, encoders: encoders)
         }
 
         // VIA: {"name": ..., "vendorProductId": ..., "layers": [[flat keycodes]], "encoders": [[[ccw, cw]]]}
@@ -46,7 +46,7 @@ public enum LayoutFiles {
             }
             let encoders = (json["encoders"] as? [[[Any]]])?.map { layer in layer.map { pair in pair.map(cellString) } }
             return LayoutProfile(name: (json["name"] as? String) ?? name, deviceKey: deviceKey, kind: .firmware,
-                                 note: "VIA dosyasından", layers: layers, encoders: encoders)
+                                 note: L("VIA dosyasından"), layers: layers, encoders: encoders)
         }
         throw LayoutFileError.unsupported
     }

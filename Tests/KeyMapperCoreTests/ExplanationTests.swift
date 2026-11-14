@@ -2,6 +2,9 @@ import Testing
 @testable import KeyMapperCore
 
 @Suite struct ExplanationTests {
+    // The expected strings are the Turkish sources.
+    init() { L10n.current = .turkish }
+
     @Test(arguments: [KeycodeVersion.v6, .v5])
     func everyPaletteKeycodeIsExplainedInWords(version: KeycodeVersion) {
         let set = KeycodeSet(version: version)

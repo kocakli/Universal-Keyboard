@@ -14,13 +14,13 @@ struct RemapEditor: View {
         let remaps = Dictionary(model.currentRemaps(device).map { ($0.from, $0.to) }, uniquingKeysWith: { a, _ in a })
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 12) {
-                Text("Bu klavye programlanabilir firmware sunmuyor; eşlemeler macOS tarafından yalnızca bu klavyeye uygulanır ve klavye her bağlandığında yeniden uygulanır.")
+                Text(L("Bu klavye programlanabilir firmware sunmuyor; eşlemeler macOS tarafından yalnızca bu klavyeye uygulanır ve klavye her bağlandığında yeniden uygulanır."))
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 12)
                 presetMenu
-                Button("Tümünü kaldır") { model.setRemaps([], device: device, persist: true) }
+                Button(L("Tümünü kaldır")) { model.setRemaps([], device: device, persist: true) }
                     .buttonStyle(SecondaryButtonStyle(height: 32))
                     .disabled(remaps.isEmpty)
             }
@@ -56,13 +56,13 @@ struct RemapEditor: View {
             HStack(alignment: .top, spacing: 18) {
                 Panel {
                     VStack(alignment: .leading, spacing: 12) {
-                        Eyebrow(text: "Seçili tuş")
+                        Eyebrow(text: L("Seçili tuş"))
                         if let selection {
                             HStack(spacing: 10) {
                                 miniCap(selection)
                                 Image(systemName: "arrow.right").foregroundStyle(Theme.textTertiary)
                                 if let target = remaps[selection] { miniCap(target, highlighted: true) } else {
-                                    Text("eşlenmemiş").font(.system(size: 13)).foregroundStyle(Theme.textTertiary)
+                                    Text(L("eşlenmemiş")).font(.system(size: 13)).foregroundStyle(Theme.textTertiary)
                                 }
                             }
                             Text(keycodes.title(for: selection)).font(.system(size: 15, weight: .semibold))
@@ -71,12 +71,12 @@ struct RemapEditor: View {
                                 .foregroundStyle(Theme.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                             if remaps[selection] != nil {
-                                Button("Eşlemeyi kaldır") { model.setRemap(from: selection, to: nil, device: device) }
+                                Button(L("Eşlemeyi kaldır")) { model.setRemap(from: selection, to: nil, device: device) }
                                     .buttonStyle(SecondaryButtonStyle(height: 32))
                             }
                         } else {
-                            Text("Klavyeden bir tuş seçin").font(.system(size: 15, weight: .semibold))
-                            Text("Sonra paletten ne yazması gerektiğini seçin.").font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
+                            Text(L("Klavyeden bir tuş seçin")).font(.system(size: 15, weight: .semibold))
+                            Text(L("Sonra paletten ne yazması gerektiğini seçin.")).font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -109,23 +109,23 @@ struct RemapEditor: View {
     private var presetMenu: some View {
         Menu {
             ForEach(AlphaLayout.all.dropFirst()) { layout in
-                Button("Alfabe: \(layout.name)") { model.mergeRemaps(AlphaLayout.remaps(to: layout), device: device) }
+                Button(L("Alfabe: %@", layout.name)) { model.mergeRemaps(AlphaLayout.remaps(to: layout), device: device) }
             }
             Divider()
             ForEach(HIDUtilRemapper.presets, id: \.name) { preset in
-                Button(preset.name) { model.mergeRemaps(preset.remaps, device: device) }
+                Button(L(preset.name)) { model.mergeRemaps(preset.remaps, device: device) }
             }
         } label: {
             HStack(spacing: 6) {
-                Text("Hazır eşlemeler")
+                Text(L("Hazır eşlemeler"))
                 Image(systemName: "chevron.down").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.textSecondary)
             }
             .font(.system(size: 13, weight: .semibold))
             .foregroundStyle(Theme.text)
             .padding(.horizontal, 12)
             .frame(height: 32)
-            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color(hex: 0x23262D)))
-            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color(hex: 0x30343D), lineWidth: 1))
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.line))
+            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
         }
         .menuStyle(.button)
         .buttonStyle(.plain)

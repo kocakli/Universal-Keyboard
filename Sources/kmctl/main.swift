@@ -18,14 +18,14 @@ func devices() -> [KeyboardDevice] { HIDMonitor().snapshot() }
 func device(at argument: String?) -> KeyboardDevice {
     let list = devices()
     guard let argument, let index = Int(argument), list.indices.contains(index) else {
-        fail("Geçersiz klavye numarası. 'kmctl list' ile listeleyin.")
+        fail(L("Geçersiz klavye numarası. 'kmctl list' ile listeleyin."))
     }
     return list[index]
 }
 
 func runAsync(_ body: @escaping () async throws -> Void) -> Never {
     Task {
-        do { try await body(); exit(0) } catch { fail("Hata: \(error.localizedDescription)") }
+        do { try await body(); exit(0) } catch { fail(L("Hata: %@", error.localizedDescription)) }
     }
     RunLoop.main.run()
     exit(0)
@@ -41,7 +41,7 @@ let args = Array(CommandLine.arguments.dropFirst())
 switch args.first {
 case "list", nil:
     let list = devices()
-    if list.isEmpty { print("Bağlı klavye yok.") }
+    if list.isEmpty { print(L("Bağlı klavye yok.")) }
     for (index, device) in list.enumerated() {
         let line = String(format: "[%d] %@  %@  %@  %@  (%@)", index, device.displayName, device.deviceKey,
                           device.transportLabel, device.capability.title, device.brand.name)
@@ -54,18 +54,18 @@ case "dump":
     runAsync {
         let (session, state) = try await loadState(target)
         defer { session.close() }
-        print("\(state.definition.name) — VIA protokol \(state.viaProtocol)\(state.vialProtocol.map { ", Vial protokol \($0)" } ?? ""), keycode \(state.keycodes.version.rawValue)")
-        print("Matris \(state.definition.rows)x\(state.definition.cols), \(state.layerCount) katman, \(state.definition.keys.count) tuş, kaynak: \(state.definition.source.title)")
-        if let firmware = state.firmwareVersion ?? target.firmwareVersion { print("Firmware: \(firmware)") }
+        print(L("%@ — VIA protokol %@%@, keycode %@", "\(state.definition.name)", "\(state.viaProtocol)", "\(state.vialProtocol.map { L(", Vial protokol %@", "\($0)") } ?? "")", "\(state.keycodes.version.rawValue)"))
+        print(L("Matris %@x%@, %@ katman, %@ tuş, kaynak: %@", "\(state.definition.rows)", "\(state.definition.cols)", "\(state.layerCount)", "\(state.definition.keys.count)", "\(state.definition.source.title)"))
+        if let firmware = state.firmwareVersion ?? target.firmwareVersion { print(L("Firmware: %@", firmware)) }
         for layer in 0..<state.layerCount where onlyLayer == nil || onlyLayer == layer {
-            print("\n— Katman \(layer)")
+            print(L("\n— Katman %@", "\(layer)"))
             for (row, codes) in state.keymap.layers[layer].enumerated() {
                 let names = codes.map { state.keycodes.name(for: $0).padding(toLength: 12, withPad: " ", startingAt: 0) }
                 print(String(format: "%2d ", row) + names.joined(separator: " "))
             }
             if layer < state.keymap.encoders.count {
                 for (index, encoder) in state.keymap.encoders[layer].enumerated() {
-                    print("   encoder \(index): ↺ \(state.keycodes.name(for: encoder.ccw))  ↻ \(state.keycodes.name(for: encoder.cw))")
+                    print(L("   encoder %@: ↺ %@  ↻ %@", "\(index)", "\(state.keycodes.name(for: encoder.ccw))", "\(state.keycodes.name(for: encoder.cw))"))
                 }
             }
         }
@@ -73,7 +73,7 @@ case "dump":
 
 case "export":
     let target = device(at: args.dropFirst().first)
-    guard args.count > 2 else { fail("Kullanım: kmctl export <n> <dosya.vil|dosya.json>") }
+    guard args.count > 2 else { fail(L("Kullanım: kmctl export <n> <dosya.vil|dosya.json>")) }
     let url = URL(fileURLWithPath: args[2])
     runAsync {
         let (session, state) = try await loadState(target)
@@ -84,21 +84,21 @@ case "export":
             : try LayoutFiles.viaData(keymap: state.keymap, keycodes: state.keycodes, name: state.definition.name,
                                       vendorProductID: target.vendorProductID)
         try data.write(to: url)
-        print("Kaydedildi: \(url.path)")
+        print(L("Kaydedildi: %@", url.path))
     }
 
 case "apply":
     let target = device(at: args.dropFirst().first)
-    guard args.count > 2 else { fail("Kullanım: kmctl apply <n> <dosya>") }
+    guard args.count > 2 else { fail(L("Kullanım: kmctl apply <n> <dosya>")) }
     let url = URL(fileURLWithPath: args[2])
     runAsync {
         let (session, state) = try await loadState(target)
         defer { session.close() }
         let profile = try LayoutFiles.importProfile(from: url, deviceKey: target.deviceKey, cols: state.definition.cols)
         let resolved = profile.resolve(onto: state.keymap, keycodes: state.keycodes)
-        if !resolved.unknown.isEmpty { print("Tanınmayan keycode'lar atlandı: \(Set(resolved.unknown).sorted().joined(separator: ", "))") }
+        if !resolved.unknown.isEmpty { print(L("Tanınmayan keycode'lar atlandı: %@", "\(Set(resolved.unknown).sorted().joined(separator: ", "))")) }
         let count = try await session.write(resolved.keymap, over: state.keymap)
-        print("\(count) tuş güncellendi.")
+        print(L("%@ tuş güncellendi.", "\(count)"))
     }
 
 case "firmware":
@@ -109,50 +109,51 @@ case "firmware":
             current = state.firmwareVersion ?? current
             session.close()
         }
-        print("Yüklü: \(current ?? "bilinmiyor")")
+        print(L("Yüklü: %@", "\(current ?? L("bilinmiyor"))"))
         guard target.vendorID == KeychronLauncher.vendorID else {
-            print("Bu üretici için çevrimiçi güncelleme kaynağı yok.")
+            print(L("Bu üretici için çevrimiçi güncelleme kaynağı yok."))
             return
         }
         guard let product = await KeychronLauncher.product(vendorProductID: target.vendorProductID), let latest = product.latest else {
-            print("Keychron sunucusunda bilgi bulunamadı.")
+            print(L("Keychron sunucusunda bilgi bulunamadı."))
             return
         }
         let status = FirmwareStatus(current: current, latest: latest, updatePage: KeychronLauncher.site)
-        print("En yeni: \(latest.version) (\(latest.date ?? "?")) — \(status.isUpdateAvailable ? "GÜNCELLEME VAR" : "güncel")")
+        print(L("En yeni: %@ (%@) — %@", "\(latest.version)", "\(latest.date ?? "?")", "\(status.isUpdateAvailable ? L("GÜNCELLEME VAR") : L("güncel"))"))
         if let notes = latest.notes { print(notes) }
     }
 
 case "remap":
     let target = device(at: args.dropFirst().first)
     guard args.count > 2 else {
-        print("Hazır eşlemeler:")
-        for (index, preset) in HIDUtilRemapper.presets.enumerated() { print("  \(index): \(preset.name)") }
-        print("  clear: eşlemeleri kaldır")
+        print(L("Hazır eşlemeler:"))
+        for (index, preset) in HIDUtilRemapper.presets.enumerated() { print("  \(index): \(L(preset.name))") }
+        print(L("  clear: eşlemeleri kaldır"))
         exit(0)
     }
     do {
         if args[2] == "clear" {
             try HIDUtilRemapper.clear(vendorID: target.vendorID, productID: target.productID)
-            print("Eşlemeler kaldırıldı.")
+            print(L("Eşlemeler kaldırıldı."))
         } else if let index = Int(args[2]), HIDUtilRemapper.presets.indices.contains(index) {
             let preset = HIDUtilRemapper.presets[index]
             try HIDUtilRemapper.apply(preset.remaps, vendorID: target.vendorID, productID: target.productID)
-            print("Uygulandı: \(preset.name) (yeniden bağlanınca KeyMapper uygulaması tekrar uygular)")
+            print(L("Uygulandı: %@ (yeniden bağlanınca KeyMapper uygulaması tekrar uygular)", "\(L(preset.name))"))
         } else {
-            fail("Bilinmeyen eşleme.")
+            fail(L("Bilinmeyen eşleme."))
         }
     } catch {
         fail(error.localizedDescription)
     }
 
 default:
-    print("""
-    kmctl list                       bağlı klavyeler
-    kmctl dump <n> [katman]          keymap'i yazdır
-    kmctl export <n> <dosya>         .vil (Vial) veya .json (VIA) olarak kaydet
-    kmctl apply <n> <dosya>          .vil / VIA .json / profil dosyasını klavyeye yaz
-    kmctl remap <n> [hazır|clear]    macOS seviyesinde eşleme
-    kmctl firmware <n>               firmware sürümü ve güncelleme kontrolü
-    """)
+    let commands: [(String, String)] = [
+        ("kmctl list", L("bağlı klavyeler")),
+        ("kmctl dump <n> [layer]", L("keymap'i yazdır")),
+        ("kmctl export <n> <file>", L(".vil (Vial) veya .json (VIA) olarak kaydet")),
+        ("kmctl apply <n> <file>", L(".vil / VIA .json / profil dosyasını klavyeye yaz")),
+        ("kmctl remap <n> [preset|clear]", L("macOS seviyesinde eşleme")),
+        ("kmctl firmware <n>", L("firmware sürümü ve güncelleme kontrolü")),
+    ]
+    for (command, help) in commands { print(command.padding(toLength: 33, withPad: " ", startingAt: 0) + help) }
 }

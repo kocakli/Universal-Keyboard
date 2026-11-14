@@ -26,7 +26,7 @@ public enum DefinitionLookupError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .notFound(key):
-            return "\(key) için VIA tanımı bulunamadı. Üreticinin sitesinden (ör. Keychron) VIA JSON dosyasını indirip \"Tanım yükle\" ile ekleyin."
+            return L("%@ için VIA tanımı bulunamadı. Üreticinin sitesinden (ör. Keychron) VIA JSON dosyasını indirip \"VIA tanım dosyası yükle…\" ile ekleyin.", "\(key)")
         }
     }
 }

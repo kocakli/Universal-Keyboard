@@ -55,13 +55,13 @@ public enum LayerFunction: String, CaseIterable, Sendable {
 
     public var title: String {
         switch self {
-        case .MO: return "Basılı tutunca katman"
-        case .TG: return "Katmanı aç/kapat"
-        case .TO: return "Katmana geç"
-        case .TT: return "Tap-toggle katman"
-        case .OSL: return "Tek seferlik katman"
-        case .DF: return "Varsayılan katman"
-        case .PDF: return "Kalıcı varsayılan katman"
+        case .MO: return L("Basılı tutunca katman")
+        case .TG: return L("Katmanı aç/kapat")
+        case .TO: return L("Katmana geç")
+        case .TT: return L("Tap-toggle katman")
+        case .OSL: return L("Tek seferlik katman")
+        case .DF: return L("Varsayılan katman")
+        case .PDF: return L("Kalıcı varsayılan katman")
         }
     }
 }
@@ -321,23 +321,23 @@ public final class KeycodeSet: @unchecked Sendable {
         switch decode(code) {
         case let .named(c):
             let entry = byCode[c]!
-            if entry.title != entry.name { return entry.title }
+            if entry.title != entry.name { return L(entry.title) }
             let label = label(for: c)
             return label.main.isEmpty ? entry.name : label.main
         case let .mods(mods, kc): return modSymbol(mods) + shortLabel(kc)
-        case let .modTap(mods, kc): return "Dokun: \(shortLabel(kc)) · Basılı tut: \(modSymbol(mods))"
-        case let .layerTap(layer, kc): return "Dokun: \(shortLabel(kc)) · Basılı tut: katman \(layer)"
-        case let .layerMod(layer, mods): return "Katman \(layer) + \(modSymbol(mods))"
+        case let .modTap(mods, kc): return L("Dokun: %@ · Basılı tut: %@", "\(shortLabel(kc))", "\(modSymbol(mods))")
+        case let .layerTap(layer, kc): return L("Dokun: %@ · Basılı tut: katman %@", "\(shortLabel(kc))", "\(layer)")
+        case let .layerMod(layer, mods): return L("Katman %@ + %@", "\(layer)", "\(modSymbol(mods))")
         case let .layer(function, layer): return "\(function.title) \(layer)"
-        case let .oneShotMod(mods): return "Tek seferlik \(modSymbol(mods))"
-        case let .tapDance(index): return "Tap dance \(index)"
-        case let .macro(index): return "Makro \(index)"
+        case let .oneShotMod(mods): return L("Tek seferlik %@", "\(modSymbol(mods))")
+        case let .tapDance(index): return L("Tap dance %@", "\(index)")
+        case let .macro(index): return L("Makro %@", "\(index)")
         case let .custom(index):
             if index < customKeycodes.count {
                 let custom = customKeycodes[index]
                 return (custom.shortName ?? custom.name).replacingOccurrences(of: "\n", with: " ")
             }
-            return "Özel işlev \(index)"
+            return L("Özel işlev %@", "\(index)")
         case .raw: return name(for: code)
         }
     }

@@ -3,6 +3,8 @@ import Testing
 @testable import KeyMapperCore
 
 @Suite struct KeychronTests {
+    init() { L10n.current = .turkish }
+
     @Test func trackballDefinitionBecomesAButtonRow() throws {
         let definition = try KeychronLauncher.parseDefinition(fixture("keychron-nape-pro"), vendorID: 0x3434, productID: 0x0440)
         #expect(definition.name == "Nape Pro")

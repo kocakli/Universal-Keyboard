@@ -47,10 +47,10 @@ extension AppModel {
     @discardableResult
     func addBinding() -> ActionBinding? {
         guard let trigger = ActionStore.nextFreeTrigger(in: bindings) else {
-            errorMessage = "Tüm tetik tuşları (F13–F20) kullanımda."
+            errorMessage = L("Tüm tetik tuşları (F13–F20) kullanımda.")
             return nil
         }
-        let binding = ActionBinding(name: "Aksiyon \(bindings.count + 1)", trigger: trigger.combo)
+        let binding = ActionBinding(name: L("Aksiyon %@", "\(bindings.count + 1)"), trigger: trigger.combo)
         bindings.append(binding)
         persistBindings()
         return binding
@@ -89,11 +89,11 @@ extension AppModel {
             guard let trigger = TriggerKey.forKeyCode(binding.trigger.keyCode) else { continue }
             var parts: [String] = []
             for rule in binding.appRules.prefix(2) { parts.append("\(rule.appName): \(rule.action.summary)") }
-            if binding.appRules.count > 2 { parts.append("+\(binding.appRules.count - 2) uygulama") }
+            if binding.appRules.count > 2 { parts.append(L("+%@ uygulama", "\(binding.appRules.count - 2)")) }
             if let action = binding.defaultAction {
-                parts.append("\(binding.appRules.isEmpty ? "Her yerde" : "Diğerlerinde"): \(action.summary)")
+                parts.append("\(binding.appRules.isEmpty ? L("Her yerde") : L("Diğerlerinde")): \(action.summary)")
             }
-            details[trigger.usage] = parts.isEmpty ? "Bu aksiyona henüz bir işlem atanmadı." : parts.joined(separator: " · ")
+            details[trigger.usage] = parts.isEmpty ? L("Bu aksiyona henüz bir işlem atanmadı.") : parts.joined(separator: " · ")
         }
         return details
     }
@@ -193,7 +193,7 @@ extension AppModel {
             return nil
         }
         guard let trigger = TriggerKey.forUsage(current) ?? ActionStore.nextFreeTrigger(in: bindings) else {
-            errorMessage = "Tüm tetik tuşları (F13–F20) kullanımda; Aksiyonlar sayfasından birini silin."
+            errorMessage = L("Tüm tetik tuşları (F13–F20) kullanımda; Aksiyonlar sayfasından birini silin.")
             return nil
         }
         let label = keycodes.shortLabel(current)
@@ -216,15 +216,15 @@ extension AppModel {
     /// Legend of a key while an app tab is selected.
     func appCap(code: UInt16, app: AppChoice, keycodes: KeycodeSet) -> KeyCapModel {
         guard let binding = binding(forUsage: code) else {
-            return KeyCapModel(label: keycodes.label(for: code), kind: .transparent, tooltip: "Bu uygulamada değişmez")
+            return KeyCapModel(label: keycodes.label(for: code), kind: .transparent, tooltip: L("Bu uygulamada değişmez"))
         }
         if let rule = binding.appRules.first(where: { $0.bundleID == app.bundleID }) {
-            return KeyCapModel(label: KeyLabel(main: rule.action.capTitle, sub: app.name), kind: .alpha, subColor: Theme.signal,
+            return KeyCapModel(label: KeyLabel(main: rule.action.capTitle, sub: app.name), kind: .alpha, subColor: Theme.accent,
                                isHighlighted: true, tooltip: "\(app.name): \(rule.action.summary)")
         }
         let fallback = binding.defaultAction?.capTitle ?? "—"
-        return KeyCapModel(label: KeyLabel(main: fallback, sub: "varsayılan"), kind: .modifier, subColor: Theme.textTertiary,
-                           tooltip: "Varsayılan: \(binding.defaultAction?.summary ?? "hiçbir şey")")
+        return KeyCapModel(label: KeyLabel(main: fallback, sub: L("varsayılan")), kind: .modifier, subColor: Theme.textTertiary,
+                           tooltip: L("Varsayılan: %@", "\(binding.defaultAction?.summary ?? L("hiçbir şey"))"))
     }
 
     static func loadExtraAppTabs() -> [String: [AppChoice]] {

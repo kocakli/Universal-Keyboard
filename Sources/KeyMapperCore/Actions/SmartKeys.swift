@@ -8,14 +8,14 @@ public enum SystemKey: String, Codable, CaseIterable, Sendable, Identifiable {
 
     public var title: String {
         switch self {
-        case .volumeUp: return "Ses +"
-        case .volumeDown: return "Ses −"
-        case .mute: return "Sessiz"
-        case .playPause: return "Oynat / Duraklat"
-        case .next: return "Sonraki parça"
-        case .previous: return "Önceki parça"
-        case .brightnessUp: return "Parlaklık +"
-        case .brightnessDown: return "Parlaklık −"
+        case .volumeUp: return L("Ses +")
+        case .volumeDown: return L("Ses −")
+        case .mute: return L("Sessiz")
+        case .playPause: return L("Oynat / Duraklat")
+        case .next: return L("Sonraki parça")
+        case .previous: return L("Önceki parça")
+        case .brightnessUp: return L("Parlaklık +")
+        case .brightnessDown: return L("Parlaklık −")
         }
     }
 
@@ -78,11 +78,11 @@ public enum SmartKeys {
         switch keycodes.decode(code) {
         case .named(0x00), .named(0x01): return nil
         case let .named(c) where (0xE0...0xE7).contains(c):
-            return "Değiştirici tuşlar (⌘ ⌥ ⌃ ⇧) basılı tutulabilmeli; akıllı tuşa çevrilemez."
+            return L("Değiştirici tuşlar (⌘ ⌥ ⌃ ⇧) basılı tutulabilmeli; akıllı tuşa çevrilemez.")
         case .layer, .layerTap, .layerMod, .oneShotMod:
-            return "Katman tuşları firmware'de çalışır; akıllı tuşa çevrilemez."
+            return L("Katman tuşları firmware'de çalışır; akıllı tuşa çevrilemez.")
         case .modTap:
-            return "Mod-tap tuşları akıllı tuşa çevrilemez; önce basılı tutma işlevini kaldırın."
+            return L("Mod-tap tuşları akıllı tuşa çevrilemez; önce basılı tutma işlevini kaldırın.")
         default:
             return nil
         }
