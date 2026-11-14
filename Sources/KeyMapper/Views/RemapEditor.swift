@@ -41,7 +41,7 @@ struct RemapEditor: View {
                                                tooltip: "\(keycodes.title(for: usage)) → \(keycodes.title(for: target))")
                         }
                         return KeyCapModel(label: keycodes.label(for: usage), kind: CapKind.of(usage, keycodes: keycodes),
-                                           tooltip: keycodes.title(for: usage))
+                                           tooltip: "\(keycodes.title(for: usage))\n\(keycodes.explanation(for: usage))")
                     },
                     onSelect: { selection = UInt16($0.col) },
                     maxUnit: 52
@@ -66,6 +66,10 @@ struct RemapEditor: View {
                                 }
                             }
                             Text(keycodes.title(for: selection)).font(.system(size: 15, weight: .semibold))
+                            Text(keycodes.explanation(for: remaps[selection] ?? selection))
+                                .font(.system(size: 12))
+                                .foregroundStyle(Theme.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
                             if remaps[selection] != nil {
                                 Button("Eşlemeyi kaldır") { model.setRemap(from: selection, to: nil, device: device) }
                                     .buttonStyle(SecondaryButtonStyle(height: 32))
@@ -77,19 +81,19 @@ struct RemapEditor: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(width: 300, height: 316, alignment: .top)
+                .frame(width: 300, height: 380, alignment: .top)
 
                 Panel {
                     KeycodePicker(keycodes: keycodes, layerCount: 1, categories: PickerCategory.osRemap,
                                   filter: { (0x04...0xA4).contains($0) || (0xE0...0xE7).contains($0) },
-                                  annotations: model.actionNamesByUsage) { code in
+                                  annotations: model.actionNamesByUsage, details: model.actionDetailsByUsage) { code in
                         guard let selection else { return }
                         model.setRemap(from: selection, to: code, device: device)
                     }
-                    .disabled(selection == nil)
-                    .opacity(selection == nil ? 0.45 : 1)
+                    // Stays hoverable without a selection so descriptions can be read first.
+                    .opacity(selection == nil ? 0.6 : 1)
                 }
-                .frame(height: 316)
+                .frame(height: 380)
             }
             }
         }

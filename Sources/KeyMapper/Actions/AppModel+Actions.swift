@@ -82,6 +82,22 @@ extension AppModel {
         return names
     }
 
+    /// Trigger usage → what its action does, for hover help in the palette.
+    var actionDetailsByUsage: [UInt16: String] {
+        var details: [UInt16: String] = [:]
+        for binding in bindings where binding.trigger.modifiers.isEmpty {
+            guard let trigger = TriggerKey.forKeyCode(binding.trigger.keyCode) else { continue }
+            var parts: [String] = []
+            for rule in binding.appRules.prefix(2) { parts.append("\(rule.appName): \(rule.action.summary)") }
+            if binding.appRules.count > 2 { parts.append("+\(binding.appRules.count - 2) uygulama") }
+            if let action = binding.defaultAction {
+                parts.append("\(binding.appRules.isEmpty ? "Her yerde" : "Diğerlerinde"): \(action.summary)")
+            }
+            details[trigger.usage] = parts.isEmpty ? "Bu aksiyona henüz bir işlem atanmadı." : parts.joined(separator: " · ")
+        }
+        return details
+    }
+
     var needsAccessibility: Bool { bindings.contains { $0.isEnabled && $0.needsAccessibility } }
 
     func openActions() {

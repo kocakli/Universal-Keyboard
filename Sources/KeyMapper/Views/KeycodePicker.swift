@@ -28,10 +28,14 @@ struct KeycodePicker: View {
     var filter: (UInt16) -> Bool = { _ in true }
     /// Extra caption per keycode (e.g. the action bound to F16).
     var annotations: [UInt16: String] = [:]
+    /// Longer description per keycode that replaces the generic explanation (e.g. what an action does).
+    var details: [UInt16: String] = [:]
     let onPick: (UInt16) -> Void
 
     @State private var category: PickerCategory = .basic
     @State private var search = ""
+    /// Keycode under the pointer; its explanation is shown in the info strip right away.
+    @State private var hovered: UInt16?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -61,14 +65,66 @@ struct KeycodePicker: View {
                             .frame(height: 50)
                         }
                         .buttonStyle(.plain)
-                        .help(annotations[code].map { "Aksiyon: \($0)\n\(keycodes.name(for: code))" } ?? "\(keycodes.title(for: code))\n\(keycodes.name(for: code))")
-                        .accessibilityLabel("Ata: \(keycodes.name(for: code))")
+                        .onHover { inside in
+                            if inside { hovered = code } else if hovered == code { hovered = nil }
+                        }
+                        .help("\(title(for: code))\n\(explanation(for: code))")
+                        .accessibilityLabel("Ata: \(title(for: code))")
+                        .accessibilityHint(explanation(for: code))
                     }
                 }
                 .padding(2)
             }
             .scrollIndicators(.automatic)
+            infoStrip
         }
+    }
+
+    /// Shows what the hovered keycode does, without waiting for the system tooltip.
+    private var infoStrip: some View {
+        HStack(spacing: 12) {
+            if let code = hovered {
+                let kind = CapKind.of(code, keycodes: keycodes)
+                Keycap(kind: kind == .empty ? .modifier : kind, radius: 7, depth: 4) {
+                    KeyLegend(label: label(for: code), unit: 36, kind: kind == .empty ? .modifier : kind,
+                              subColor: kind == .layer ? Theme.cobaltText : Theme.signal)
+                }
+                .frame(width: 38, height: 38)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title(for: code)).font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                    Text(explanation(for: code))
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.textSecondary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                Text(keycodes.name(for: code))
+                    .font(Theme.mono(11))
+                    .foregroundStyle(Theme.textTertiary)
+                    .lineLimit(1)
+            } else {
+                Image(systemName: "info.circle").foregroundStyle(Theme.textTertiary)
+                Text("Bir işlevin üzerine gelince ne yaptığı burada görünür.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.textTertiary)
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(.horizontal, 10)
+        .frame(height: 52)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.ground))
+        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.lineSoft, lineWidth: 1))
+        .animation(.easeOut(duration: 0.12), value: hovered)
+    }
+
+    private func title(for code: UInt16) -> String {
+        if let name = annotations[code] { return "Aksiyon: \(name)" }
+        return keycodes.title(for: code)
+    }
+
+    private func explanation(for code: UInt16) -> String {
+        details[code] ?? keycodes.explanation(for: code)
     }
 
     private func label(for code: UInt16) -> KeyLabel {
@@ -89,6 +145,7 @@ struct KeycodePicker: View {
                 let label = keycodes.label(for: code)
                 return keycodes.name(for: code).lowercased().contains(query)
                     || keycodes.title(for: code).lowercased().contains(query)
+                    || explanation(for: code).lowercased().contains(query)
                     || (annotations[code]?.lowercased().contains(query) ?? false)
                     || label.main.lowercased().contains(query)
             }

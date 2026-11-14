@@ -373,6 +373,8 @@ private struct FirmwareEditor: View {
     @State private var expression = ""
     @State private var alphaSource = AlphaLayout.qwerty
     @State private var alphaTarget = AlphaLayout.colemakDH
+    /// Explanation of the hold chip under the pointer.
+    @State private var hoveredHold: String?
 
     var body: some View {
         let keys = state.definition.visibleKeys(options: state.layoutOptions).filter { !$0.isEncoder }
@@ -396,11 +398,11 @@ private struct FirmwareEditor: View {
                     inspector.frame(width: 360)
                     Panel {
                         KeycodePicker(keycodes: state.keycodes, layerCount: state.layerCount, categories: PickerCategory.allCases,
-                                      annotations: model.actionNamesByUsage) { assign($0) }
-                            .disabled(selection == nil)
-                            .opacity(selection == nil ? 0.45 : 1)
+                                      annotations: model.actionNamesByUsage, details: model.actionDetailsByUsage) { assign($0) }
+                            // Stays hoverable without a selection so descriptions can be read first.
+                            .opacity(selection == nil ? 0.6 : 1)
                     }
-                    .frame(height: 316)
+                    .frame(height: 380)
                 }
             }
         }
@@ -492,11 +494,11 @@ private struct FirmwareEditor: View {
                         }
                     }
                     .frame(width: 84, height: 84)
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 3) {
                         if let selection, let code = currentCode {
                             Eyebrow(text: "Seçili tuş · \(describe(selection))")
                             Text(state.keycodes.title(for: code)).font(.system(size: 17, weight: .semibold)).lineLimit(2)
-                            Text(state.keycodes.name(for: code)).font(Theme.mono(13)).foregroundStyle(Theme.signalSoft).textSelection(.enabled)
+                            Text(state.keycodes.name(for: code)).font(Theme.mono(12)).foregroundStyle(Theme.textTertiary).textSelection(.enabled)
                         } else {
                             Eyebrow(text: "Seçili tuş")
                             Text("Klavyeden bir tuş seçin").font(.system(size: 17, weight: .semibold))
@@ -505,8 +507,20 @@ private struct FirmwareEditor: View {
                     }
                 }
 
+                if let code = currentCode {
+                    Text(model.actionDetailsByUsage[code] ?? state.keycodes.explanation(for: code))
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.textSecondary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Basılı tutunca").font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
+                    Text(hoveredHold ?? "Basılı tutunca")
+                        .font(.system(size: 12))
+                        .foregroundStyle(hoveredHold == nil ? Theme.textSecondary : Theme.signalSoft)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                     holdChips
                 }
 
@@ -527,7 +541,7 @@ private struct FirmwareEditor: View {
                 }
             }
         }
-        .frame(height: 316, alignment: .top)
+        .frame(height: 380, alignment: .top)
     }
 
     /// Hold actions (mod-tap / layer-tap) wrapping the selected key's tap keycode.
@@ -542,16 +556,20 @@ private struct FirmwareEditor: View {
             default: return nil
             }
         }()
+        // (chip legend, hover explanation, keycode to assign, is current)
         var options: [(String, String, UInt16?, Bool)] = []
         if let tap {
-            options.append(("Yok", "Basılı tutma yok", tap, { if case .named = decoded { return true }; if case .raw = decoded { return true }; return false }()))
-            for (mods, symbol, title) in [(UInt8(0x01), "⌃", "Control"), (0x02, "⇧", "Shift"), (0x04, "⌥", "Option"), (0x08, "⌘", "Command"), (0x07, "Meh", "Meh"), (0x0F, "Hyper", "Hyper")] {
+            let plain: Bool = { if case .named = decoded { return true }; if case .raw = decoded { return true }; return false }()
+            options.append(("Yok", "Basılı tutma işlevi yok; tuş yalnızca dokununca çalışır.", tap, plain))
+            for (mods, symbol) in [(UInt8(0x01), "⌃"), (0x02, "⇧"), (0x04, "⌥"), (0x08, "⌘"), (0x07, "Meh"), (0x0F, "Hyper")] {
                 let isOn: Bool = { if case let .modTap(m, _) = decoded { return m == mods }; return false }()
-                options.append((symbol, title, state.keycodes.encode(.modTap(mods, tap)), isOn))
+                let value = state.keycodes.encode(.modTap(mods, tap))
+                options.append((symbol, value.map { state.keycodes.explanation(for: $0) } ?? symbol, value, isOn))
             }
             for target in 1..<min(max(state.layerCount, 2), 5) {
                 let isOn: Bool = { if case let .layerTap(l, _) = decoded { return l == target }; return false }()
-                options.append(("L\(target)", "Katman \(target)", state.keycodes.encode(.layerTap(target, tap)), isOn))
+                let value = state.keycodes.encode(.layerTap(target, tap))
+                options.append(("L\(target)", value.map { state.keycodes.explanation(for: $0) } ?? "Katman \(target)", value, isOn))
             }
         }
         return FlowLayout(spacing: 6) {
@@ -563,6 +581,9 @@ private struct FirmwareEditor: View {
             ForEach(options, id: \.0) { option in
                 Button(option.0) { if let value = option.2 { assign(value) } }
                     .buttonStyle(PillButtonStyle(isOn: option.3, height: 32))
+                    .onHover { inside in
+                        if inside { hoveredHold = option.1 } else if hoveredHold == option.1 { hoveredHold = nil }
+                    }
                     .help(option.1)
                     .accessibilityLabel(option.1)
             }
@@ -614,7 +635,7 @@ private struct FirmwareEditor: View {
             label: label,
             kind: CapKind.of(code, keycodes: state.keycodes),
             subColor: subColor(for: code),
-            tooltip: "\(state.keycodes.title(for: code))\n\(state.keycodes.name(for: code))"
+            tooltip: "\(state.keycodes.title(for: code))\n\(model.actionDetailsByUsage[code] ?? state.keycodes.explanation(for: code))"
         )
     }
 }

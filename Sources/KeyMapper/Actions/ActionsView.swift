@@ -339,6 +339,7 @@ struct ActionEditorSheet: View {
     @State private var combo: KeyCombo?
     @State private var text = ""
     @State private var systemKey: SystemKey = .playPause
+    @State private var hoveredKind: KeyAction.Kind?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -355,8 +356,16 @@ struct ActionEditorSheet: View {
                         Label(option.title, systemImage: option.symbol)
                     }
                     .buttonStyle(PillButtonStyle(isOn: kind == option, height: 32))
+                    .help(option.explanation)
+                    .onHover { inside in
+                        if inside { hoveredKind = option } else if hoveredKind == option { hoveredKind = nil }
+                    }
                 }
             }
+            Text((hoveredKind ?? kind).explanation)
+                .font(.system(size: 12))
+                .foregroundStyle(hoveredKind == nil ? Theme.textSecondary : Theme.signalSoft)
+                .fixedSize(horizontal: false, vertical: true)
 
             Group {
                 switch kind {
@@ -375,12 +384,6 @@ struct ActionEditorSheet: View {
                 }
             }
             .frame(minHeight: 70, alignment: .top)
-
-            if kind.needsAccessibility {
-                Label("Bu işlem için KeyMapper'ın Erişilebilirlik izni olmalı.", systemImage: "info.circle")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Theme.textSecondary)
-            }
 
             HStack {
                 if target.initial != nil {

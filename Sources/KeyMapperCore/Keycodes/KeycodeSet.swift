@@ -316,14 +316,29 @@ public final class KeycodeSet: @unchecked Sendable {
     }
 
     /// Human readable description for tooltips.
+    /// Human readable name (never the QMK identifier when a better one exists).
     public func title(for code: UInt16) -> String {
         switch decode(code) {
-        case let .named(c): return byCode[c]!.title
+        case let .named(c):
+            let entry = byCode[c]!
+            if entry.title != entry.name { return entry.title }
+            let label = label(for: c)
+            return label.main.isEmpty ? entry.name : label.main
+        case let .mods(mods, kc): return modSymbol(mods) + shortLabel(kc)
         case let .modTap(mods, kc): return "Dokun: \(shortLabel(kc)) · Basılı tut: \(modSymbol(mods))"
         case let .layerTap(layer, kc): return "Dokun: \(shortLabel(kc)) · Basılı tut: katman \(layer)"
+        case let .layerMod(layer, mods): return "Katman \(layer) + \(modSymbol(mods))"
         case let .layer(function, layer): return "\(function.title) \(layer)"
-        case let .custom(index) where index < customKeycodes.count: return customKeycodes[index].title ?? customKeycodes[index].name
-        default: return name(for: code)
+        case let .oneShotMod(mods): return "Tek seferlik \(modSymbol(mods))"
+        case let .tapDance(index): return "Tap dance \(index)"
+        case let .macro(index): return "Makro \(index)"
+        case let .custom(index):
+            if index < customKeycodes.count {
+                let custom = customKeycodes[index]
+                return (custom.shortName ?? custom.name).replacingOccurrences(of: "\n", with: " ")
+            }
+            return "Özel işlev \(index)"
+        case .raw: return name(for: code)
         }
     }
 

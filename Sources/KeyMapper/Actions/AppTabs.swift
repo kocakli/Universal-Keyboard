@@ -138,6 +138,7 @@ struct AppKeyPanel: View {
                             }
                             .buttonStyle(PillButtonStyle(isOn: currentRule?.action == .keystroke(preset.combo), height: 34))
                             .disabled(slot == nil || refusal != nil)
+                            .help("\(app.name) öndeyken \(preset.combo.display) kısayolunu gönderir: \(preset.title.lowercased(with: Locale(identifier: "tr_TR"))).")
                         }
                         Button {
                             Task { await openCustomEditor() }
@@ -146,6 +147,7 @@ struct AppKeyPanel: View {
                         }
                         .buttonStyle(PillButtonStyle(isOn: false, height: 34))
                         .disabled(slot == nil || refusal != nil)
+                        .help("Uygulama açma, adres, Kestirme, kısayol, metin veya medya tuşu seçin.")
                     }
                     Spacer(minLength: 0)
                 }

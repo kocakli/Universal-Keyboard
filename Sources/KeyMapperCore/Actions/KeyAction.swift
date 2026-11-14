@@ -89,6 +89,18 @@ public enum KeyAction: Codable, Hashable, Sendable {
             }
         }
 
+        /// One line shown when hovering over the action type.
+        public var explanation: String {
+            switch self {
+            case .openApp: return "Seçtiğin uygulamayı açar; zaten açıksa öne getirir."
+            case .openURL: return "Bir web adresini, dosyayı, klasörü veya uygulama bağlantısını (ör. zoommtg://) açar."
+            case .runShortcut: return "Kestirmeler uygulamasındaki bir kestirmeyi çalıştırır."
+            case .keystroke: return "Öndeki uygulamaya bir tuş kombinasyonu gönderir (ör. ⌘⇧P). Erişilebilirlik izni gerekir."
+            case .typeText: return "Hazır bir metni yazar (imza, e-posta adresi, kod parçası…). Erişilebilirlik izni gerekir."
+            case .systemKey: return "Ses, oynat/duraklat veya ekran parlaklığı gibi bir medya tuşu gönderir. Erişilebilirlik izni gerekir."
+            }
+        }
+
         /// Synthetic keyboard events need the Accessibility permission.
         public var needsAccessibility: Bool { self == .keystroke || self == .typeText || self == .systemKey }
     }
