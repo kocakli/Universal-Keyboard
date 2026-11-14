@@ -127,15 +127,7 @@ struct ActionsView: View {
     }
 
     private func save(_ action: KeyAction?, for target: EditTarget) {
-        guard var binding = model.bindings.first(where: { $0.id == target.bindingID }) else { return }
-        if let ruleID = target.ruleID, let index = binding.appRules.firstIndex(where: { $0.id == ruleID }) {
-            if let action { binding.appRules[index].action = action } else { binding.appRules.remove(at: index) }
-        } else if let app = target.app {
-            if let action { binding.appRules.append(AppRule(bundleID: app.bundleID, appName: app.name, action: action)) }
-        } else {
-            binding.defaultAction = action
-        }
-        model.update(binding)
+        model.setAction(action, bindingID: target.bindingID, app: target.app)
     }
 }
 
@@ -334,7 +326,7 @@ private struct GlobeBadge: View {
 
 // MARK: - Action editor
 
-private struct ActionEditorSheet: View {
+struct ActionEditorSheet: View {
     let target: ActionsView.EditTarget
     let save: (KeyAction?) -> Void
     let cancel: () -> Void
@@ -346,6 +338,7 @@ private struct ActionEditorSheet: View {
     @State private var shortcuts: [String] = []
     @State private var combo: KeyCombo?
     @State private var text = ""
+    @State private var systemKey: SystemKey = .playPause
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -372,6 +365,13 @@ private struct ActionEditorSheet: View {
                 case .runShortcut: shortcutFields
                 case .keystroke: keystrokeFields
                 case .typeText: field("Yazılacak metin", text: $text)
+                case .systemKey:
+                    FlowLayout(spacing: 6) {
+                        ForEach(SystemKey.allCases) { key in
+                            Button(key.title) { systemKey = key }
+                                .buttonStyle(PillButtonStyle(isOn: systemKey == key, height: 32))
+                        }
+                    }
                 }
             }
             .frame(minHeight: 70, alignment: .top)
@@ -494,6 +494,7 @@ private struct ActionEditorSheet: View {
         case .runShortcut: return shortcut.trimmingCharacters(in: .whitespaces).isEmpty ? nil : .runShortcut(shortcut)
         case .keystroke: return combo.map { .keystroke($0) }
         case .typeText: return text.isEmpty ? nil : .typeText(text)
+        case .systemKey: return .systemKey(systemKey)
         }
     }
 
@@ -509,6 +510,7 @@ private struct ActionEditorSheet: View {
         case let .runShortcut(value): shortcut = value
         case let .keystroke(value): combo = value
         case let .typeText(value): text = value
+        case let .systemKey(value): systemKey = value
         }
     }
 }

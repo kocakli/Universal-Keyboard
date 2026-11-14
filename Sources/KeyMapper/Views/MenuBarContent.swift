@@ -164,6 +164,9 @@ private struct DeviceMenuCard: View {
 
     private var status: String {
         if let activity = model.activity[device.id] { return activity }
+        if let firmware = model.firmware[device.id], firmware.isUpdateAvailable, let latest = firmware.latest {
+            return "Firmware güncellemesi var: \(latest.version)"
+        }
         if device.capability == .osRemap {
             let count = model.currentRemaps(device).count
             return count == 0 ? "macOS eşlemesi yok" : "\(count) eşleme · bağlanınca yeniden uygulanır"

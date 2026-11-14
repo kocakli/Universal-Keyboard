@@ -165,6 +165,15 @@ struct DeviceDetail: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
+                if device.capability == .osRemap || model.states[device.id] != nil {
+                    HStack {
+                        Text(model.selectedApp[device.id].map { "\($0.name) için atamalar" } ?? "Tüm uygulamalar")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Theme.textSecondary)
+                        Spacer()
+                        AppTabBar(device: device)
+                    }
+                }
                 DeviceHeader(device: device)
                 if device.capability == .osRemap {
                     RemapEditor(device: device)
@@ -184,7 +193,10 @@ struct DeviceDetail: View {
             .padding(EdgeInsets(top: 30, leading: 28, bottom: 80, trailing: 28))
         }
         .scrollIndicators(.automatic)
-        .task { await model.ensureLoaded(device) }
+        .task {
+            await model.ensureLoaded(device)
+            await model.refreshFirmware(device)
+        }
     }
 }
 
@@ -238,6 +250,7 @@ private struct DeviceHeader: View {
                 Text(device.displayName).font(.system(size: 30, weight: .bold)).tracking(-0.6).lineLimit(1)
                 HStack(spacing: 6) {
                     ForEach(chips, id: \.self) { Chip(text: $0) }
+                    FirmwareChip(device: device)
                     if let activity = model.activity[device.id] {
                         ProgressView().controlSize(.small).tint(Theme.signal)
                         Text(activity).font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
@@ -367,7 +380,7 @@ private struct FirmwareEditor: View {
             HStack(spacing: 12) {
                 layerPills
                 Spacer(minLength: 12)
-                alphaControls
+                if app == nil { alphaControls }
             }
 
             KeyboardStage {
@@ -376,19 +389,25 @@ private struct FirmwareEditor: View {
                 if state.definition.encoderCount > 0 { encoderRow }
             }
 
-            HStack(alignment: .top, spacing: 18) {
-                inspector.frame(width: 360)
-                Panel {
-                    KeycodePicker(keycodes: state.keycodes, layerCount: state.layerCount, categories: PickerCategory.allCases,
-                                  annotations: model.actionNamesByUsage) { assign($0) }
-                        .disabled(selection == nil)
-                        .opacity(selection == nil ? 0.45 : 1)
+            if let app {
+                AppKeyPanel(device: device, app: app, layer: layer, slot: selection, code: currentCode, keycodes: state.keycodes)
+            } else {
+                HStack(alignment: .top, spacing: 18) {
+                    inspector.frame(width: 360)
+                    Panel {
+                        KeycodePicker(keycodes: state.keycodes, layerCount: state.layerCount, categories: PickerCategory.allCases,
+                                      annotations: model.actionNamesByUsage) { assign($0) }
+                            .disabled(selection == nil)
+                            .opacity(selection == nil ? 0.45 : 1)
+                    }
+                    .frame(height: 316)
                 }
-                .frame(height: 316)
             }
         }
         .onChange(of: layer) { _, _ in expression = currentCode.map { state.keycodes.name(for: $0) } ?? "" }
     }
+
+    private var app: AppChoice? { model.selectedApp[device.id] }
 
     // MARK: Pieces
 
@@ -449,7 +468,8 @@ private struct FirmwareEditor: View {
                     ForEach([false, true], id: \.self) { clockwise in
                         let slot = KeySlot.encoder(index: index, clockwise: clockwise)
                         let code = state.keymap.keycode(layer: layer, slot: slot) ?? 0
-                        Button("\(clockwise ? "↻" : "↺") \(state.keycodes.shortLabel(code))") { select(slot) }
+                        let legend = app.map { model.appCap(code: code, app: $0, keycodes: state.keycodes).label.main } ?? state.keycodes.shortLabel(code)
+                        Button("\(clockwise ? "↻" : "↺") \(legend)") { select(slot) }
                             .buttonStyle(PillButtonStyle(isOn: selection == slot, height: 26))
                     }
                 }
@@ -587,6 +607,7 @@ private struct FirmwareEditor: View {
         guard let code = state.keymap.keycode(layer: layer, slot: key.slot) else {
             return KeyCapModel(label: KeyLabel(main: ""), kind: .empty)
         }
+        if let app { return model.appCap(code: code, app: app, keycodes: state.keycodes) }
         var label = state.keycodes.label(for: code)
         if let action = model.actionNamesByUsage[code] { label.sub = action }
         return KeyCapModel(

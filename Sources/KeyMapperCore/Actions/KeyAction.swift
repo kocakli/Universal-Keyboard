@@ -48,6 +48,8 @@ public enum KeyAction: Codable, Hashable, Sendable {
     case keystroke(KeyCombo)
     /// Type a piece of text (needs Accessibility).
     case typeText(String)
+    /// A media / system key such as volume or play-pause (needs Accessibility).
+    case systemKey(SystemKey)
 
     public var kind: Kind {
         switch self {
@@ -56,11 +58,12 @@ public enum KeyAction: Codable, Hashable, Sendable {
         case .runShortcut: return .runShortcut
         case .keystroke: return .keystroke
         case .typeText: return .typeText
+        case .systemKey: return .systemKey
         }
     }
 
     public enum Kind: String, CaseIterable, Codable, Sendable, Identifiable {
-        case openApp, openURL, runShortcut, keystroke, typeText
+        case openApp, openURL, runShortcut, keystroke, typeText, systemKey
 
         public var id: String { rawValue }
 
@@ -71,6 +74,7 @@ public enum KeyAction: Codable, Hashable, Sendable {
             case .runShortcut: return "Kestirme çalıştır"
             case .keystroke: return "Tuş kombinasyonu gönder"
             case .typeText: return "Metin yaz"
+            case .systemKey: return "Medya / sistem tuşu"
             }
         }
 
@@ -81,11 +85,12 @@ public enum KeyAction: Codable, Hashable, Sendable {
             case .runShortcut: return "square.stack.3d.up"
             case .keystroke: return "command"
             case .typeText: return "text.cursor"
+            case .systemKey: return "speaker.wave.2"
             }
         }
 
         /// Synthetic keyboard events need the Accessibility permission.
-        public var needsAccessibility: Bool { self == .keystroke || self == .typeText }
+        public var needsAccessibility: Bool { self == .keystroke || self == .typeText || self == .systemKey }
     }
 
     public var summary: String {
@@ -95,10 +100,23 @@ public enum KeyAction: Codable, Hashable, Sendable {
         case let .runShortcut(name): return "Kestirme: \(name)"
         case let .keystroke(combo): return combo.display
         case let .typeText(text): return "“\(text.count > 24 ? String(text.prefix(24)) + "…" : text)”"
+        case let .systemKey(key): return key.title
         }
     }
 
     public var needsAccessibility: Bool { kind.needsAccessibility }
+
+    /// Short legend for a keycap.
+    public var capTitle: String {
+        switch self {
+        case let .openApp(_, name): return name
+        case .openURL: return "Bağlantı"
+        case let .runShortcut(name): return name
+        case let .keystroke(combo): return combo.display
+        case .typeText: return "Metin"
+        case let .systemKey(key): return key.title
+        }
+    }
 }
 
 /// An action that overrides the default one while a given app is frontmost.

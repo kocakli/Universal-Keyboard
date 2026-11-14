@@ -127,6 +127,21 @@ enum ActionPerformer {
         case let .typeText(text):
             guard isAccessibilityTrusted else { requestAccessibility(); throw ActionError.needsAccessibility }
             type(text)
+        case let .systemKey(key):
+            guard isAccessibilityTrusted else { requestAccessibility(); throw ActionError.needsAccessibility }
+            postSystemKey(key.nxKeyType)
+        }
+    }
+
+    /// Media keys travel as NSSystemDefined events (subtype 8, NX_KEYTYPE in data1).
+    private static func postSystemKey(_ type: Int32) {
+        for isDown in [true, false] {
+            let state = isDown ? 0xA : 0xB
+            let event = NSEvent.otherEvent(with: .systemDefined, location: .zero,
+                                           modifierFlags: NSEvent.ModifierFlags(rawValue: UInt(state << 8)),
+                                           timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: 0, context: nil,
+                                           subtype: 8, data1: Int(type) << 16 | state << 8, data2: -1)
+            event?.cgEvent?.post(tap: .cghidEventTap)
         }
     }
 

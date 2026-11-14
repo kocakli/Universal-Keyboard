@@ -31,6 +31,9 @@ struct RemapEditor: View {
                     selected: selection.map { .matrix(row: 0, col: Int($0)) },
                     cap: { key in
                         let usage = UInt16(key.col)
+                        if let app = model.selectedApp[device.id] {
+                            return model.appCap(code: remaps[usage] ?? usage, app: app, keycodes: keycodes)
+                        }
                         if let target = remaps[usage] {
                             var label = keycodes.label(for: target)
                             label.sub = model.actionNamesByUsage[target] ?? ("← " + keycodes.shortLabel(usage))
@@ -46,6 +49,10 @@ struct RemapEditor: View {
                 .frame(minHeight: 260)
             }
 
+            if let app = model.selectedApp[device.id] {
+                AppKeyPanel(device: device, app: app, layer: 0, slot: selection.map { .matrix(row: 0, col: Int($0)) },
+                            code: selection.map { remaps[$0] ?? $0 }, keycodes: keycodes)
+            } else {
             HStack(alignment: .top, spacing: 18) {
                 Panel {
                     VStack(alignment: .leading, spacing: 12) {
@@ -83,6 +90,7 @@ struct RemapEditor: View {
                     .opacity(selection == nil ? 0.45 : 1)
                 }
                 .frame(height: 316)
+            }
             }
         }
     }

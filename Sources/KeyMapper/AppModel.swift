@@ -40,6 +40,12 @@ final class AppModel {
     var actionsEnabled = UserDefaults.standard.object(forKey: "actionsEnabled") as? Bool ?? true
     var refusedBindings: Set<UUID> = []
     var showingActions = false
+    /// App tab selected in a device's editor (nil = all apps), keyed by device id.
+    var selectedApp: [String: AppChoice] = [:]
+    /// Firmware version / update info per device id (Keychron only for now).
+    var firmware: [String: FirmwareStatus] = [:]
+    /// Extra app tabs the user added per deviceKey (before any rule exists).
+    var extraAppTabs: [String: [AppChoice]] = AppModel.loadExtraAppTabs()
     var accessibilityTrusted = ActionPerformer.isAccessibilityTrusted
     @ObservationIgnored let hotKeys = HotKeyCenter()
 
@@ -78,7 +84,10 @@ final class AppModel {
         knownDeviceIDs = ids
         devices = list
         if selectedDeviceID.map({ !ids.contains($0) }) ?? true { selectedDeviceID = list.first?.id }
-        for device in added { autoApply(device) }
+        for device in added {
+            autoApply(device)
+            Task { await refreshFirmware(device) }
+        }
     }
 
     private func dropSession(_ id: String) {
