@@ -7,6 +7,7 @@ import KeyMapperCore
 //   kmctl export <n> <file>        save the keymap as .vil (Vial) or .json (VIA)
 //   kmctl apply <n> <file>         write a .vil / VIA .json / profile onto keyboard n
 //   kmctl remap <n> <preset|clear> macOS level remap (non-programmable keyboards)
+//   kmctl screen <n> [sync-time]   keyboards with a display (LEOBOG AMG65): status, clock
 
 func fail(_ message: String) -> Never {
     FileHandle.standardError.write((message + "\n").data(using: .utf8)!)
@@ -51,7 +52,38 @@ case "list", nil:
             let percent = (Double(battery.level) / 100).formatted(.percent.precision(.fractionLength(0)).locale(L10n.current.locale))
             line += "  " + L("pil %@", percent)
         }
+        if let screen = device.screenKeyboard {
+            line += "  " + L("ekranlı: %@", "\(screen.model.name), \(screen.link == .wired ? L("kablo") : L("alıcı"))")
+        }
         print(line)
+    }
+
+case "screen":
+    // kmctl screen <n>            read-only status of the vendor channel
+    // kmctl screen <n> sync-time  set the keyboard clock from the Mac (writes to the keyboard)
+    let target = device(at: args.dropFirst().first)
+    guard let channel = target.screenKeyboard else { fail(L("Bu klavye ekranlı klavye olarak tanınmadı.")) }
+    print(L("%@ — %@", channel.model.name, channel.link == .wired ? L("USB kablosu") : L("2.4 GHz alıcı")))
+    let action = args.count > 2 ? args[2] : "status"
+    runAsync {
+        let session: ScreenKeyboardSession
+        do {
+            session = try ScreenKeyboardSession(channel: channel)
+        } catch {
+            print(L("Kanal: %@", error.localizedDescription))
+            return
+        }
+        defer { session.close() }
+        switch action {
+        case "status":
+            print(L("Kanal: boşta, KeyMapper kullanabilir."))
+        case "sync-time":
+            guard channel.supportsClock else { fail(ScreenKeyboardError.needsCable.localizedDescription) }
+            try await session.perform { link in try link.run(AMG65Protocol.timeSync(Date())) }
+            print(L("Klavye saati Mac ile eşitlendi."))
+        default:
+            fail(L("Kullanım: kmctl screen <n> [status|sync-time]"))
+        }
     }
 
 case "dump":
@@ -68,6 +100,18 @@ case "dump":
             let base = keychron.defaultLayer.map(String.init) ?? "-"
             print("Keychron: \(keychron.family.rawValue.uppercased()) · " + L("etkin katman %@, temel katman %@", active, base)
                   + (keychron.reportRateHz.map { " · \($0) Hz" } ?? ""))
+        }
+        // Read only: current lighting values, no set or save.
+        for capability in state.lighting {
+            let viaProtocol = state.viaProtocol, maxBrightness = state.vialRGBMaxBrightness
+            let current = try? await session.perform { client in
+                try client.lightingState(capability, viaProtocol: viaProtocol, vialRGBMax: maxBrightness)
+            }
+            let values = current.map { s in
+                let effect = capability.effects.first { $0.id == s.effect }?.name ?? "\(s.effect)"
+                return L("parlaklık %@, efekt %@, hız %@, renk %@/%@", "\(s.brightness)", effect, "\(s.speed)", "\(s.hue)", "\(s.saturation)")
+            } ?? L("okunamadı")
+            print(L("Işık: %@ (%@ efekt) — %@", capability.kind.title, "\(capability.effects.count)", values))
         }
         for layer in 0..<state.layerCount where onlyLayer == nil || onlyLayer == layer {
             print(L("\n— Katman %@", "\(layer)"))
@@ -166,6 +210,7 @@ default:
         ("kmctl apply <n> <file>", L(".vil / VIA .json / profil dosyasını klavyeye yaz")),
         ("kmctl remap <n> [preset|clear]", L("macOS seviyesinde eşleme")),
         ("kmctl firmware <n>", L("firmware sürümü ve güncelleme kontrolü")),
+        ("kmctl screen <n> [sync-time]", L("ekranlı klavye: durum, saat eşitleme")),
     ]
     for (command, help) in commands { print(command.padding(toLength: 33, withPad: " ", startingAt: 0) + help) }
 }

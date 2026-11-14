@@ -22,9 +22,13 @@ public enum HIDError: LocalizedError, Equatable {
     }
 }
 
-/// Request/response channel over a QMK raw HID interface (32 byte reports, no report ID).
+/// Request/response channel over a vendor HID interface without report IDs: QMK raw HID (32 byte reports)
+/// or vendor channels with other report sizes (the LEOBOG AMG65 uses 64).
 public final class RawHIDConnection: @unchecked Sendable {
+    /// QMK raw HID report size (VIA / Vial).
     public static let reportSize = 32
+    /// Report size of this connection.
+    public let reportSize: Int
 
     private let device: IOHIDDevice
     private let inputQueue = DispatchQueue(label: "keymapper.rawhid.input")
@@ -40,7 +44,9 @@ public final class RawHIDConnection: @unchecked Sendable {
     private var closed = false
     private var removed = false
 
-    public init(registryID: UInt64) throws {
+    public init(registryID: UInt64, reportSize: Int = RawHIDConnection.reportSize) throws {
+        precondition((1...64).contains(reportSize), "HID report size out of range")
+        self.reportSize = reportSize
         let service = IOServiceGetMatchingService(kIOMainPortDefault, IORegistryEntryIDMatching(registryID))
         guard service != IO_OBJECT_NULL else { throw HIDError.deviceNotFound }
         defer { IOObjectRelease(service) }
@@ -96,7 +102,7 @@ public final class RawHIDConnection: @unchecked Sendable {
         stateLock.lock(); unsolicited = handler; stateLock.unlock()
     }
 
-    /// Sends one 32 byte report and waits for the reply. With `expecting`, only a report whose
+    /// Sends one report (padded to `reportSize`) and waits for the reply. With `expecting`, only a report whose
     /// first byte echoes that id (or 0xFF, "unhandled") counts; anything else is passed on as unsolicited.
     public func exchange(_ request: [UInt8], timeout: TimeInterval = 1.0, retries: Int = 2, expecting: UInt8? = nil) throws -> [UInt8] {
         requestLock.lock(); defer { requestLock.unlock() }
@@ -112,8 +118,8 @@ public final class RawHIDConnection: @unchecked Sendable {
 
     private func exchangeOnce(_ request: [UInt8], timeout: TimeInterval, expecting: UInt8?) throws -> [UInt8] {
         if isClosed { throw HIDError.disconnected }
-        var report = [UInt8](repeating: 0, count: Self.reportSize)
-        for (index, byte) in request.prefix(Self.reportSize).enumerated() { report[index] = byte }
+        var report = [UInt8](repeating: 0, count: reportSize)
+        for (index, byte) in request.prefix(reportSize).enumerated() { report[index] = byte }
 
         // Drop any stale report before sending.
         while responseSignal.wait(timeout: .now()) == .success {}
@@ -132,7 +138,7 @@ public final class RawHIDConnection: @unchecked Sendable {
         stateLock.lock(); defer { stateLock.unlock() }
         if (closed || removed) && response.isEmpty { throw HIDError.disconnected }
         var padded = response
-        if padded.count < Self.reportSize { padded += [UInt8](repeating: 0, count: Self.reportSize - padded.count) }
+        if padded.count < reportSize { padded += [UInt8](repeating: 0, count: reportSize - padded.count) }
         return padded
     }
 

@@ -80,7 +80,8 @@ public enum DefinitionParser {
             keys: keys,
             layoutOptions: options,
             customKeycodes: custom,
-            source: source
+            source: source,
+            lighting: LightingDefinition.capabilities(from: json)
         )
     }
 

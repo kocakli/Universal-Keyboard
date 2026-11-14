@@ -8,6 +8,9 @@ enum VIACommand: UInt8 {
     case setKeyboardValue = 0x03
     case getKeycode = 0x04
     case setKeycode = 0x05
+    case lightingSetValue = 0x07
+    case lightingGetValue = 0x08
+    case lightingSave = 0x09
     case getLayerCount = 0x11
     case getBuffer = 0x12
     case getEncoder = 0x14

@@ -96,9 +96,12 @@ public struct KeyboardDefinition: Codable, Sendable {
     public var layoutOptions: [LayoutOption]
     public var customKeycodes: [CustomKeycode]
     public var source: DefinitionSource
+    /// Optional so definitions encoded before lighting support still decode.
+    private var lightingCapabilities: [LightingCapability]?
 
     public init(name: String, vendorID: Int, productID: Int, rows: Int, cols: Int, keys: [LayoutKey],
-                layoutOptions: [LayoutOption] = [], customKeycodes: [CustomKeycode] = [], source: DefinitionSource) {
+                layoutOptions: [LayoutOption] = [], customKeycodes: [CustomKeycode] = [], source: DefinitionSource,
+                lighting: [LightingCapability] = []) {
         self.name = name
         self.vendorID = vendorID
         self.productID = productID
@@ -108,6 +111,13 @@ public struct KeyboardDefinition: Codable, Sendable {
         self.layoutOptions = layoutOptions
         self.customKeycodes = customKeycodes
         self.source = source
+        self.lightingCapabilities = lighting
+    }
+
+    /// Lighting systems the definition declares (VIA `menus` / `lighting`, Vial `lighting`).
+    public var lighting: [LightingCapability] {
+        get { lightingCapabilities ?? [] }
+        set { lightingCapabilities = newValue }
     }
 
     /// Number of rotary encoders referenced by the layout.

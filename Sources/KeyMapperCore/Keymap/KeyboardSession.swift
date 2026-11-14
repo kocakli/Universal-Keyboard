@@ -13,6 +13,10 @@ public struct KeyboardState: Sendable {
     public var firmwareVersion: String?
     /// Keychron Launcher status (family, active layer, radios) for Keychron firmware.
     public var keychron: KeychronStatus?
+    /// Lighting systems the keyboard can be controlled through (declared by the definition or found by asking).
+    public var lighting: [LightingCapability] = []
+    /// VialRGB brightness ceiling (RGB_MATRIX_MAXIMUM_BRIGHTNESS); 255 elsewhere.
+    public var vialRGBMaxBrightness = 255
 
     public var layerCount: Int { keymap.layerCount }
 }
@@ -126,6 +130,31 @@ public final class KeyboardSession: @unchecked Sendable {
             return (Keymap(layers: matrix, encoders: encoders), options)
         }
 
+        // Lighting is optional: a keyboard that fails these reads still loads.
+        let declared = definition.lighting
+        let viaProtocol = info.0
+        let lighting = (try? await perform { client -> ([LightingCapability], Int) in
+            var capabilities = declared
+            var vialRGBMax = 255
+            if capabilities.isEmpty {
+                // Keychron Launcher definitions (and some VIA files) don't declare lighting; ask the firmware.
+                capabilities = [LightingKind.rgbMatrix, .rgblight, .backlight, .ledMatrix]
+                    .filter { client.lightingResponds($0, viaProtocol: viaProtocol) }
+                    .map { LightingCapability(kind: $0) }
+            }
+            if let index = capabilities.firstIndex(where: { $0.kind == .vialRGB }) {
+                if let rgb = try? client.vialRGBInfo(), rgb.version == 1 {
+                    vialRGBMax = max(1, rgb.maxBrightness)
+                    capabilities[index].effects = rgb.effects.map {
+                        LightingEffect(id: $0, name: LightingDefinition.vialRGBEffectNames[$0] ?? L("Efekt %@", "\($0)"))
+                    }
+                } else {
+                    capabilities.remove(at: index)
+                }
+            }
+            return (capabilities, vialRGBMax)
+        }) ?? ([], 255)
+
         return KeyboardState(
             definition: definition,
             keycodes: keycodes,
@@ -135,7 +164,9 @@ public final class KeyboardSession: @unchecked Sendable {
             vialUID: info.2,
             layoutOptions: definition.selectedOptions(packed: packedOptions),
             firmwareVersion: vendorInfo.firmware,
-            keychron: vendorInfo.status
+            keychron: vendorInfo.status,
+            lighting: lighting.0,
+            vialRGBMaxBrightness: lighting.1
         )
     }
 

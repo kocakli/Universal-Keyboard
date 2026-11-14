@@ -9,12 +9,15 @@ VERSION="0.1.0"
 
 swift build -c release --product KeyMapper
 swift build -c release --product kmctl
+swift build -c release --product keymapper-usage
 BIN="$(swift build -c release --show-bin-path)"
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN/KeyMapper" "$APP/Contents/MacOS/KeyMapper"
 cp "$BIN/kmctl" "$APP/Contents/MacOS/kmctl"
+# AI usage reader: credentials are only read inside this short-lived helper, never in the app process.
+cp "$BIN/keymapper-usage" "$APP/Contents/MacOS/keymapper-usage"
 
 # App icon: the Icon Composer document compiles to Assets.car (Liquid Glass, macOS 26+)
 # and AppIcon.icns (earlier macOS). The transparent glyph is used inside the app.
@@ -70,6 +73,8 @@ else
     # Nested code first, then the bundle (--deep is not meant for signing).
     codesign --force --options runtime --timestamp --identifier dev.keymapper.kmctl \
         --sign "$SIGN_IDENTITY" "$APP/Contents/MacOS/kmctl"
+    codesign --force --options runtime --timestamp --identifier dev.keymapper.usage \
+        --sign "$SIGN_IDENTITY" "$APP/Contents/MacOS/keymapper-usage"
     codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
 fi
 codesign --verify --deep --strict "$APP"

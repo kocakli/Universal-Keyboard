@@ -181,6 +181,9 @@ struct DeviceDetail: View {
                     }
                 }
                 DeviceHeader(device: device)
+                if let channel = device.screenKeyboard {
+                    ScreenKeyboardSection(device: device, channel: channel)
+                }
                 if device.capability == .osRemap {
                     RemapEditor(device: device)
                 } else {
@@ -247,6 +250,7 @@ private struct DeviceHeader: View {
     @Environment(AppModel.self) private var model
     let device: KeyboardDevice
     @State private var savingName: String?
+    @State private var showingLighting = false
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 16) {
@@ -273,6 +277,18 @@ private struct DeviceHeader: View {
             }
             Spacer(minLength: 12)
             HStack(spacing: 8) {
+                if !model.lightingCapabilities(for: device).isEmpty {
+                    Button {
+                        showingLighting.toggle()
+                    } label: {
+                        Label(L("Işıklar"), systemImage: "light.max")
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                    .help(L("Arka ışık ve RGB efektleri"))
+                    .popover(isPresented: $showingLighting, arrowEdge: .bottom) {
+                        LightingPanel(device: device)
+                    }
+                }
                 profileMenu
                 if device.capability != .osRemap {
                     Button {
@@ -314,6 +330,7 @@ private struct DeviceHeader: View {
         if state.definition.encoderCount > 0 { list.append(L("%@ encoder", "\(state.definition.encoderCount)")) }
         list.append(L("Tanım: %@", "\(state.definition.source.title.lowercased(with: L10n.current.locale))"))
         if let active = state.keychron?.baseLayer { list.append(L("Etkin katman %@", "\(active)")) }
+        list += Set(state.lighting.map(\.kind.title)).sorted()
         return list
     }
 
