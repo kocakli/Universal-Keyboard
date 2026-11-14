@@ -21,11 +21,14 @@ enum About {
         func link(_ title: String, _ url: URL) -> NSAttributedString {
             NSAttributedString(string: title, attributes: body.merging([.link: url]) { _, new in new })
         }
+        /// "github.com/owner/repo" for display; the full URL stays the link target.
+        func address(_ url: URL) -> String { (url.host() ?? "") + url.path() }
 
         let credits = NSMutableAttributedString(string: L("Geliştiren: %@", author) + "\n", attributes: body)
-        credits.append(link("github.com/kocakli", profile))
-        credits.append(NSAttributedString(string: "\n", attributes: body))
-        credits.append(link(L("Kaynak kodu"), repository))
+        credits.append(link(address(profile), profile))
+        // The address gets its own line: next to the label it wraps at the hyphen in the narrow panel.
+        credits.append(NSAttributedString(string: "\n" + L("Kaynak kodu:") + "\n", attributes: body))
+        credits.append(link(address(repository), repository))
 
         NSApp.activate()
         NSApp.orderFrontStandardAboutPanel(options: [
