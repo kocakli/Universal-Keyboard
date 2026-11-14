@@ -1,32 +1,33 @@
 import KeyMapperCore
 import SwiftUI
 
-/// Main window: keyboards on the left, layout editor on the right.
+/// Main window: keyboards on the left, layout editor on the right ("Graphite Signal" design).
 struct EditorWindow: View {
     static let id = "editor"
     @Environment(AppModel.self) private var model
 
     var body: some View {
         @Bindable var model = model
-        NavigationSplitView {
-            List(selection: $model.selectedDeviceID) {
-                Section("Bağlı klavyeler") {
-                    ForEach(model.devices) { device in
-                        DeviceRow(device: device).tag(device.id)
-                    }
+        HStack(spacing: 0) {
+            Sidebar()
+                .frame(width: 264)
+            Rectangle().fill(Color(hex: 0x1F2127)).frame(width: 1)
+            Group {
+                if model.showingActions {
+                    ActionsView()
+                } else if let device = model.selectedDevice {
+                    DeviceDetail(device: device).id(device.id)
+                } else {
+                    EmptyDetail()
                 }
             }
-            .navigationSplitViewColumnWidth(min: 220, ideal: 250)
-            .safeAreaInset(edge: .bottom) { SupportFooter() }
-        } detail: {
-            if let device = model.selectedDevice {
-                DeviceDetail(device: device)
-                    .id(device.id)
-            } else {
-                ContentUnavailableView("Klavye seçin", systemImage: "keyboard",
-                                       description: Text("USB veya Bluetooth ile bağlı bir klavye seçin."))
-            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .background(Theme.ground)
+        .foregroundStyle(Theme.text)
+        .preferredColorScheme(.dark)
+        .frame(minWidth: 1040, minHeight: 720)
+        .overlay(alignment: .bottom) { StatusBanner().padding(18) }
         .sheet(item: $model.unlock) { _ in UnlockSheet() }
         .onAppear {
             NSApp.setActivationPolicy(.regular)
@@ -36,59 +37,141 @@ struct EditorWindow: View {
     }
 }
 
-private struct DeviceRow: View {
+// MARK: - Sidebar
+
+private struct Sidebar: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 10) {
+                AppMark()
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("KeyMapper").font(.system(size: 15, weight: .bold)).tracking(-0.2)
+                    Text("Evrensel klavye eşleyici").font(.system(size: 11)).foregroundStyle(Theme.textTertiary)
+                }
+            }
+            .padding(.horizontal, 6)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Eyebrow(text: "Bağlı klavyeler · \(model.devices.count)").padding(.horizontal, 8)
+                ScrollView {
+                    VStack(spacing: 6) {
+                        ForEach(model.devices) { device in
+                            DeviceCard(device: device, isSelected: !model.showingActions && model.selectedDeviceID == device.id) {
+                                model.selectedDeviceID = device.id
+                                model.showingActions = false
+                            }
+                        }
+                        if model.devices.isEmpty {
+                            Text("Bağlı klavye yok. Bluetooth klavyeyi bir tuşa basarak uyandırın.")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Theme.textSecondary)
+                                .padding(12)
+                        }
+                    }
+                }
+                .scrollIndicators(.never)
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Eyebrow(text: "Otomasyon").padding(.horizontal, 8)
+                ActionsNavCard(isSelected: model.showingActions) { model.showingActions = true }
+            }
+
+            Spacer(minLength: 0)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Desteklenenler").font(.system(size: 12, weight: .semibold))
+                Text("Vial ve VIA/QMK klavyeler firmware'de, diğer tüm klavyeler macOS seviyesinde düzenlenir.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.textSecondary)
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                Toggle(isOn: Binding(get: { model.launchAtLogin }, set: { model.setLaunchAtLogin($0) })) {
+                    Text("Girişte başlat").font(.system(size: 12)).foregroundStyle(Theme.textMuted)
+                }
+                .toggleStyle(.switch)
+                .controlSize(.mini)
+                .tint(Theme.signal)
+            }
+            .padding(14)
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(hex: 0x17191D)))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.lineSoft, lineWidth: 1))
+        }
+        .padding(EdgeInsets(top: 46, leading: 14, bottom: 16, trailing: 14))
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(Theme.sidebar)
+    }
+}
+
+private struct DeviceCard: View {
     @Environment(AppModel.self) private var model
     let device: KeyboardDevice
+    let isSelected: Bool
+    let action: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack {
-                Text(device.displayName).lineLimit(1)
-                Spacer()
-                CapabilityBadge(capability: device.capability)
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    KeyboardSilhouette(keys: model.states[device.id]?.definition.keys ?? [],
+                                       color: isSelected ? Theme.signal : Color(hex: 0x5B5F6B))
+                        .frame(width: 40, height: 22)
+                    Spacer()
+                    CapabilityBadge(capability: device.capability)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(device.displayName).font(.system(size: 14, weight: .semibold)).lineLimit(1)
+                    Text("\(device.brand.name) · \(device.transportLabel)").font(.system(size: 12)).foregroundStyle(Theme.textSecondary).lineLimit(1)
+                }
+                HStack(spacing: 6) {
+                    if let profile = model.assignedProfile(for: device) {
+                        Circle().fill(Theme.signal).frame(width: 6, height: 6)
+                        Text("Layout: \(profile.name)").foregroundStyle(Theme.textMuted)
+                    } else {
+                        Text(device.capability == .osRemap ? "Eşleme yok" : "Profil atanmadı").foregroundStyle(Theme.textTertiary)
+                    }
+                }
+                .font(.system(size: 12))
+                .lineLimit(1)
             }
-            Text("\(device.brand.name) · \(device.transportLabel)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            if let profile = model.assignedProfile(for: device) {
-                Label(profile.name, systemImage: "square.grid.3x3").font(.caption2).foregroundStyle(.secondary)
-            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(isSelected ? Theme.raised : .clear))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(isSelected ? Color(hex: 0x30343D) : .clear, lineWidth: 1))
+            .contentShape(Rectangle())
         }
-        .padding(.vertical, 3)
+        .buttonStyle(.plain)
     }
 }
 
-private struct SupportFooter: View {
+private struct EmptyDetail: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Destek").font(.caption.weight(.semibold))
-            Text("Vial ve VIA/QMK klavyeler (Keychron, Corne, Cornix, NuPhy, KBDfans, Keebio…) firmware seviyesinde; diğer tüm klavyeler (Logitech, Apple, Razer, Corsair…) macOS seviyesinde düzenlenir.")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+        VStack(spacing: 14) {
+            AppMark(size: 56)
+            Text("Klavye seçin").font(.system(size: 20, weight: .semibold))
+            Text("USB veya Bluetooth ile bağlı bir klavye seçin.").foregroundStyle(Theme.textSecondary)
         }
-        .padding(10)
     }
 }
 
-/// Detail pane for one keyboard.
+// MARK: - Detail
+
 struct DeviceDetail: View {
     @Environment(AppModel.self) private var model
     let device: KeyboardDevice
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            DeviceHeader(device: device)
-                .padding([.horizontal, .top], 16)
-                .padding(.bottom, 10)
-            Divider()
-            Group {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                DeviceHeader(device: device)
                 if device.capability == .osRemap {
                     RemapEditor(device: device)
                 } else {
                     switch model.phase(for: device) {
                     case .idle, .loading:
-                        ProgressView("Klavye okunuyor…").frame(maxWidth: .infinity, maxHeight: .infinity)
+                        LoadingStage()
                     case let .failed(message):
                         FailureView(device: device, message: message)
                     case .loaded:
@@ -98,10 +181,22 @@ struct DeviceDetail: View {
                     }
                 }
             }
-            .padding(16)
-            StatusBanner().padding([.horizontal, .bottom], 12)
+            .padding(EdgeInsets(top: 30, leading: 28, bottom: 80, trailing: 28))
         }
+        .scrollIndicators(.automatic)
         .task { await model.ensureLoaded(device) }
+    }
+}
+
+private struct LoadingStage: View {
+    var body: some View {
+        KeyboardStage {
+            VStack(spacing: 12) {
+                ProgressView().controlSize(.large).tint(Theme.signal)
+                Text("Klavye okunuyor…").foregroundStyle(Theme.textSecondary)
+            }
+            .frame(height: 300)
+        }
     }
 }
 
@@ -111,17 +206,21 @@ private struct FailureView: View {
     let message: String
 
     var body: some View {
-        ContentUnavailableView {
-            Label("Klavye okunamadı", systemImage: "exclamationmark.triangle")
-        } description: {
-            Text(message)
-        } actions: {
-            HStack {
-                Button("Tekrar dene") { Task { await model.ensureLoaded(device, force: true) } }
-                if device.capability == .via {
-                    Button("VIA tanım dosyası yükle…") { model.importDefinition(for: device) }
+        KeyboardStage {
+            VStack(spacing: 14) {
+                Image(systemName: "exclamationmark.triangle").font(.system(size: 30)).foregroundStyle(Theme.signal)
+                Text("Klavye okunamadı").font(.system(size: 17, weight: .semibold))
+                Text(message).font(.system(size: 13)).foregroundStyle(Theme.textSecondary).multilineTextAlignment(.center).frame(maxWidth: 460)
+                HStack {
+                    Button("Tekrar dene") { Task { await model.ensureLoaded(device, force: true) } }
+                        .buttonStyle(PrimaryButtonStyle())
+                    if device.capability == .via {
+                        Button("VIA tanım dosyası yükle…") { model.importDefinition(for: device) }
+                            .buttonStyle(SecondaryButtonStyle())
+                    }
                 }
             }
+            .frame(minHeight: 300)
         }
     }
 }
@@ -132,28 +231,36 @@ private struct DeviceHeader: View {
     @State private var savingName: String?
 
     var body: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 8) {
-                    Text(device.displayName).font(.title2.weight(.semibold))
-                    CapabilityBadge(capability: device.capability)
-                }
-                Text(details).font(.callout).foregroundStyle(.secondary)
-                if let activity = model.activity[device.id] {
-                    HStack(spacing: 6) {
-                        ProgressView().controlSize(.small)
-                        Text(activity).font(.caption)
+        HStack(alignment: .bottom, spacing: 16) {
+            VStack(alignment: .leading, spacing: 6) {
+                // Product names are Latin: uppercase them without Turkish dotted-İ rules.
+                Eyebrow(text: "\(device.capability.title) · \(device.transportLabel) · \(device.deviceKey)".uppercased(), color: Theme.signal)
+                Text(device.displayName).font(.system(size: 30, weight: .bold)).tracking(-0.6).lineLimit(1)
+                HStack(spacing: 6) {
+                    ForEach(chips, id: \.self) { Chip(text: $0) }
+                    if let activity = model.activity[device.id] {
+                        ProgressView().controlSize(.small).tint(Theme.signal)
+                        Text(activity).font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
                     }
                 }
+                .padding(.top, 4)
             }
-            Spacer()
-            profileMenu
-            if device.capability != .osRemap {
-                Button {
-                    Task { await model.ensureLoaded(device, force: true) }
-                } label: {
-                    Label("Yeniden oku", systemImage: "arrow.clockwise")
+            Spacer(minLength: 12)
+            HStack(spacing: 8) {
+                profileMenu
+                if device.capability != .osRemap {
+                    Button {
+                        Task { await model.ensureLoaded(device, force: true) }
+                    } label: {
+                        Image(systemName: "arrow.clockwise").font(.system(size: 13, weight: .semibold))
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                    .help("Klavyeden yeniden oku")
+                    .accessibilityLabel("Klavyeden yeniden oku")
                 }
+                Button("Profil olarak kaydet") { savingName = "Profil \(model.profiles(for: device).count + 1)" }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .disabled(!isLoaded)
             }
         }
         .alert("Layout'u profil olarak kaydet", isPresented: Binding(get: { savingName != nil }, set: { if !$0 { savingName = nil } })) {
@@ -169,19 +276,22 @@ private struct DeviceHeader: View {
         }
     }
 
-    private var details: String {
-        var parts = [device.brand.name, device.transportLabel, device.deviceKey]
-        if let state = model.states[device.id] {
-            parts.append("VIA v\(state.viaProtocol)")
-            if let vial = state.vialProtocol { parts.append("Vial v\(vial)") }
-            parts.append("Tanım: \(state.definition.source.title)")
+    private var isLoaded: Bool { device.capability == .osRemap || model.states[device.id] != nil }
+
+    private var chips: [String] {
+        if device.capability == .osRemap {
+            let count = model.currentRemaps(device).count
+            return ["macOS eşlemesi", count == 0 ? "Eşleme yok" : "\(count) eşleme", device.brand.name]
         }
-        return parts.joined(separator: " · ")
+        guard let state = model.states[device.id] else { return [device.brand.name] }
+        var list = ["\(state.layerCount) katman", "\(state.definition.rows)×\(state.definition.cols) matris"]
+        if state.definition.encoderCount > 0 { list.append("\(state.definition.encoderCount) encoder") }
+        list.append("Tanım: \(state.definition.source.title.lowercased(with: Locale(identifier: "tr_TR")))")
+        return list
     }
 
     private var profileMenu: some View {
         let profiles = model.profiles(for: device)
-        let loaded = device.capability == .osRemap || model.states[device.id] != nil
         return Menu {
             Section("Profil uygula") {
                 if profiles.isEmpty { Text("Kayıtlı profil yok") }
@@ -198,8 +308,6 @@ private struct DeviceHeader: View {
                 }
             }
             Divider()
-            Button("Mevcut düzeni profil olarak kaydet…") { savingName = "Profil \(profiles.count + 1)" }
-                .disabled(!loaded)
             Button("Dosyadan içe aktar (.vil / VIA .json)…") { model.importLayoutFile(for: device) }
             if device.capability != .osRemap {
                 Menu("Dışa aktar") {
@@ -207,7 +315,7 @@ private struct DeviceHeader: View {
                     Button("VIA (.json)") { model.export(device, format: .via) }
                     Button("KeyMapper profili (.json)") { model.export(device, format: .profile) }
                 }
-                .disabled(!loaded)
+                .disabled(!isLoaded)
             }
             if device.capability == .via {
                 Button("VIA tanım dosyası yükle…") { model.importDefinition(for: device) }
@@ -220,11 +328,26 @@ private struct DeviceHeader: View {
                 }
             }
         } label: {
-            Label("Profil", systemImage: "square.grid.3x3")
+            HStack(spacing: 8) {
+                Text("Profil").foregroundStyle(Theme.textTertiary)
+                Text(model.assignedProfile(for: device)?.name ?? "Seç").fontWeight(.semibold)
+                Image(systemName: "chevron.down").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.textSecondary)
+            }
+            .font(.system(size: 13))
+            .foregroundStyle(Theme.text)
+            .padding(.horizontal, 14)
+            .frame(height: 36)
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.control))
+            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
         }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
         .fixedSize()
     }
 }
+
+// MARK: - Firmware editor
 
 /// VIA / Vial keymap editor.
 private struct FirmwareEditor: View {
@@ -239,147 +362,208 @@ private struct FirmwareEditor: View {
     @State private var alphaTarget = AlphaLayout.colemakDH
 
     var body: some View {
-        let keys = state.definition.visibleKeys(options: state.layoutOptions)
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Picker("Katman", selection: $layer) {
-                    ForEach(0..<state.layerCount, id: \.self) { Text("\($0)").tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .frame(maxWidth: CGFloat(state.layerCount) * 44)
-                Spacer()
+        let keys = state.definition.visibleKeys(options: state.layoutOptions).filter { !$0.isEncoder }
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 12) {
+                layerPills
+                Spacer(minLength: 12)
                 alphaControls
             }
 
-            KeyboardCanvas(keys: keys, selected: selection, cap: cap(for:)) { key in
-                selection = key.slot
-                expression = currentCode.map { state.keycodes.name(for: $0) } ?? ""
+            KeyboardStage {
+                KeyboardCanvas(keys: keys, selected: selection, cap: cap(for:)) { key in select(key.slot) }
+                    .frame(minHeight: 220)
+                if state.definition.encoderCount > 0 { encoderRow }
             }
-            .frame(minHeight: 160)
 
-            if !knobs.isEmpty { knobRow }
-
-            selectionBar
-
-            KeycodePicker(keycodes: state.keycodes, layerCount: state.layerCount, categories: PickerCategory.allCases) { code in
-                assign(code)
+            HStack(alignment: .top, spacing: 18) {
+                inspector.frame(width: 360)
+                Panel {
+                    KeycodePicker(keycodes: state.keycodes, layerCount: state.layerCount, categories: PickerCategory.allCases,
+                                  annotations: model.actionNamesByUsage) { assign($0) }
+                        .disabled(selection == nil)
+                        .opacity(selection == nil ? 0.45 : 1)
+                }
+                .frame(height: 316)
             }
-            .disabled(selection == nil)
-            .opacity(selection == nil ? 0.5 : 1)
         }
         .onChange(of: layer) { _, _ in expression = currentCode.map { state.keycodes.name(for: $0) } ?? "" }
     }
 
-    // VIA style knobs (encoder attached to a matrix key) are edited here; Vial encoders appear on the canvas.
-    private var knobs: [Int] {
-        guard !state.definition.keys.contains(where: \.isEncoder) else { return [] }
-        return Array(0..<state.definition.encoderCount)
-    }
+    // MARK: Pieces
 
-    private var knobRow: some View {
-        HStack(spacing: 10) {
-            Text("Döner düğme").font(.caption).foregroundStyle(.secondary)
-            ForEach(knobs, id: \.self) { index in
-                ForEach([false, true], id: \.self) { clockwise in
-                    let slot = KeySlot.encoder(index: index, clockwise: clockwise)
-                    let code = state.keymap.keycode(layer: layer, slot: slot) ?? 0
-                    Button {
-                        selection = slot
-                        expression = state.keycodes.name(for: code)
-                    } label: {
-                        Text("\(index) \(clockwise ? "↻" : "↺")  \(state.keycodes.shortLabel(code))")
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(selection == slot ? .accentColor : nil)
-                }
+    private var layerPills: some View {
+        HStack(spacing: 4) {
+            ForEach(0..<state.layerCount, id: \.self) { index in
+                Button("\(index)") { layer = index }
+                    .buttonStyle(PillButtonStyle(isOn: layer == index, style: .plain))
+                    .accessibilityLabel("Katman \(index)")
             }
         }
+        .padding(4)
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.surface))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.lineSoft, lineWidth: 1))
     }
 
     private var alphaControls: some View {
-        HStack(spacing: 6) {
-            Text("Alfabe").font(.caption).foregroundStyle(.secondary)
-            Picker("Kaynak", selection: $alphaSource) {
-                ForEach(AlphaLayout.all) { Text($0.name).tag($0) }
-            }
-            .labelsHidden()
-            .frame(width: 120)
-            Image(systemName: "arrow.right").foregroundStyle(.secondary)
-            Picker("Hedef", selection: $alphaTarget) {
-                ForEach(AlphaLayout.all) { Text($0.name).tag($0) }
-            }
-            .labelsHidden()
-            .frame(width: 120)
-            Button("Katman \(layer)'e uygula") {
+        HStack(spacing: 8) {
+            Text("Alfabe").font(.system(size: 13)).foregroundStyle(Theme.textTertiary)
+            layoutMenu(selection: $alphaSource)
+            Image(systemName: "arrow.right").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.textTertiary)
+            layoutMenu(selection: $alphaTarget)
+            Button("Katman \(layer)'a uygula") {
                 Task { await model.convertAlpha(device: device, layer: layer, from: alphaSource, to: alphaTarget) }
             }
+            .buttonStyle(SecondaryButtonStyle(height: 32, emphasized: true))
             .disabled(alphaSource == alphaTarget)
             .help("Harf tuşlarını seçilen düzene çevirir; home-row mod ve layer-tap gibi basılı tutma işlevleri korunur.")
         }
     }
 
-    private var currentCode: UInt16? {
-        selection.flatMap { state.keymap.keycode(layer: layer, slot: $0) }
+    private func layoutMenu(selection: Binding<AlphaLayout>) -> some View {
+        Menu {
+            ForEach(AlphaLayout.all) { layout in
+                Button(layout.name) { selection.wrappedValue = layout }
+            }
+        } label: {
+            Text(selection.wrappedValue.name)
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.text)
+                .padding(.horizontal, 12)
+                .frame(height: 32)
+                .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Color(hex: 0x17191D)))
+                .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(Color(hex: 0x262930), lineWidth: 1))
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
     }
 
-    private var selectionBar: some View {
+    private var encoderRow: some View {
         HStack(spacing: 10) {
-            if let selection, let code = currentCode {
-                Text(describe(selection)).font(.callout.weight(.semibold))
-                Text(state.keycodes.title(for: code)).font(.callout).foregroundStyle(.secondary).lineLimit(1)
-                Spacer()
-                holdMenu(code: code)
-                TextField("Keycode (ör. LT(1, KC_SPC), LSFT_T(KC_A))", text: $expression)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(.body, design: .monospaced))
-                    .frame(width: 280)
-                    .onSubmit(assignExpression)
-                    .foregroundStyle(state.keycodes.parse(expression) == nil && !expression.isEmpty ? .red : .primary)
-                Button("Ata", action: assignExpression)
-                    .disabled(state.keycodes.parse(expression) == nil)
-            } else {
-                Text("Değiştirmek için klavyeden bir tuş seçin, sonra aşağıdan yeni işlevini seçin.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                Spacer()
+            ForEach(0..<state.definition.encoderCount, id: \.self) { index in
+                HStack(spacing: 10) {
+                    KnobIcon()
+                    Text("Encoder \(index)").font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
+                    ForEach([false, true], id: \.self) { clockwise in
+                        let slot = KeySlot.encoder(index: index, clockwise: clockwise)
+                        let code = state.keymap.keycode(layer: layer, slot: slot) ?? 0
+                        Button("\(clockwise ? "↻" : "↺") \(state.keycodes.shortLabel(code))") { select(slot) }
+                            .buttonStyle(PillButtonStyle(isOn: selection == slot, height: 26))
+                    }
+                }
+                .padding(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 8))
+                .background(Capsule().fill(Theme.surface))
+                .overlay(Capsule().strokeBorder(Color(hex: 0x23262D), lineWidth: 1))
             }
         }
-        .frame(minHeight: 28)
     }
 
-    /// Wraps the tap keycode of the selected key in a hold action (home row mods, layer tap).
-    private func holdMenu(code: UInt16) -> some View {
+    private var inspector: some View {
+        Panel {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 14) {
+                    Keycap(kind: currentCode.map { CapKind.of($0, keycodes: state.keycodes) } ?? .empty,
+                           isSelected: selection != nil, radius: 16, depth: 10) {
+                        if let code = currentCode {
+                            KeyLegend(label: state.keycodes.label(for: code).withPlaceholder(code: code), unit: 88,
+                                      kind: CapKind.of(code, keycodes: state.keycodes), subColor: subColor(for: code))
+                        }
+                    }
+                    .frame(width: 84, height: 84)
+                    VStack(alignment: .leading, spacing: 4) {
+                        if let selection, let code = currentCode {
+                            Eyebrow(text: "Seçili tuş · \(describe(selection))")
+                            Text(state.keycodes.title(for: code)).font(.system(size: 17, weight: .semibold)).lineLimit(2)
+                            Text(state.keycodes.name(for: code)).font(Theme.mono(13)).foregroundStyle(Theme.signalSoft).textSelection(.enabled)
+                        } else {
+                            Eyebrow(text: "Seçili tuş")
+                            Text("Klavyeden bir tuş seçin").font(.system(size: 17, weight: .semibold))
+                            Text("Sonra paletten yeni işlevini seçin.").font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
+                        }
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Basılı tutunca").font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
+                    holdChips
+                }
+
+                HStack(spacing: 8) {
+                    TextField("LT(1, KC_SPC)", text: $expression)
+                        .textFieldStyle(.plain)
+                        .font(Theme.mono(13))
+                        .foregroundStyle(state.keycodes.parse(expression) == nil && !expression.isEmpty ? Color(hex: 0xFF8E8E) : Theme.text)
+                        .padding(.horizontal, 12)
+                        .frame(height: 36)
+                        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.ground))
+                        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
+                        .onSubmit(assignExpression)
+                        .accessibilityLabel("Keycode ifadesi")
+                    Button("Ata", action: assignExpression)
+                        .buttonStyle(PrimaryButtonStyle())
+                        .disabled(selection == nil || state.keycodes.parse(expression) == nil)
+                }
+            }
+        }
+        .frame(height: 316, alignment: .top)
+    }
+
+    /// Hold actions (mod-tap / layer-tap) wrapping the selected key's tap keycode.
+    private var holdChips: some View {
+        let code = currentCode ?? 0
+        let decoded = state.keycodes.decode(code)
         let tap: UInt16? = {
-            switch state.keycodes.decode(code) {
+            switch decoded {
             case let .modTap(_, kc), let .layerTap(_, kc): return kc
             case let .named(c) where c <= 0xFF: return c
             case let .raw(c) where c <= 0xFF: return c
             default: return nil
             }
         }()
-        return Menu("Basılı tut") {
-            if let tap {
-                Button("Yok (sadece dokun)") { assign(tap) }
-                Divider()
-                ForEach([(UInt8(0x01), "⌃ Control"), (0x02, "⇧ Shift"), (0x04, "⌥ Option"), (0x08, "⌘ Command"), (0x07, "Meh"), (0x0F, "Hyper")], id: \.0) { mods, title in
-                    Button(title) { if let value = state.keycodes.encode(.modTap(mods, tap)) { assign(value) } }
-                }
-                Divider()
-                ForEach(1..<max(state.layerCount, 2), id: \.self) { target in
-                    Button("Katman \(target)") { if let value = state.keycodes.encode(.layerTap(target, tap)) { assign(value) } }
-                }
-            } else {
-                Text("Bu tuşa basılı tutma işlevi eklenemez")
+        var options: [(String, String, UInt16?, Bool)] = []
+        if let tap {
+            options.append(("Yok", "Basılı tutma yok", tap, { if case .named = decoded { return true }; if case .raw = decoded { return true }; return false }()))
+            for (mods, symbol, title) in [(UInt8(0x01), "⌃", "Control"), (0x02, "⇧", "Shift"), (0x04, "⌥", "Option"), (0x08, "⌘", "Command"), (0x07, "Meh", "Meh"), (0x0F, "Hyper", "Hyper")] {
+                let isOn: Bool = { if case let .modTap(m, _) = decoded { return m == mods }; return false }()
+                options.append((symbol, title, state.keycodes.encode(.modTap(mods, tap)), isOn))
+            }
+            for target in 1..<min(max(state.layerCount, 2), 5) {
+                let isOn: Bool = { if case let .layerTap(l, _) = decoded { return l == target }; return false }()
+                options.append(("L\(target)", "Katman \(target)", state.keycodes.encode(.layerTap(target, tap)), isOn))
             }
         }
-        .fixedSize()
-        .help("Dokununca tuş, basılı tutunca değiştirici veya katman (mod-tap / layer-tap)")
+        return FlowLayout(spacing: 6) {
+            if options.isEmpty {
+                Text(selection == nil ? "—" : "Bu tuşa basılı tutma işlevi eklenemez")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.textTertiary)
+            }
+            ForEach(options, id: \.0) { option in
+                Button(option.0) { if let value = option.2 { assign(value) } }
+                    .buttonStyle(PillButtonStyle(isOn: option.3, height: 32))
+                    .help(option.1)
+                    .accessibilityLabel(option.1)
+            }
+        }
+    }
+
+    // MARK: Behaviour
+
+    private var currentCode: UInt16? {
+        selection.flatMap { state.keymap.keycode(layer: layer, slot: $0) }
+    }
+
+    private func select(_ slot: KeySlot) {
+        selection = slot
+        expression = currentCode.map { state.keycodes.name(for: $0) } ?? ""
     }
 
     private func describe(_ slot: KeySlot) -> String {
         switch slot {
-        case let .matrix(row, col): return "Katman \(layer) · R\(row) C\(col)"
-        case let .encoder(index, clockwise): return "Katman \(layer) · Encoder \(index) \(clockwise ? "↻" : "↺")"
+        case let .matrix(row, col): return "K\(layer) · R\(row) C\(col)"
+        case let .encoder(index, clockwise): return "K\(layer) · Encoder \(index) \(clockwise ? "↻" : "↺")"
         }
     }
 
@@ -394,48 +578,111 @@ private struct FirmwareEditor: View {
         Task { await model.assign(code, device: device, layer: layer, slot: selection) }
     }
 
+    private func subColor(for code: UInt16) -> Color {
+        if case .layerTap = state.keycodes.decode(code) { return Theme.cobaltText }
+        return Theme.signal
+    }
+
     private func cap(for key: LayoutKey) -> KeyCapModel {
         guard let code = state.keymap.keycode(layer: layer, slot: key.slot) else {
-            return KeyCapModel(label: KeyLabel(main: "?"), style: .empty)
+            return KeyCapModel(label: KeyLabel(main: ""), kind: .empty)
         }
         var label = state.keycodes.label(for: code)
-        if key.isEncoder { label.sub = key.encoderDirection == 1 ? "↻" : "↺" }
-        let style: KeyCapModel.Style
-        switch state.keycodes.decode(code) {
-        case .named(0x01): style = .transparent
-        case .named(0x00): style = .empty
-        case .layer, .layerTap, .layerMod: style = .layer
-        default: style = .normal
-        }
-        return KeyCapModel(label: label, style: style, tooltip: "\(state.keycodes.title(for: code))\n\(state.keycodes.name(for: code))")
+        if let action = model.actionNamesByUsage[code] { label.sub = action }
+        return KeyCapModel(
+            label: label,
+            kind: CapKind.of(code, keycodes: state.keycodes),
+            subColor: subColor(for: code),
+            tooltip: "\(state.keycodes.title(for: code))\n\(state.keycodes.name(for: code))"
+        )
     }
 }
+
+struct KnobIcon: View {
+    var body: some View {
+        ZStack(alignment: .top) {
+            Circle().fill(Theme.raised).overlay(Circle().strokeBorder(Color(hex: 0x3A3E48), lineWidth: 1.5))
+            Capsule().fill(Theme.signal).frame(width: 2, height: 5).padding(.top, 3)
+        }
+        .frame(width: 18, height: 18)
+        .accessibilityHidden(true)
+    }
+}
+
+/// Left-to-right wrapping layout for chips.
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 6
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0, maxX: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x > 0 && x + size.width > width { x = 0; y += rowHeight + spacing; rowHeight = 0 }
+            x += size.width + spacing
+            maxX = max(maxX, x - spacing)
+            rowHeight = max(rowHeight, size.height)
+        }
+        return CGSize(width: min(maxX, width), height: y + rowHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX, y = bounds.minY, rowHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x > bounds.minX && x + size.width > bounds.maxX { x = bounds.minX; y += rowHeight + spacing; rowHeight = 0 }
+            subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
+    }
+}
+
+// MARK: - Vial unlock
 
 /// Vial unlock: the user holds the unlock keys while we poll the keyboard.
 private struct UnlockSheet: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Vial kilidini aç").font(.title3.weight(.semibold))
-            Text("QK_BOOT gibi güvenlik gerektiren tuşları atamak için klavyenin kilidinin açılması gerekiyor. \"Başlat\"a basın ve aşağıdaki tuşları sayaç bitene kadar basılı tutun.")
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 10) {
+                Image(systemName: "lock.open").font(.system(size: 18, weight: .semibold)).foregroundStyle(Theme.signal)
+                Text("Vial kilidini aç").font(.system(size: 18, weight: .semibold))
+            }
+            Text("QK_BOOT gibi korumalı tuşları atamak için klavyenin kilidinin açılması gerekiyor. Başlat'a basın ve aşağıdaki tuşları sayaç bitene kadar basılı tutun.")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             if let flow = model.unlock {
-                Text("Tuşlar: " + flow.keys.map { "R\($0.row) C\($0.col)" }.joined(separator: ", "))
-                    .font(.system(.body, design: .monospaced))
+                HStack(spacing: 6) {
+                    ForEach(Array(flow.keys.enumerated()), id: \.offset) { _, key in
+                        Chip(text: "R\(key.row) C\(key.col)", foreground: Theme.signalSoft, background: Theme.signalTint, border: Theme.signal,
+                             font: Theme.mono(12))
+                    }
+                }
                 if let counter = flow.counter {
-                    ProgressView(value: max(0, 50 - Double(counter)), total: 50) { Text("Basılı tutun… \(counter)") }
+                    ProgressView(value: max(0, 50 - Double(counter)), total: 50) {
+                        Text("Basılı tutun… \(counter)").font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
+                    }
+                    .tint(Theme.signal)
                 }
                 HStack {
                     Spacer()
-                    Button("Vazgeç", role: .cancel) { model.unlock = nil }
+                    Button("Vazgeç") { model.unlock = nil }
+                        .buttonStyle(SecondaryButtonStyle())
+                        .keyboardShortcut(.cancelAction)
                     Button("Başlat") { Task { await model.runUnlock() } }
+                        .buttonStyle(PrimaryButtonStyle())
                         .disabled(flow.running)
                         .keyboardShortcut(.defaultAction)
                 }
             }
         }
-        .padding(20)
-        .frame(width: 420)
+        .padding(22)
+        .frame(width: 440)
+        .background(Theme.surface)
+        .foregroundStyle(Theme.text)
+        .preferredColorScheme(.dark)
     }
 }

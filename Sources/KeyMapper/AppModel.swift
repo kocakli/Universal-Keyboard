@@ -35,6 +35,14 @@ final class AppModel {
     var unlock: UnlockFlow?
     var launchAtLogin = SMAppService.mainApp.status == .enabled
 
+    // Actions (trigger keys → open app / shortcut / keystroke, per app)
+    var bindings: [ActionBinding] = []
+    var actionsEnabled = UserDefaults.standard.object(forKey: "actionsEnabled") as? Bool ?? true
+    var refusedBindings: Set<UUID> = []
+    var showingActions = false
+    var accessibilityTrusted = ActionPerformer.isAccessibilityTrusted
+    @ObservationIgnored let hotKeys = HotKeyCenter()
+
     @ObservationIgnored private var sessions: [String: KeyboardSession] = [:]
     @ObservationIgnored private var loadTasks: [String: Task<Void, Never>] = [:]
     @ObservationIgnored private var knownDeviceIDs: Set<String> = []
@@ -48,6 +56,7 @@ final class AppModel {
         }
         monitor.start()
         devicesChanged(monitor.snapshot())
+        setUpActions()
     }
 
     // MARK: Devices

@@ -4,19 +4,19 @@ import SwiftUI
 /// What one key cap shows.
 struct KeyCapModel {
     var label: KeyLabel
-    var style: Style = .normal
+    var kind: CapKind = .alpha
+    var subColor: Color = Theme.signal
+    var isHighlighted = false
     var tooltip: String = ""
-
-    enum Style { case normal, transparent, empty, layer, modified, highlighted }
 }
 
-/// Draws a KLE style layout (with rotated clusters) and reports clicks.
+/// Draws a KLE style layout (with rotated clusters) as sculpted keycaps and reports clicks.
 struct KeyboardCanvas: View {
     let keys: [LayoutKey]
     let selected: KeySlot?
-    var highlighted: Set<KeySlot> = []
     let cap: (LayoutKey) -> KeyCapModel
     let onSelect: (LayoutKey) -> Void
+    var maxUnit: CGFloat = 60
 
     private struct Placed {
         let key: LayoutKey
@@ -26,31 +26,33 @@ struct KeyboardCanvas: View {
     var body: some View {
         let geometry = Self.layout(keys)
         GeometryReader { proxy in
-            let unit = max(14, min(58,
-                                   (proxy.size.width - 8) / max(geometry.size.width, 1),
-                                   (proxy.size.height - 8) / max(geometry.size.height, 1)))
+            let unit = max(16, min(maxUnit,
+                                   proxy.size.width / max(geometry.size.width, 1),
+                                   proxy.size.height / max(geometry.size.height, 1)))
             ZStack(alignment: .topLeading) {
                 ForEach(Array(geometry.placed.enumerated()), id: \.offset) { _, item in
                     let model = cap(item.key)
-                    KeyCapView(
-                        model: model,
-                        isEncoder: item.key.isEncoder,
-                        isSelected: selected == item.key.slot,
-                        isHighlighted: highlighted.contains(item.key.slot),
-                        unit: unit
-                    )
-                    .frame(width: item.key.w * unit - 4, height: item.key.h * unit - 4)
+                    Button {
+                        onSelect(item.key)
+                    } label: {
+                        Keycap(kind: model.kind, isSelected: selected == item.key.slot, isHighlighted: model.isHighlighted,
+                               radius: unit * 0.18, depth: max(4, unit * 0.12)) {
+                            KeyLegend(label: model.label, unit: unit, kind: model.kind, subColor: model.subColor)
+                        }
+                        .frame(width: item.key.w * unit - 6, height: item.key.h * unit - 6)
+                    }
+                    .buttonStyle(.plain)
                     .rotationEffect(.degrees(item.key.r))
-                    .position(x: item.center.x * unit + 4, y: item.center.y * unit + 4)
-                    .onTapGesture { onSelect(item.key) }
+                    .position(x: item.center.x * unit, y: item.center.y * unit)
                     .help(model.tooltip)
+                    .accessibilityLabel(model.label.main.isEmpty ? "Boş tuş" : model.label.main)
                 }
             }
-            .frame(width: geometry.size.width * unit + 8, height: geometry.size.height * unit + 8, alignment: .topLeading)
+            .frame(width: geometry.size.width * unit, height: geometry.size.height * unit, alignment: .topLeading)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .aspectRatio(max(geometry.size.width, 1) / max(geometry.size.height, 1), contentMode: .fit)
-        .frame(maxHeight: geometry.size.height * 58 + 8)
+        .frame(maxWidth: geometry.size.width * maxUnit, maxHeight: geometry.size.height * maxUnit)
     }
 
     /// Rotates each key around its cluster origin and normalises everything to start at (0, 0).
@@ -80,51 +82,53 @@ struct KeyboardCanvas: View {
     }
 }
 
-struct KeyCapView: View {
-    let model: KeyCapModel
-    let isEncoder: Bool
-    let isSelected: Bool
-    let isHighlighted: Bool
+/// Legend printed on a keycap: optional shifted legend, main legend, hold / layer hint.
+struct KeyLegend: View {
+    let label: KeyLabel
     let unit: CGFloat
+    let kind: CapKind
+    var subColor: Color = Theme.signal
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: isEncoder ? unit : unit * 0.12, style: .continuous)
-        ZStack {
-            shape.fill(fill)
-            shape.strokeBorder(border, lineWidth: isSelected ? 2.5 : 1)
-            VStack(spacing: 0) {
-                if let top = model.label.top {
-                    Text(top).font(.system(size: unit * 0.2)).foregroundStyle(.secondary)
-                }
-                Text(model.label.main)
-                    .font(.system(size: unit * (model.label.main.count > 4 ? 0.2 : 0.27), weight: .medium))
-                    .minimumScaleFactor(0.5)
-                    .multilineTextAlignment(.center)
-                if let sub = model.label.sub {
-                    Text(sub)
-                        .font(.system(size: unit * 0.18, weight: .semibold))
-                        .foregroundStyle(Color.accentColor)
+        VStack(spacing: 1) {
+            if let top = label.top {
+                Text(top).font(.system(size: unit * 0.17)).foregroundStyle(Theme.textTertiary)
+            }
+            Text(label.main)
+                .font(Theme.rounded(unit * mainScale))
+                .foregroundStyle(kind.legend)
+                .minimumScaleFactor(0.5)
+            if let sub = label.sub {
+                Text(sub).font(.system(size: unit * 0.17, weight: .bold)).foregroundStyle(subColor)
+            }
+        }
+        .lineLimit(1)
+        .padding(.horizontal, 2)
+    }
+
+    private var mainScale: CGFloat {
+        switch label.main.count {
+        case 0...1: return 0.31
+        case 2...3: return 0.24
+        default: return 0.2
+        }
+    }
+}
+
+/// Stage behind a keyboard: sunken panel with a dot grid.
+struct KeyboardStage<Content: View>: View {
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(spacing: 18) { content() }
+            .padding(26)
+            .frame(maxWidth: .infinity)
+            .background {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Theme.surfaceSunken)
+                    DotGrid().clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 }
             }
-            .lineLimit(1)
-            .padding(2)
-            .opacity(model.style == .transparent || model.style == .empty ? 0.45 : 1)
-        }
-        .contentShape(shape)
-    }
-
-    private var fill: Color {
-        if isSelected { return Color.accentColor.opacity(0.22) }
-        if isHighlighted { return Color.orange.opacity(0.3) }
-        switch model.style {
-        case .layer: return Color.purple.opacity(0.14)
-        case .modified: return Color.orange.opacity(0.18)
-        case .highlighted: return Color.green.opacity(0.18)
-        default: return Color(nsColor: .controlBackgroundColor)
-        }
-    }
-
-    private var border: Color {
-        isSelected ? Color.accentColor : Color(nsColor: .separatorColor)
+            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color(hex: 0x1D1F25), lineWidth: 1))
     }
 }

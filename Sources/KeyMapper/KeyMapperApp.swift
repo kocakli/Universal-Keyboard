@@ -19,7 +19,9 @@ struct KeyMapperApp: App {
             EditorWindow()
                 .environment(model)
         }
-        .defaultSize(width: 1180, height: 780)
+        .defaultSize(width: 1240, height: 860)
+        .windowStyle(.hiddenTitleBar)
+        .windowBackgroundDragBehavior(.enabled)
         .defaultLaunchBehavior(.suppressed)
     }
 }

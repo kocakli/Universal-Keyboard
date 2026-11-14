@@ -20,7 +20,16 @@ Yöntem markaya göre değil, cihazın sunduğu arayüze göre seçilir: QMK raw
 - **Profiller**: mevcut düzeni profil olarak kaydedin, menü çubuğundan geri yükleyin. Uygularken yalnızca değişen tuşlar yazılır.
 - **İçe / dışa aktarma**: Vial `.vil` (vial.rocks'tan kaydedilen dosyalar), VIA `.json` layout dosyaları ve KeyMapper profilleri.
 - **Vial kilidi**: `QK_BOOT` gibi korumalı tuşlar için Vial kilit açma akışı.
+- **Aksiyonlar** (Logitech Options+'taki uygulamaya özel ayarlar gibi): bir tuşa uygulama açma, adres/dosya açma, Kestirmeler çalıştırma, kısayol gönderme veya metin yazma atanır; aynı tuş öndeki uygulamaya göre farklı iş yapabilir (ör. Safari'de yeni sekme, VS Code'da komut paleti, diğer her yerde Spotlight). Safari, Chrome, Finder, VS Code, Zoom, Slack ve Photoshop için hazır kısayollar vardır.
 - **Girişte başlat** seçeneği.
+
+## Aksiyonlar nasıl çalışır
+
+1. Her aksiyon bir tetik tuşu kullanır: önce F16–F20, sonra F13, en son F14/F15 (macOS F14/F15'i ekran parlaklığı için kullanır). Bu tuşlar normal klavyelerde olmadığı için hiçbir şeyle çakışmaz.
+2. Klavye editöründe paletin **Aksiyon** sekmesinden tetik tuşunu fiziksel bir tuşa atayın. VIA/Vial klavyelerde bu firmware'e yazılır; diğer klavyelerde macOS eşlemesi olarak (ör. Caps Lock → F16) uygulanır.
+3. KeyMapper tetik tuşunu macOS'un global kısayol API'siyle (Carbon `RegisterEventHotKey`) yakalar; tuş öndeki uygulamaya ulaşmaz. O anda öndeki uygulamanın kuralı varsa o, yoksa varsayılan işlem çalışır.
+
+İzinler: uygulama, adres ve Kestirme açmak **izin gerektirmez**. Kısayol gönderme ve metin yazma macOS **Erişilebilirlik** izni ister; KeyMapper bunu yalnızca bu tür bir aksiyon kullanıldığında sorar. Ad-hoc imzalı derlemelerde macOS bu izni her yeniden derlemede sıfırlayabilir; böyle olursa Sistem Ayarları › Gizlilik ve Güvenlik › Erişilebilirlik'te KeyMapper'ı kaldırıp yeniden ekleyin.
 
 ## Kurulum
 

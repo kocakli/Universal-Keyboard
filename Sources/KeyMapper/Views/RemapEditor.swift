@@ -12,66 +12,113 @@ struct RemapEditor: View {
 
     var body: some View {
         let remaps = Dictionary(model.currentRemaps(device).map { ($0.from, $0.to) }, uniquingKeysWith: { a, _ in a })
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                Text("Bu klavye programlanabilir firmware sunmuyor; eşlemeler macOS tarafından (hidutil) yalnızca bu klavyeye uygulanır. KeyMapper klavye her bağlandığında eşlemeleri yeniden uygular.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 12) {
+                Text("Bu klavye programlanabilir firmware sunmuyor; eşlemeler macOS tarafından yalnızca bu klavyeye uygulanır ve klavye her bağlandığında yeniden uygulanır.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
-                Spacer()
-                Menu("Hazır eşlemeler") {
-                    ForEach(AlphaLayout.all.dropFirst()) { layout in
-                        Button("Alfabe: \(layout.name)") { model.mergeRemaps(AlphaLayout.remaps(to: layout), device: device) }
-                    }
-                    Divider()
-                    ForEach(HIDUtilRemapper.presets, id: \.name) { preset in
-                        Button(preset.name) { model.mergeRemaps(preset.remaps, device: device) }
-                    }
-                }
-                .fixedSize()
-                Button("Tümünü kaldır", role: .destructive) { model.setRemaps([], device: device, persist: true) }
+                Spacer(minLength: 12)
+                presetMenu
+                Button("Tümünü kaldır") { model.setRemaps([], device: device, persist: true) }
+                    .buttonStyle(SecondaryButtonStyle(height: 32))
                     .disabled(remaps.isEmpty)
             }
 
-            KeyboardCanvas(
-                keys: ANSILayout.keys,
-                selected: selection.map { .matrix(row: 0, col: Int($0)) },
-                cap: { key in
-                    let usage = UInt16(key.col)
-                    if let target = remaps[usage] {
-                        var label = keycodes.label(for: target)
-                        label.sub = "← " + keycodes.shortLabel(usage)
-                        return KeyCapModel(label: label, style: .modified, tooltip: "\(keycodes.title(for: usage)) → \(keycodes.title(for: target))")
-                    }
-                    return KeyCapModel(label: keycodes.label(for: usage), tooltip: keycodes.title(for: usage))
-                },
-                onSelect: { selection = UInt16($0.col) }
-            )
-            .frame(minHeight: 200)
+            KeyboardStage {
+                KeyboardCanvas(
+                    keys: ANSILayout.keys,
+                    selected: selection.map { .matrix(row: 0, col: Int($0)) },
+                    cap: { key in
+                        let usage = UInt16(key.col)
+                        if let target = remaps[usage] {
+                            var label = keycodes.label(for: target)
+                            label.sub = model.actionNamesByUsage[target] ?? ("← " + keycodes.shortLabel(usage))
+                            return KeyCapModel(label: label, kind: CapKind.of(target, keycodes: keycodes), isHighlighted: true,
+                                               tooltip: "\(keycodes.title(for: usage)) → \(keycodes.title(for: target))")
+                        }
+                        return KeyCapModel(label: keycodes.label(for: usage), kind: CapKind.of(usage, keycodes: keycodes),
+                                           tooltip: keycodes.title(for: usage))
+                    },
+                    onSelect: { selection = UInt16($0.col) },
+                    maxUnit: 52
+                )
+                .frame(minHeight: 260)
+            }
 
-            HStack {
-                if let selection {
-                    Text("\(keycodes.title(for: selection))").font(.callout.weight(.semibold))
-                    if let target = remaps[selection] {
-                        Text("→ \(keycodes.title(for: target))").font(.callout)
-                        Button("Eşlemeyi kaldır") { model.setRemap(from: selection, to: nil, device: device) }
-                    } else {
-                        Text("eşlenmemiş").font(.callout).foregroundStyle(.secondary)
+            HStack(alignment: .top, spacing: 18) {
+                Panel {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Eyebrow(text: "Seçili tuş")
+                        if let selection {
+                            HStack(spacing: 10) {
+                                miniCap(selection)
+                                Image(systemName: "arrow.right").foregroundStyle(Theme.textTertiary)
+                                if let target = remaps[selection] { miniCap(target, highlighted: true) } else {
+                                    Text("eşlenmemiş").font(.system(size: 13)).foregroundStyle(Theme.textTertiary)
+                                }
+                            }
+                            Text(keycodes.title(for: selection)).font(.system(size: 15, weight: .semibold))
+                            if remaps[selection] != nil {
+                                Button("Eşlemeyi kaldır") { model.setRemap(from: selection, to: nil, device: device) }
+                                    .buttonStyle(SecondaryButtonStyle(height: 32))
+                            }
+                        } else {
+                            Text("Klavyeden bir tuş seçin").font(.system(size: 15, weight: .semibold))
+                            Text("Sonra paletten ne yazması gerektiğini seçin.").font(.system(size: 12)).foregroundStyle(Theme.textSecondary)
+                        }
                     }
-                } else {
-                    Text("Bir tuş seçin, ardından aşağıdan ne yazması gerektiğini seçin.").font(.callout).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                Spacer()
-            }
+                .frame(width: 300, height: 316, alignment: .top)
 
-            KeycodePicker(keycodes: keycodes, layerCount: 1, categories: PickerCategory.osRemap,
-                          filter: { (0x04...0xA4).contains($0) || (0xE0...0xE7).contains($0) }) { code in
-                guard let selection else { return }
-                model.setRemap(from: selection, to: code, device: device)
+                Panel {
+                    KeycodePicker(keycodes: keycodes, layerCount: 1, categories: PickerCategory.osRemap,
+                                  filter: { (0x04...0xA4).contains($0) || (0xE0...0xE7).contains($0) },
+                                  annotations: model.actionNamesByUsage) { code in
+                        guard let selection else { return }
+                        model.setRemap(from: selection, to: code, device: device)
+                    }
+                    .disabled(selection == nil)
+                    .opacity(selection == nil ? 0.45 : 1)
+                }
+                .frame(height: 316)
             }
-            .disabled(selection == nil)
-            .opacity(selection == nil ? 0.5 : 1)
         }
+    }
+
+    private func miniCap(_ code: UInt16, highlighted: Bool = false) -> some View {
+        Keycap(kind: CapKind.of(code, keycodes: keycodes), isHighlighted: highlighted, radius: 9, depth: 6) {
+            KeyLegend(label: keycodes.label(for: code), unit: 50, kind: CapKind.of(code, keycodes: keycodes))
+        }
+        .frame(width: 50, height: 50)
+    }
+
+    private var presetMenu: some View {
+        Menu {
+            ForEach(AlphaLayout.all.dropFirst()) { layout in
+                Button("Alfabe: \(layout.name)") { model.mergeRemaps(AlphaLayout.remaps(to: layout), device: device) }
+            }
+            Divider()
+            ForEach(HIDUtilRemapper.presets, id: \.name) { preset in
+                Button(preset.name) { model.mergeRemaps(preset.remaps, device: device) }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Text("Hazır eşlemeler")
+                Image(systemName: "chevron.down").font(.system(size: 10, weight: .semibold)).foregroundStyle(Theme.textSecondary)
+            }
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(Theme.text)
+            .padding(.horizontal, 12)
+            .frame(height: 32)
+            .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color(hex: 0x23262D)))
+            .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color(hex: 0x30343D), lineWidth: 1))
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
     }
 }
 

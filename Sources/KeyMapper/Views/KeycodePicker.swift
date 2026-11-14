@@ -10,59 +10,71 @@ enum PickerCategory: String, CaseIterable, Identifiable {
     case mouse = "Fare"
     case layers = "Katman"
     case special = "Özel"
+    case actions = "Aksiyon"
     case international = "Uluslararası"
 
     var id: String { rawValue }
 
     /// Categories that make sense for macOS level (HID keyboard page) remapping.
-    static let osRemap: [PickerCategory] = [.basic, .modifiers, .navigation, .numpad, .international]
+    static let osRemap: [PickerCategory] = [.basic, .modifiers, .navigation, .numpad, .actions, .international]
 }
 
-/// Grid of assignable keycodes with search.
+/// Palette of assignable keycodes drawn as mini keycaps, with category pills and search.
 struct KeycodePicker: View {
     let keycodes: KeycodeSet
     let layerCount: Int
     let categories: [PickerCategory]
     /// Restricts the choice (macOS remap only supports keyboard page usages).
     var filter: (UInt16) -> Bool = { _ in true }
+    /// Extra caption per keycode (e.g. the action bound to F16).
+    var annotations: [UInt16: String] = [:]
     let onPick: (UInt16) -> Void
 
     @State private var category: PickerCategory = .basic
     @State private var search = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Picker("Kategori", selection: $category) {
-                    ForEach(categories) { Text($0.rawValue).tag($0) }
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .center, spacing: 10) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 4) {
+                        ForEach(categories) { item in
+                            Button(item.rawValue) { category = item; search = "" }
+                                .buttonStyle(PillButtonStyle(isOn: category == item && search.isEmpty, style: .inverted))
+                        }
+                    }
                 }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                TextField("Ara (ör. space, LT, mute)", text: $search)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: 220)
+                SearchField(text: $search)
+                    .frame(width: 200)
             }
             ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 58, maximum: 90), spacing: 6)], spacing: 6) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 56, maximum: 84), spacing: 8)], spacing: 8) {
                     ForEach(codes, id: \.self) { code in
-                        let label = keycodes.label(for: code)
+                        let kind = CapKind.of(code, keycodes: keycodes)
                         Button {
                             onPick(code)
                         } label: {
-                            VStack(spacing: 0) {
-                                if let top = label.top { Text(top).font(.caption2).foregroundStyle(.secondary) }
-                                Text(label.main.isEmpty ? "∅" : label.main).font(.callout.weight(.medium)).lineLimit(1).minimumScaleFactor(0.6)
-                                if let sub = label.sub { Text(sub).font(.caption2).foregroundStyle(Color.accentColor) }
+                            Keycap(kind: kind == .empty ? .modifier : kind, radius: 9, depth: 6) {
+                                KeyLegend(label: label(for: code), unit: 50, kind: kind == .empty ? .modifier : kind,
+                                          subColor: kind == .layer ? Theme.cobaltText : Theme.signal)
                             }
-                            .frame(maxWidth: .infinity, minHeight: 38)
+                            .frame(height: 50)
                         }
-                        .buttonStyle(.bordered)
-                        .help("\(keycodes.title(for: code))\n\(keycodes.name(for: code))")
+                        .buttonStyle(.plain)
+                        .help(annotations[code].map { "Aksiyon: \($0)\n\(keycodes.name(for: code))" } ?? "\(keycodes.title(for: code))\n\(keycodes.name(for: code))")
+                        .accessibilityLabel("Ata: \(keycodes.name(for: code))")
                     }
                 }
-                .padding(.vertical, 2)
+                .padding(2)
             }
+            .scrollIndicators(.automatic)
         }
+    }
+
+    private func label(for code: UInt16) -> KeyLabel {
+        var label = keycodes.label(for: code).withPlaceholder(code: code)
+        if let name = annotations[code] { label.sub = name }
+        return label
     }
 
     private var codes: [UInt16] {
@@ -77,6 +89,7 @@ struct KeycodePicker: View {
                 let label = keycodes.label(for: code)
                 return keycodes.name(for: code).lowercased().contains(query)
                     || keycodes.title(for: code).lowercased().contains(query)
+                    || (annotations[code]?.lowercased().contains(query) ?? false)
                     || label.main.lowercased().contains(query)
             }
         }
@@ -95,6 +108,7 @@ struct KeycodePicker: View {
         case .media: return group(.media)
         case .mouse: return group(.mouse)
         case .international: return group(.international)
+        case .actions: return TriggerKey.all.map(\.usage)
         case .layers:
             var list: [UInt16] = []
             for function in [LayerFunction.MO, .TG, .TO, .TT, .OSL, .DF] {
@@ -109,5 +123,36 @@ struct KeycodePicker: View {
             list += (0..<16).compactMap { keycodes.encode(.macro($0)) }
             return list
         }
+    }
+}
+
+extension KeyLabel {
+    /// KC_NO has an empty legend; show a symbol in pickers so the key is recognisable.
+    func withPlaceholder(code: UInt16) -> KeyLabel {
+        main.isEmpty ? KeyLabel(top: top, main: code == 0 ? "∅" : "?", sub: sub) : self
+    }
+}
+
+struct SearchField: View {
+    @Binding var text: String
+    var prompt = "Ara: space, LT, mute…"
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass").font(.system(size: 12)).foregroundStyle(Theme.textTertiary)
+            TextField(prompt, text: $text)
+                .textFieldStyle(.plain)
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.text)
+            if !text.isEmpty {
+                Button { text = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(Theme.textTertiary) }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Aramayı temizle")
+            }
+        }
+        .padding(.horizontal, 12)
+        .frame(height: 32)
+        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.ground))
+        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
     }
 }
