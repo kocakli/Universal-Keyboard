@@ -116,20 +116,45 @@ public final class RawHIDConnection: @unchecked Sendable {
         }
     }
 
+    /// Waits for a report that answers something sent outside this connection (e.g. a block written to another USB
+    /// interface of the same device). The wait is armed before `send` runs, so a fast reply isn't missed; a report
+    /// counts like in `exchange` (first byte `expecting` or 0xFF). Errors thrown by `send` are passed on unchanged.
+    public func awaitReport(expecting: UInt8?, timeout: TimeInterval, after send: () throws -> Void) throws -> [UInt8] {
+        requestLock.lock(); defer { requestLock.unlock() }
+        if isClosed { throw HIDError.disconnected }
+        return try reply(expecting: expecting, timeout: timeout, after: send)
+    }
+
+    /// USB location of the device (kIOHIDLocationIDKey), shared by all of its interfaces; nil if not reported.
+    public var locationID: UInt32? {
+        (IOHIDDeviceGetProperty(device, kIOHIDLocationIDKey as CFString) as? NSNumber).map { UInt32(truncatingIfNeeded: $0.int64Value) }
+    }
+
     private func exchangeOnce(_ request: [UInt8], timeout: TimeInterval, expecting: UInt8?) throws -> [UInt8] {
         if isClosed { throw HIDError.disconnected }
         var report = [UInt8](repeating: 0, count: reportSize)
         for (index, byte) in request.prefix(reportSize).enumerated() { report[index] = byte }
 
+        return try reply(expecting: expecting, timeout: timeout) {
+            let result = IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput, 0, report, report.count)
+            guard result == kIOReturnSuccess else {
+                if isClosed { throw HIDError.disconnected }
+                throw HIDError.writeFailed(result)
+            }
+        }
+    }
+
+    /// Arms the reply wait, runs `send` and waits for the reply. Callers hold `requestLock`.
+    private func reply(expecting: UInt8?, timeout: TimeInterval, after send: () throws -> Void) throws -> [UInt8] {
         // Drop any stale report before sending.
         while responseSignal.wait(timeout: .now()) == .success {}
         stateLock.lock(); awaiting = true; expectedEcho = expecting; response = []; stateLock.unlock()
 
-        let result = IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput, 0, report, report.count)
-        guard result == kIOReturnSuccess else {
+        do {
+            try send()
+        } catch {
             stateLock.lock(); awaiting = false; stateLock.unlock()
-            if isClosed { throw HIDError.disconnected }
-            throw HIDError.writeFailed(result)
+            throw error
         }
         if responseSignal.wait(timeout: .now() + timeout) == .timedOut {
             stateLock.lock(); awaiting = false; stateLock.unlock()

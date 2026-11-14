@@ -2,7 +2,7 @@
 
 ## LEOBOG AMG65 protocol
 
-KeyMapper's LEOBOG AMG65 support (`Sources/KeyMapperCore/ScreenKeyboards/`: protocol, LED renderer, scene choice) is ported from
+KeyMapper's LEOBOG AMG65 support (`Sources/KeyMapperCore/ScreenKeyboards/`: protocol, LED renderer, scene choice, key layout, LCD and LED-matrix uploads) is ported from
 [AMG65 Studio](https://github.com/kocakli/amg65-studio), by the same author as KeyMapper. AMG65 Studio's protocol
 code builds on [aumbro/leobog_amg65_rgb](https://github.com/aumbro/leobog_amg65_rgb), used under the MIT License:
 

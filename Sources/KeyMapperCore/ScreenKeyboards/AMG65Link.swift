@@ -49,7 +49,9 @@ public enum ScreenKeyboardError: LocalizedError, Equatable {
 ///   takes, so two programs never interleave packets.
 public final class AMG65Link: @unchecked Sendable {
     public let channel: ScreenKeyboardChannel
-    private let connection: RawHIDConnection
+    private let connection: AMG65Transport
+    private let openBulkChannel: (UInt32) throws -> AMG65BlockWriter
+    /// The shared lock's file descriptor; -1 for the test transport.
     private let lock: Int32
     private var liveFramesActive = false
     private var lastFrame = Date.distantPast
@@ -70,6 +72,15 @@ public final class AMG65Link: @unchecked Sendable {
         }
         self.channel = channel
         self.lock = fd
+        self.openBulkChannel = { try AMG65BulkChannel(locationID: $0) }
+    }
+
+    /// A link over another transport (tests). It takes no lock and opens no device.
+    init(channel: ScreenKeyboardChannel, transport: AMG65Transport, openBulkChannel: @escaping (UInt32) throws -> AMG65BlockWriter) {
+        self.channel = channel
+        self.connection = transport
+        self.openBulkChannel = openBulkChannel
+        self.lock = -1
     }
 
     deinit { close() }
@@ -81,7 +92,7 @@ public final class AMG65Link: @unchecked Sendable {
         closed = true
         if liveFramesActive { try? run(AMG65Protocol.stopLiveFrames) }
         connection.close()
-        Darwin.close(lock)
+        if lock >= 0 { Darwin.close(lock) }
     }
 
     public var isClosed: Bool { closed || connection.isClosed }
@@ -152,6 +163,57 @@ public final class AMG65Link: @unchecked Sendable {
         }
     }
 
+    // MARK: Uploads (LCD images, LED-matrix animations)
+
+    /// Uploads `blocks` 4096 byte blocks announced by `header` (`AMG65Protocol.lcdUploadHeader` or
+    /// `stripUploadHeader`), as AMG65 Studio does: begin and header, then each block on the bulk channel
+    /// (`AMG65BulkChannel`), acknowledged with `04 41 00 01` on the HID interface within 3 s, then end (and apply
+    /// when `applyAfter`). Live frames are ended first. `progress` (0…1) is called on the calling thread after each
+    /// acknowledged block.
+    ///
+    /// Invalid sizes and a bulk channel that can't be opened throw before anything is sent, without blocking the
+    /// keyboard. Once begin was sent, a missing or wrong acknowledgement (or a failed block write) stops all sending
+    /// until the keyboard is reconnected, like `run`; nothing more is sent after such a failure.
+    public func upload(_ bytes: [UInt8], blocks: Int, header: [UInt8], applyAfter: Bool,
+                       progress: @escaping @Sendable (Double) -> Void) throws {
+        let blockSize = AMG65Protocol.uploadBlockSize
+        guard (1...4096).contains(blocks), bytes.count == blocks * blockSize, header.count == AMG65Protocol.packetLength else {
+            throw AMG65UploadError.invalidBuffer(blocks: blocks, bytes: bytes.count, header: header.count)
+        }
+        guard channel.link == .wired else { throw ScreenKeyboardError.needsCable }
+        guard !Self.isBlocked(channel.registryID) else { throw ScreenKeyboardError.needsReconnect }
+        guard !isClosed else { throw HIDError.disconnected }
+        // The bulk interface of the same physical keyboard: matched by the HID interface's USB location.
+        guard let location = connection.locationID else { throw HIDError.deviceNotFound }
+        let bulk = try openBulkChannel(location)
+        defer { bulk.close() }
+
+        if liveFramesActive {
+            try transact(AMG65Protocol.stopLiveFrames, liveFrame: false)
+            liveFramesActive = false
+        }
+        try transact([AMG65Protocol.begin, AMG65Protocol.Step("upload header", header)], liveFrame: false)
+        for index in 0..<blocks {
+            let label = "upload block \(index + 1)/\(blocks)"
+            let block = Array(bytes[index * blockSize..<(index + 1) * blockSize])
+            let reply: [UInt8]
+            do {
+                reply = try connection.awaitReport(expecting: 0x04, timeout: 3) { try bulk.write(block, timeout: AMG65BulkChannel.writeTimeout) }
+            } catch {
+                throw fail(.noAcknowledgement(step: label))
+            }
+            guard reply.count >= 4, reply[0] == 0x04, reply[1] == 0x41, reply[2] == 0 else {
+                throw fail(.noAcknowledgement(step: label))
+            }
+            guard reply[3] == 1 else { throw fail(.rejected(step: label, status: reply[3])) }
+            // Studio's pause after the first block.
+            if index == 0 { Thread.sleep(forTimeInterval: 0.5) }
+            progress(Double(index + 1) / Double(blocks))
+            Thread.sleep(forTimeInterval: 0.010)
+        }
+        try transact(applyAfter ? [AMG65Protocol.end, AMG65Protocol.apply] : [AMG65Protocol.end], liveFrame: false)
+    }
+
     // MARK: Receiver
 
     /// Sends receiver packets; each reply must echo the packet's command, length and index.
@@ -178,7 +240,7 @@ public final class AMG65Link: @unchecked Sendable {
         return error
     }
 
-    private static let blockedKey = "screenKeyboard.blockedRegistryIDs"
+    static let blockedKey = "screenKeyboard.blockedRegistryIDs"
 
     static func isBlocked(_ registryID: UInt64) -> Bool {
         (UserDefaults.standard.array(forKey: blockedKey) as? [String] ?? []).contains(String(registryID))
@@ -191,3 +253,28 @@ public final class AMG65Link: @unchecked Sendable {
         UserDefaults.standard.set(list, forKey: blockedKey)
     }
 }
+
+/// An upload buffer that doesn't fit the format (1…4096 blocks of 4096 bytes and a 64 byte header).
+/// Thrown before anything is sent; `AMG65LCDAnimation.buffer()` and `AMG65StripAnimation.buffer` always fit.
+public enum AMG65UploadError: Error, Equatable {
+    case invalidBuffer(blocks: Int, bytes: Int, header: Int)
+}
+
+/// What `AMG65Link` needs from the vendor HID interface; `RawHIDConnection` in the app, a fake in tests.
+protocol AMG65Transport: AnyObject {
+    var isClosed: Bool { get }
+    var locationID: UInt32? { get }
+    func exchange(_ request: [UInt8], timeout: TimeInterval, retries: Int, expecting: UInt8?) throws -> [UInt8]
+    func awaitReport(expecting: UInt8?, timeout: TimeInterval, after send: () throws -> Void) throws -> [UInt8]
+    func close()
+}
+
+extension RawHIDConnection: AMG65Transport {}
+
+/// Where upload blocks are written; `AMG65BulkChannel` in the app, a fake in tests.
+protocol AMG65BlockWriter: AnyObject {
+    func write(_ block: [UInt8], timeout: TimeInterval) throws
+    func close()
+}
+
+extension AMG65BulkChannel: AMG65BlockWriter {}

@@ -238,6 +238,20 @@ public enum AMG65Protocol {
 
     /// Ends live frames so the keyboard returns to its own LED animation.
     public static let stopLiveFrames: [Step] = [end, apply]
+
+    /// Uploads (`AMG65Link.upload`) are sent in blocks of this size on the bulk channel.
+    public static let uploadBlockSize = 4096
+
+    /// Header of an LCD image upload (command 0x72): the slot at [2], the block count at [8…9] (little endian).
+    public static func lcdUploadHeader(blocks: Int, slot: UInt8 = AMG65LCDFormat.slot) -> [UInt8] {
+        packet([0x04, 0x72, slot], [8: UInt8(truncatingIfNeeded: blocks), 9: UInt8(truncatingIfNeeded: blocks >> 8)])
+    }
+
+    /// Header of an LED-matrix animation upload (command 0x33, or 0x31 for the boot animation): the block count
+    /// at [8…9] (little endian). The upload ends with an apply packet.
+    public static func stripUploadHeader(target: AMG65StripTarget, blocks: Int) -> [UInt8] {
+        packet([0x04, target.command], [8: UInt8(truncatingIfNeeded: blocks), 9: UInt8(truncatingIfNeeded: blocks >> 8)])
+    }
 }
 
 /// 2.4 GHz receiver protocol: [cmd, length, index, payload…] in 32 byte packets, byte 31 = sum of bytes 0…30.

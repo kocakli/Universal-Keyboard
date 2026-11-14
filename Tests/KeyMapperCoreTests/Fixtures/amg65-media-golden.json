@@ -1,0 +1,3993 @@
+{
+  "hidGroups" : [
+    {
+      "keys" : [
+        {
+          "code" : 4,
+          "name" : "A"
+        },
+        {
+          "code" : 5,
+          "name" : "B"
+        },
+        {
+          "code" : 6,
+          "name" : "C"
+        },
+        {
+          "code" : 7,
+          "name" : "D"
+        },
+        {
+          "code" : 8,
+          "name" : "E"
+        },
+        {
+          "code" : 9,
+          "name" : "F"
+        },
+        {
+          "code" : 10,
+          "name" : "G"
+        },
+        {
+          "code" : 11,
+          "name" : "H"
+        },
+        {
+          "code" : 12,
+          "name" : "I"
+        },
+        {
+          "code" : 13,
+          "name" : "J"
+        },
+        {
+          "code" : 14,
+          "name" : "K"
+        },
+        {
+          "code" : 15,
+          "name" : "L"
+        },
+        {
+          "code" : 16,
+          "name" : "M"
+        },
+        {
+          "code" : 17,
+          "name" : "N"
+        },
+        {
+          "code" : 18,
+          "name" : "O"
+        },
+        {
+          "code" : 19,
+          "name" : "P"
+        },
+        {
+          "code" : 20,
+          "name" : "Q"
+        },
+        {
+          "code" : 21,
+          "name" : "R"
+        },
+        {
+          "code" : 22,
+          "name" : "S"
+        },
+        {
+          "code" : 23,
+          "name" : "T"
+        },
+        {
+          "code" : 24,
+          "name" : "U"
+        },
+        {
+          "code" : 25,
+          "name" : "V"
+        },
+        {
+          "code" : 26,
+          "name" : "W"
+        },
+        {
+          "code" : 27,
+          "name" : "X"
+        },
+        {
+          "code" : 28,
+          "name" : "Y"
+        },
+        {
+          "code" : 29,
+          "name" : "Z"
+        }
+      ],
+      "name" : "Letters"
+    },
+    {
+      "keys" : [
+        {
+          "code" : 30,
+          "name" : "1"
+        },
+        {
+          "code" : 31,
+          "name" : "2"
+        },
+        {
+          "code" : 32,
+          "name" : "3"
+        },
+        {
+          "code" : 33,
+          "name" : "4"
+        },
+        {
+          "code" : 34,
+          "name" : "5"
+        },
+        {
+          "code" : 35,
+          "name" : "6"
+        },
+        {
+          "code" : 36,
+          "name" : "7"
+        },
+        {
+          "code" : 37,
+          "name" : "8"
+        },
+        {
+          "code" : 38,
+          "name" : "9"
+        },
+        {
+          "code" : 39,
+          "name" : "0"
+        }
+      ],
+      "name" : "Numbers"
+    },
+    {
+      "keys" : [
+        {
+          "code" : 58,
+          "name" : "F1"
+        },
+        {
+          "code" : 59,
+          "name" : "F2"
+        },
+        {
+          "code" : 60,
+          "name" : "F3"
+        },
+        {
+          "code" : 61,
+          "name" : "F4"
+        },
+        {
+          "code" : 62,
+          "name" : "F5"
+        },
+        {
+          "code" : 63,
+          "name" : "F6"
+        },
+        {
+          "code" : 64,
+          "name" : "F7"
+        },
+        {
+          "code" : 65,
+          "name" : "F8"
+        },
+        {
+          "code" : 66,
+          "name" : "F9"
+        },
+        {
+          "code" : 67,
+          "name" : "F10"
+        },
+        {
+          "code" : 68,
+          "name" : "F11"
+        },
+        {
+          "code" : 69,
+          "name" : "F12"
+        },
+        {
+          "code" : 104,
+          "name" : "F13"
+        },
+        {
+          "code" : 105,
+          "name" : "F14"
+        },
+        {
+          "code" : 106,
+          "name" : "F15"
+        },
+        {
+          "code" : 107,
+          "name" : "F16"
+        },
+        {
+          "code" : 108,
+          "name" : "F17"
+        },
+        {
+          "code" : 109,
+          "name" : "F18"
+        },
+        {
+          "code" : 110,
+          "name" : "F19"
+        },
+        {
+          "code" : 111,
+          "name" : "F20"
+        },
+        {
+          "code" : 112,
+          "name" : "F21"
+        },
+        {
+          "code" : 113,
+          "name" : "F22"
+        },
+        {
+          "code" : 114,
+          "name" : "F23"
+        },
+        {
+          "code" : 115,
+          "name" : "F24"
+        }
+      ],
+      "name" : "Function"
+    },
+    {
+      "keys" : [
+        {
+          "code" : 41,
+          "name" : "Esc"
+        },
+        {
+          "code" : 43,
+          "name" : "Tab"
+        },
+        {
+          "code" : 57,
+          "name" : "Caps Lock"
+        },
+        {
+          "code" : 44,
+          "name" : "Space"
+        },
+        {
+          "code" : 40,
+          "name" : "Enter"
+        },
+        {
+          "code" : 42,
+          "name" : "Backspace"
+        },
+        {
+          "code" : 76,
+          "name" : "Delete"
+        },
+        {
+          "code" : 73,
+          "name" : "Insert"
+        }
+      ],
+      "name" : "Editing"
+    },
+    {
+      "keys" : [
+        {
+          "code" : 74,
+          "name" : "Home"
+        },
+        {
+          "code" : 77,
+          "name" : "End"
+        },
+        {
+          "code" : 75,
+          "name" : "Page Up"
+        },
+        {
+          "code" : 78,
+          "name" : "Page Down"
+        },
+        {
+          "code" : 80,
+          "name" : "←"
+        },
+        {
+          "code" : 79,
+          "name" : "→"
+        },
+        {
+          "code" : 82,
+          "name" : "↑"
+        },
+        {
+          "code" : 81,
+          "name" : "↓"
+        }
+      ],
+      "name" : "Navigation"
+    },
+    {
+      "keys" : [
+        {
+          "code" : 53,
+          "name" : "`"
+        },
+        {
+          "code" : 45,
+          "name" : "-"
+        },
+        {
+          "code" : 46,
+          "name" : "="
+        },
+        {
+          "code" : 47,
+          "name" : "["
+        },
+        {
+          "code" : 48,
+          "name" : "]"
+        },
+        {
+          "code" : 49,
+          "name" : "\\"
+        },
+        {
+          "code" : 51,
+          "name" : ";"
+        },
+        {
+          "code" : 52,
+          "name" : "'"
+        },
+        {
+          "code" : 54,
+          "name" : ","
+        },
+        {
+          "code" : 55,
+          "name" : "."
+        },
+        {
+          "code" : 56,
+          "name" : "\/"
+        }
+      ],
+      "name" : "Symbols"
+    },
+    {
+      "keys" : [
+        {
+          "code" : 224,
+          "name" : "Left Ctrl"
+        },
+        {
+          "code" : 225,
+          "name" : "Left Shift"
+        },
+        {
+          "code" : 226,
+          "name" : "Left Alt\/⌥"
+        },
+        {
+          "code" : 227,
+          "name" : "Left Win\/⌘"
+        },
+        {
+          "code" : 228,
+          "name" : "Right Ctrl"
+        },
+        {
+          "code" : 229,
+          "name" : "Right Shift"
+        },
+        {
+          "code" : 230,
+          "name" : "Right Alt\/⌥"
+        },
+        {
+          "code" : 231,
+          "name" : "Right Win\/⌘"
+        }
+      ],
+      "name" : "Modifiers"
+    },
+    {
+      "keys" : [
+        {
+          "code" : 70,
+          "name" : "Print Screen"
+        },
+        {
+          "code" : 71,
+          "name" : "Scroll Lock"
+        },
+        {
+          "code" : 72,
+          "name" : "Pause"
+        }
+      ],
+      "name" : "Other"
+    }
+  ],
+  "hidNames" : [
+    "Key 00",
+    "Key 01",
+    "Key 02",
+    "Key 03",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "X",
+    "Y",
+    "Z",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "0",
+    "Enter",
+    "Esc",
+    "Backspace",
+    "Tab",
+    "Space",
+    "-",
+    "=",
+    "[",
+    "]",
+    "\\",
+    "Key 32",
+    ";",
+    "'",
+    "`",
+    ",",
+    ".",
+    "\/",
+    "Caps Lock",
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9",
+    "F10",
+    "F11",
+    "F12",
+    "Print Screen",
+    "Scroll Lock",
+    "Pause",
+    "Insert",
+    "Home",
+    "Page Up",
+    "Delete",
+    "End",
+    "Page Down",
+    "→",
+    "←",
+    "↓",
+    "↑",
+    "Key 53",
+    "Key 54",
+    "Key 55",
+    "Key 56",
+    "Key 57",
+    "Key 58",
+    "Key 59",
+    "Key 5A",
+    "Key 5B",
+    "Key 5C",
+    "Key 5D",
+    "Key 5E",
+    "Key 5F",
+    "Key 60",
+    "Key 61",
+    "Key 62",
+    "Key 63",
+    "Key 64",
+    "Key 65",
+    "Key 66",
+    "Key 67",
+    "F13",
+    "F14",
+    "F15",
+    "F16",
+    "F17",
+    "F18",
+    "F19",
+    "F20",
+    "F21",
+    "F22",
+    "F23",
+    "F24",
+    "Key 74",
+    "Key 75",
+    "Key 76",
+    "Key 77",
+    "Key 78",
+    "Key 79",
+    "Key 7A",
+    "Key 7B",
+    "Key 7C",
+    "Key 7D",
+    "Key 7E",
+    "Key 7F",
+    "Key 80",
+    "Key 81",
+    "Key 82",
+    "Key 83",
+    "Key 84",
+    "Key 85",
+    "Key 86",
+    "Key 87",
+    "Key 88",
+    "Key 89",
+    "Key 8A",
+    "Key 8B",
+    "Key 8C",
+    "Key 8D",
+    "Key 8E",
+    "Key 8F",
+    "Key 90",
+    "Key 91",
+    "Key 92",
+    "Key 93",
+    "Key 94",
+    "Key 95",
+    "Key 96",
+    "Key 97",
+    "Key 98",
+    "Key 99",
+    "Key 9A",
+    "Key 9B",
+    "Key 9C",
+    "Key 9D",
+    "Key 9E",
+    "Key 9F",
+    "Key A0",
+    "Key A1",
+    "Key A2",
+    "Key A3",
+    "Key A4",
+    "Key A5",
+    "Key A6",
+    "Key A7",
+    "Key A8",
+    "Key A9",
+    "Key AA",
+    "Key AB",
+    "Key AC",
+    "Key AD",
+    "Key AE",
+    "Key AF",
+    "Key B0",
+    "Key B1",
+    "Key B2",
+    "Key B3",
+    "Key B4",
+    "Key B5",
+    "Key B6",
+    "Key B7",
+    "Key B8",
+    "Key B9",
+    "Key BA",
+    "Key BB",
+    "Key BC",
+    "Key BD",
+    "Key BE",
+    "Key BF",
+    "Key C0",
+    "Key C1",
+    "Key C2",
+    "Key C3",
+    "Key C4",
+    "Key C5",
+    "Key C6",
+    "Key C7",
+    "Key C8",
+    "Key C9",
+    "Key CA",
+    "Key CB",
+    "Key CC",
+    "Key CD",
+    "Key CE",
+    "Key CF",
+    "Key D0",
+    "Key D1",
+    "Key D2",
+    "Key D3",
+    "Key D4",
+    "Key D5",
+    "Key D6",
+    "Key D7",
+    "Key D8",
+    "Key D9",
+    "Key DA",
+    "Key DB",
+    "Key DC",
+    "Key DD",
+    "Key DE",
+    "Key DF",
+    "Left Ctrl",
+    "Left Shift",
+    "Left Alt\/⌥",
+    "Left Win\/⌘",
+    "Right Ctrl",
+    "Right Shift",
+    "Right Alt\/⌥",
+    "Right Win\/⌘",
+    "Key E8",
+    "Key E9",
+    "Key EA",
+    "Key EB",
+    "Key EC",
+    "Key ED",
+    "Key EE",
+    "Key EF",
+    "Key F0",
+    "Key F1",
+    "Key F2",
+    "Key F3",
+    "Key F4",
+    "Key F5",
+    "Key F6",
+    "Key F7",
+    "Key F8",
+    "Key F9",
+    "Key FA",
+    "Key FB",
+    "Key FC",
+    "Key FD",
+    "Key FE",
+    "Key FF"
+  ],
+  "keyActions" : [
+    {
+      "json" : "{\"key\":{\"code\":4,\"modifiers\":0}}",
+      "slot" : "02000400",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":4,\"modifiers\":1}}",
+      "slot" : "02010400",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":4,\"modifiers\":10}}",
+      "slot" : "020a0400",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":4,\"modifiers\":15}}",
+      "slot" : "020f0400",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":30,\"modifiers\":0}}",
+      "slot" : "02001e00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":30,\"modifiers\":1}}",
+      "slot" : "02011e00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":30,\"modifiers\":10}}",
+      "slot" : "020a1e00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":30,\"modifiers\":15}}",
+      "slot" : "020f1e00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":40,\"modifiers\":0}}",
+      "slot" : "02002800",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":40,\"modifiers\":1}}",
+      "slot" : "02012800",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":40,\"modifiers\":10}}",
+      "slot" : "020a2800",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":40,\"modifiers\":15}}",
+      "slot" : "020f2800",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":44,\"modifiers\":0}}",
+      "slot" : "02002c00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":44,\"modifiers\":1}}",
+      "slot" : "02012c00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":44,\"modifiers\":10}}",
+      "slot" : "020a2c00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":44,\"modifiers\":15}}",
+      "slot" : "020f2c00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":57,\"modifiers\":0}}",
+      "slot" : "02003900",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":57,\"modifiers\":1}}",
+      "slot" : "02013900",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":57,\"modifiers\":10}}",
+      "slot" : "020a3900",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":57,\"modifiers\":15}}",
+      "slot" : "020f3900",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":79,\"modifiers\":0}}",
+      "slot" : "02004f00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":79,\"modifiers\":1}}",
+      "slot" : "02014f00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":79,\"modifiers\":10}}",
+      "slot" : "020a4f00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":79,\"modifiers\":15}}",
+      "slot" : "020f4f00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":104,\"modifiers\":0}}",
+      "slot" : "02006800",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":104,\"modifiers\":1}}",
+      "slot" : "02016800",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":104,\"modifiers\":10}}",
+      "slot" : "020a6800",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":104,\"modifiers\":15}}",
+      "slot" : "020f6800",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":175,\"modifiers\":0}}",
+      "slot" : "0200af00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":175,\"modifiers\":1}}",
+      "slot" : "0201af00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":175,\"modifiers\":10}}",
+      "slot" : "020aaf00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":175,\"modifiers\":15}}",
+      "slot" : "020faf00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":223,\"modifiers\":0}}",
+      "slot" : "0200df00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":223,\"modifiers\":1}}",
+      "slot" : "0201df00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":223,\"modifiers\":10}}",
+      "slot" : "020adf00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":223,\"modifiers\":15}}",
+      "slot" : "020fdf00",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":224,\"modifiers\":0}}",
+      "slot" : "02010000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":224,\"modifiers\":1}}",
+      "slot" : "02010000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":224,\"modifiers\":128}}",
+      "slot" : "02810000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":225,\"modifiers\":0}}",
+      "slot" : "02020000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":225,\"modifiers\":1}}",
+      "slot" : "02030000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":225,\"modifiers\":128}}",
+      "slot" : "02820000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":226,\"modifiers\":0}}",
+      "slot" : "02040000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":226,\"modifiers\":1}}",
+      "slot" : "02050000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":226,\"modifiers\":128}}",
+      "slot" : "02840000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":227,\"modifiers\":0}}",
+      "slot" : "02080000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":227,\"modifiers\":1}}",
+      "slot" : "02090000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":227,\"modifiers\":128}}",
+      "slot" : "02880000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":228,\"modifiers\":0}}",
+      "slot" : "02100000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":228,\"modifiers\":1}}",
+      "slot" : "02110000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":228,\"modifiers\":128}}",
+      "slot" : "02900000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":229,\"modifiers\":0}}",
+      "slot" : "02200000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":229,\"modifiers\":1}}",
+      "slot" : "02210000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":229,\"modifiers\":128}}",
+      "slot" : "02a00000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":230,\"modifiers\":0}}",
+      "slot" : "02400000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":230,\"modifiers\":1}}",
+      "slot" : "02410000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":230,\"modifiers\":128}}",
+      "slot" : "02c00000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":231,\"modifiers\":0}}",
+      "slot" : "02800000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":231,\"modifiers\":1}}",
+      "slot" : "02810000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":231,\"modifiers\":128}}",
+      "slot" : "02800000",
+      "tested" : true
+    },
+    {
+      "json" : "{\"key\":{\"code\":232,\"modifiers\":0}}",
+      "slot" : "0200e800",
+      "tested" : true
+    },
+    {
+      "json" : "{\"media\":{\"_0\":205}}",
+      "slot" : "03cd0000",
+      "tested" : false
+    },
+    {
+      "json" : "{\"media\":{\"_0\":181}}",
+      "slot" : "03b50000",
+      "tested" : false
+    },
+    {
+      "json" : "{\"media\":{\"_0\":182}}",
+      "slot" : "03b60000",
+      "tested" : false
+    },
+    {
+      "json" : "{\"media\":{\"_0\":183}}",
+      "slot" : "03b70000",
+      "tested" : false
+    },
+    {
+      "json" : "{\"media\":{\"_0\":233}}",
+      "slot" : "03e90000",
+      "tested" : false
+    },
+    {
+      "json" : "{\"media\":{\"_0\":234}}",
+      "slot" : "03ea0000",
+      "tested" : false
+    },
+    {
+      "json" : "{\"media\":{\"_0\":226}}",
+      "slot" : "03e20000",
+      "tested" : false
+    },
+    {
+      "json" : "{\"media\":{\"_0\":0}}",
+      "slot" : "03000000",
+      "tested" : false
+    },
+    {
+      "json" : "{\"media\":{\"_0\":4660}}",
+      "slot" : "03341200",
+      "tested" : false
+    },
+    {
+      "json" : "{\"media\":{\"_0\":65535}}",
+      "slot" : "03ffff00",
+      "tested" : false
+    },
+    {
+      "json" : "{\"mouseButton\":{\"_0\":1}}",
+      "slot" : "01010100",
+      "tested" : false
+    },
+    {
+      "json" : "{\"mouseButton\":{\"_0\":2}}",
+      "slot" : "01010200",
+      "tested" : false
+    },
+    {
+      "json" : "{\"mouseButton\":{\"_0\":4}}",
+      "slot" : "01010400",
+      "tested" : false
+    },
+    {
+      "json" : "{\"mouseButton\":{\"_0\":8}}",
+      "slot" : "01010800",
+      "tested" : false
+    },
+    {
+      "json" : "{\"mouseButton\":{\"_0\":16}}",
+      "slot" : "01011000",
+      "tested" : false
+    },
+    {
+      "json" : "{\"mouseButton\":{\"_0\":0}}",
+      "slot" : "01010000",
+      "tested" : false
+    },
+    {
+      "json" : "{\"mouseButton\":{\"_0\":255}}",
+      "slot" : "0101ff00",
+      "tested" : false
+    },
+    {
+      "json" : "{\"wheel\":{\"up\":true}}",
+      "slot" : "01030100",
+      "tested" : false
+    },
+    {
+      "json" : "{\"wheel\":{\"up\":false}}",
+      "slot" : "0103ff00",
+      "tested" : false
+    }
+  ],
+  "layout" : [
+    {
+      "code" : 41,
+      "isKnob" : false,
+      "name" : "Esc",
+      "rect" : [
+        0,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 0
+    },
+    {
+      "code" : 30,
+      "isKnob" : false,
+      "name" : "1",
+      "rect" : [
+        50,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 17
+    },
+    {
+      "code" : 31,
+      "isKnob" : false,
+      "name" : "2",
+      "rect" : [
+        100,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 18
+    },
+    {
+      "code" : 32,
+      "isKnob" : false,
+      "name" : "3",
+      "rect" : [
+        150,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 19
+    },
+    {
+      "code" : 33,
+      "isKnob" : false,
+      "name" : "4",
+      "rect" : [
+        200,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 20
+    },
+    {
+      "code" : 34,
+      "isKnob" : false,
+      "name" : "5",
+      "rect" : [
+        250,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 21
+    },
+    {
+      "code" : 35,
+      "isKnob" : false,
+      "name" : "6",
+      "rect" : [
+        300,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 22
+    },
+    {
+      "code" : 36,
+      "isKnob" : false,
+      "name" : "7",
+      "rect" : [
+        350,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 23
+    },
+    {
+      "code" : 37,
+      "isKnob" : false,
+      "name" : "8",
+      "rect" : [
+        400,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 24
+    },
+    {
+      "code" : 38,
+      "isKnob" : false,
+      "name" : "9",
+      "rect" : [
+        450,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 25
+    },
+    {
+      "code" : 39,
+      "isKnob" : false,
+      "name" : "0",
+      "rect" : [
+        500,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 26
+    },
+    {
+      "code" : 45,
+      "isKnob" : false,
+      "name" : "-",
+      "rect" : [
+        550,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 27
+    },
+    {
+      "code" : 46,
+      "isKnob" : false,
+      "name" : "=",
+      "rect" : [
+        600,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 28
+    },
+    {
+      "code" : 42,
+      "isKnob" : false,
+      "name" : "Backspace",
+      "rect" : [
+        650,
+        0,
+        96,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 92
+    },
+    {
+      "code" : 74,
+      "isKnob" : false,
+      "name" : "Home",
+      "rect" : [
+        750,
+        0,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 104
+    },
+    {
+      "code" : 43,
+      "isKnob" : false,
+      "name" : "Tab",
+      "rect" : [
+        0,
+        52,
+        71,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 32
+    },
+    {
+      "code" : 20,
+      "isKnob" : false,
+      "name" : "Q",
+      "rect" : [
+        75,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 33
+    },
+    {
+      "code" : 26,
+      "isKnob" : false,
+      "name" : "W",
+      "rect" : [
+        125,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 34
+    },
+    {
+      "code" : 8,
+      "isKnob" : false,
+      "name" : "E",
+      "rect" : [
+        175,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 35
+    },
+    {
+      "code" : 21,
+      "isKnob" : false,
+      "name" : "R",
+      "rect" : [
+        225,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 36
+    },
+    {
+      "code" : 23,
+      "isKnob" : false,
+      "name" : "T",
+      "rect" : [
+        275,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 37
+    },
+    {
+      "code" : 28,
+      "isKnob" : false,
+      "name" : "Y",
+      "rect" : [
+        325,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 38
+    },
+    {
+      "code" : 24,
+      "isKnob" : false,
+      "name" : "U",
+      "rect" : [
+        375,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 39
+    },
+    {
+      "code" : 12,
+      "isKnob" : false,
+      "name" : "I",
+      "rect" : [
+        425,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 40
+    },
+    {
+      "code" : 18,
+      "isKnob" : false,
+      "name" : "O",
+      "rect" : [
+        475,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 41
+    },
+    {
+      "code" : 19,
+      "isKnob" : false,
+      "name" : "P",
+      "rect" : [
+        525,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 42
+    },
+    {
+      "code" : 47,
+      "isKnob" : false,
+      "name" : "[",
+      "rect" : [
+        575,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 43
+    },
+    {
+      "code" : 48,
+      "isKnob" : false,
+      "name" : "]",
+      "rect" : [
+        625,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 44
+    },
+    {
+      "code" : 49,
+      "isKnob" : false,
+      "name" : "\\",
+      "rect" : [
+        675,
+        52,
+        71,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 60
+    },
+    {
+      "code" : 76,
+      "isKnob" : false,
+      "name" : "Del",
+      "rect" : [
+        750,
+        52,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 106
+    },
+    {
+      "code" : 57,
+      "isKnob" : false,
+      "name" : "Caps",
+      "rect" : [
+        0,
+        104,
+        83.5,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 48
+    },
+    {
+      "code" : 4,
+      "isKnob" : false,
+      "name" : "A",
+      "rect" : [
+        87.5,
+        104,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 49
+    },
+    {
+      "code" : 22,
+      "isKnob" : false,
+      "name" : "S",
+      "rect" : [
+        137.5,
+        104,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 50
+    },
+    {
+      "code" : 7,
+      "isKnob" : false,
+      "name" : "D",
+      "rect" : [
+        187.5,
+        104,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 51
+    },
+    {
+      "code" : 9,
+      "isKnob" : false,
+      "name" : "F",
+      "rect" : [
+        237.5,
+        104,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 52
+    },
+    {
+      "code" : 10,
+      "isKnob" : false,
+      "name" : "G",
+      "rect" : [
+        287.5,
+        104,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 53
+    },
+    {
+      "code" : 11,
+      "isKnob" : false,
+      "name" : "H",
+      "rect" : [
+        337.5,
+        104,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 54
+    },
+    {
+      "code" : 13,
+      "isKnob" : false,
+      "name" : "J",
+      "rect" : [
+        387.5,
+        104,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 55
+    },
+    {
+      "code" : 14,
+      "isKnob" : false,
+      "name" : "K",
+      "rect" : [
+        437.5,
+        104,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 56
+    },
+    {
+      "code" : 15,
+      "isKnob" : false,
+      "name" : "L",
+      "rect" : [
+        487.5,
+        104,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 57
+    },
+    {
+      "code" : 51,
+      "isKnob" : false,
+      "name" : ";",
+      "rect" : [
+        537.5,
+        104,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 58
+    },
+    {
+      "code" : 52,
+      "isKnob" : false,
+      "name" : "'",
+      "rect" : [
+        587.5,
+        104,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 59
+    },
+    {
+      "code" : 40,
+      "isKnob" : false,
+      "name" : "Enter",
+      "rect" : [
+        637.5,
+        104,
+        108.5,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 76
+    },
+    {
+      "code" : 75,
+      "isKnob" : false,
+      "name" : "PgUp",
+      "rect" : [
+        750,
+        104,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 105
+    },
+    {
+      "code" : 225,
+      "isKnob" : false,
+      "name" : "Shift",
+      "rect" : [
+        0,
+        156,
+        108.5,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 64
+    },
+    {
+      "code" : 29,
+      "isKnob" : false,
+      "name" : "Z",
+      "rect" : [
+        112.5,
+        156,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 65
+    },
+    {
+      "code" : 27,
+      "isKnob" : false,
+      "name" : "X",
+      "rect" : [
+        162.5,
+        156,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 66
+    },
+    {
+      "code" : 6,
+      "isKnob" : false,
+      "name" : "C",
+      "rect" : [
+        212.5,
+        156,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 67
+    },
+    {
+      "code" : 25,
+      "isKnob" : false,
+      "name" : "V",
+      "rect" : [
+        262.5,
+        156,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 68
+    },
+    {
+      "code" : 5,
+      "isKnob" : false,
+      "name" : "B",
+      "rect" : [
+        312.5,
+        156,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 69
+    },
+    {
+      "code" : 17,
+      "isKnob" : false,
+      "name" : "N",
+      "rect" : [
+        362.5,
+        156,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 70
+    },
+    {
+      "code" : 16,
+      "isKnob" : false,
+      "name" : "M",
+      "rect" : [
+        412.5,
+        156,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 71
+    },
+    {
+      "code" : 54,
+      "isKnob" : false,
+      "name" : ",",
+      "rect" : [
+        462.5,
+        156,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 72
+    },
+    {
+      "code" : 55,
+      "isKnob" : false,
+      "name" : ".",
+      "rect" : [
+        512.5,
+        156,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 73
+    },
+    {
+      "code" : 56,
+      "isKnob" : false,
+      "name" : "\/",
+      "rect" : [
+        562.5,
+        156,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 74
+    },
+    {
+      "code" : 229,
+      "isKnob" : false,
+      "name" : "Shift",
+      "rect" : [
+        612.5,
+        156,
+        83.5,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 75
+    },
+    {
+      "code" : 82,
+      "isKnob" : false,
+      "name" : "↑",
+      "rect" : [
+        700,
+        156,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 90
+    },
+    {
+      "code" : 78,
+      "isKnob" : false,
+      "name" : "PgDn",
+      "rect" : [
+        750,
+        156,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 108
+    },
+    {
+      "code" : 224,
+      "isKnob" : false,
+      "name" : "Ctrl",
+      "rect" : [
+        0,
+        208,
+        58.5,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 80
+    },
+    {
+      "code" : 227,
+      "isKnob" : false,
+      "name" : "⌘",
+      "rect" : [
+        62.5,
+        208,
+        58.5,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 81
+    },
+    {
+      "code" : 226,
+      "isKnob" : false,
+      "name" : "⌥",
+      "rect" : [
+        125,
+        208,
+        58.5,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 82
+    },
+    {
+      "code" : 44,
+      "isKnob" : false,
+      "name" : "Space",
+      "rect" : [
+        187.5,
+        208,
+        308.5,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 83
+    },
+    {
+      "code" : 175,
+      "isKnob" : false,
+      "name" : "Fn",
+      "rect" : [
+        500,
+        208,
+        46,
+        46
+      ],
+      "remappable" : false,
+      "slot" : 85
+    },
+    {
+      "code" : 228,
+      "isKnob" : false,
+      "name" : "Ctrl",
+      "rect" : [
+        550,
+        208,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 87
+    },
+    {
+      "code" : 80,
+      "isKnob" : false,
+      "name" : "←",
+      "rect" : [
+        600,
+        208,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 88
+    },
+    {
+      "code" : 81,
+      "isKnob" : false,
+      "name" : "↓",
+      "rect" : [
+        650,
+        208,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 89
+    },
+    {
+      "code" : 79,
+      "isKnob" : false,
+      "name" : "→",
+      "rect" : [
+        700,
+        208,
+        46,
+        46
+      ],
+      "remappable" : true,
+      "slot" : 91
+    }
+  ],
+  "lcdBuffers" : [
+    {
+      "blocks" : 16,
+      "header" : "0132ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "name" : "one",
+      "sample" : "0000000020082010401840206028603081388138a140a148c150c158e160e168027102712279228142894291629962a183a983a9a3b1a3b9c3c1c3c9e3d1e3d9",
+      "sha256" : "5ef835671165d1edad5a0c96127a35559bdb9ee3da5ed7b1f6133d5893f99801",
+      "size" : 65536,
+      "truncated" : false
+    },
+    {
+      "blocks" : 48,
+      "header" : "030101ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "name" : "three",
+      "sample" : "000020082008401040186020602880308138a140a140c148c150e158e1600169027122792279428142896291629982a183a9a3b1a3b1c3b9c3c1e3c9e3d103da",
+      "sha256" : "1ae5d0480f4a387d9a311a9714cd6346123cc50c60bbf3d488c46cadeea7a90f",
+      "size" : 196608,
+      "truncated" : false
+    },
+    {
+      "blocks" : 32,
+      "header" : "02ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "name" : "noDelays",
+      "sample" : "400040086010601880208020a028a030c138c140e148e1500159015921612169427142796281628982918291a299a2a1c3a9c3b1e3b9e3c103ca03ca23d223da",
+      "sha256" : "6c124de24ebf3b432c97d4a98af4d30ce569351c877be0a78886b192ef0e6fdd",
+      "size" : 131072,
+      "truncated" : false
+    },
+    {
+      "blocks" : 32,
+      "header" : "021428ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "name" : "extraDelays",
+      "sample" : "6000600880108018a020a028c030c030e138e1400149015121592161416941696271627982818289a291a299c2a1c2a1e3a9e3b103ba03c223ca23d243da43da",
+      "sha256" : "c90c57d9f37ced1f3d9a16e93e99b9945cf7aacdcd33f04e6b3c3cb6ce163429",
+      "size" : 131072,
+      "truncated" : false
+    },
+    {
+      "blocks" : 16,
+      "header" : "0101ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "name" : "negativeDelay",
+      "sample" : "8108a110a110c118c120e128e1300139004120492049405140596061606980718379a381a381c389c391e399e3a103aa02b222ba22ba42c242ca62d262da82e2",
+      "sha256" : "3af5b7c4ca32f42daa2bbd1536f6d66569b654549e29c968a54ec465c783d843",
+      "size" : 65536,
+      "truncated" : false
+    },
+    {
+      "blocks" : 2057,
+      "header" : "820a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0affffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "name" : "truncated",
+      "sample" : "81088108a110a118c120c128e130e1380041004120492051405940616069607183798379a381a389c391c399e3a1e3a902b202b222ba22c242ca42d262da62e2",
+      "sha256" : "138af9dc62ddf9a466c9e2698ca21e1b2430a2f3c09b546579ca088794e19521",
+      "size" : 8425472,
+      "truncated" : true
+    },
+    {
+      "blocks" : 32,
+      "header" : "020f19ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "name" : "scaled",
+      "sample" : "2e502e584e604e606e686e708e788e80b188b190d198d198f1a0f1a811b111b930c130c950d150d170d970e190e990f1b3f9b301d309d309f311f3191322132a",
+      "sha256" : "487c6c54dc7a8564f4c6ef3b51e1b3fe7ebc9760f8c6bdc0c7171403e6a551e7",
+      "size" : 131072,
+      "truncated" : false
+    }
+  ],
+  "lcdHeaders" : [
+    {
+      "blocks" : 1,
+      "hex" : "04720100000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "slot" : 1
+    },
+    {
+      "blocks" : 2,
+      "hex" : "04720100000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "slot" : 1
+    },
+    {
+      "blocks" : 255,
+      "hex" : "0472010000000000ff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "slot" : 1
+    },
+    {
+      "blocks" : 256,
+      "hex" : "04720100000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "slot" : 1
+    },
+    {
+      "blocks" : 2057,
+      "hex" : "04720100000000000908000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "slot" : 1
+    },
+    {
+      "blocks" : 4096,
+      "hex" : "04720100000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "slot" : 1
+    },
+    {
+      "blocks" : 300,
+      "hex" : "04720200000000002c01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "slot" : 2
+    }
+  ],
+  "litKeySlots" : [
+    0,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    92,
+    104,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    60,
+    106,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    76,
+    105,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    90,
+    108,
+    80,
+    81,
+    82,
+    83,
+    85,
+    87,
+    88,
+    89,
+    91
+  ],
+  "media" : [
+    {
+      "name" : "Play \/ Pause",
+      "usage" : 205
+    },
+    {
+      "name" : "Next track",
+      "usage" : 181
+    },
+    {
+      "name" : "Previous track",
+      "usage" : 182
+    },
+    {
+      "name" : "Stop",
+      "usage" : 183
+    },
+    {
+      "name" : "Volume up",
+      "usage" : 233
+    },
+    {
+      "name" : "Volume down",
+      "usage" : 234
+    },
+    {
+      "name" : "Mute",
+      "usage" : 226
+    }
+  ],
+  "modifiers" : [
+    {
+      "bit" : 1,
+      "name" : "Control",
+      "symbol" : "⌃"
+    },
+    {
+      "bit" : 2,
+      "name" : "Shift",
+      "symbol" : "⇧"
+    },
+    {
+      "bit" : 4,
+      "name" : "Option \/ Alt",
+      "symbol" : "⌥"
+    },
+    {
+      "bit" : 8,
+      "name" : "Command \/ Win",
+      "symbol" : "⌘"
+    }
+  ],
+  "mouse" : [
+    {
+      "mask" : 1,
+      "name" : "Left click"
+    },
+    {
+      "mask" : 2,
+      "name" : "Right click"
+    },
+    {
+      "mask" : 4,
+      "name" : "Middle click"
+    },
+    {
+      "mask" : 8,
+      "name" : "Back"
+    },
+    {
+      "mask" : 16,
+      "name" : "Forward"
+    }
+  ],
+  "scrollingText" : [
+    {
+      "bufferBlocks" : 28,
+      "bufferSha256" : "82706b5310b7081951377e39a9181db3e6e2fd675ea6617359ac14b3bb6256df",
+      "color" : [
+        0,
+        200,
+        255
+      ],
+      "columns" : [
+        31,
+        4,
+        31,
+        0,
+        31,
+        21,
+        17,
+        0,
+        31,
+        16,
+        16,
+        0,
+        31,
+        16,
+        16,
+        0,
+        14,
+        17,
+        14,
+        0,
+        0,
+        0,
+        0,
+        0,
+        31,
+        5,
+        1,
+        0,
+        31,
+        5,
+        26,
+        0,
+        14,
+        17,
+        14,
+        0,
+        31,
+        6,
+        31,
+        0,
+        0,
+        0,
+        0,
+        0,
+        31,
+        6,
+        31,
+        0,
+        30,
+        5,
+        30,
+        0,
+        14,
+        17,
+        17,
+        0
+      ],
+      "frameCount" : 119,
+      "framesSha256" : "4bdb70157cb32235c624366033002c0ce202b7939fcb0c2d76a1045f179ba27a",
+      "name" : "“HELLO FROM MAC”",
+      "text" : "HELLO FROM MAC"
+    },
+    {
+      "bufferBlocks" : 25,
+      "bufferSha256" : "60e7d31b88db153915e4c3684b9963e54ad214ab5f047e9dffc79f3158f581eb",
+      "color" : [
+        255,
+        48,
+        48
+      ],
+      "columns" : [
+        30,
+        5,
+        30,
+        0,
+        4,
+        4,
+        4,
+        0,
+        25,
+        21,
+        19,
+        0,
+        0,
+        0,
+        0,
+        0,
+        31,
+        17,
+        31,
+        0,
+        0,
+        10,
+        0,
+        0,
+        23,
+        21,
+        15,
+        0,
+        0,
+        0,
+        0,
+        0,
+        25,
+        4,
+        19,
+        0,
+        1,
+        21,
+        2,
+        0,
+        0,
+        23,
+        0,
+        0
+      ],
+      "frameCount" : 107,
+      "framesSha256" : "a34dac13a6b02d75a7f756f2d86fe45a56fa95a9e2238ed1de214f0f03083e75",
+      "name" : "“a-z 0:9 %?!”",
+      "text" : "a-z 0:9 %?!"
+    },
+    {
+      "bufferBlocks" : 21,
+      "bufferSha256" : "5db073a11c9b79d430dc7e85f14c4346b85b5ecf3a03a81640ac4898f6fc0824",
+      "color" : [
+        1,
+        2,
+        3
+      ],
+      "columns" : [
+        1,
+        21,
+        2,
+        0,
+        1,
+        21,
+        2,
+        0,
+        1,
+        21,
+        2,
+        0,
+        18,
+        21,
+        9,
+        0,
+        18,
+        21,
+        9,
+        0,
+        0,
+        0,
+        0,
+        0,
+        17,
+        31,
+        17,
+        0
+      ],
+      "frameCount" : 91,
+      "framesSha256" : "2e155aeaa498d7c70f120ccc648a794f050ce63d01902877393252bff6f6f794",
+      "name" : "“çÖ~ß ı”",
+      "text" : "çÖ~ß ı"
+    },
+    {
+      "bufferBlocks" : 59,
+      "bufferSha256" : "ad4388c54be75ffa6d86d8b82608b2cc190202b77d2e7f7f05b6aa07eacf11ad",
+      "color" : [
+        255,
+        255,
+        255
+      ],
+      "columns" : [
+        30,
+        5,
+        30,
+        0,
+        31,
+        21,
+        10,
+        0,
+        14,
+        17,
+        17,
+        0,
+        31,
+        17,
+        14,
+        0,
+        31,
+        21,
+        17,
+        0,
+        31,
+        5,
+        1,
+        0,
+        14,
+        17,
+        29,
+        0,
+        31,
+        4,
+        31,
+        0,
+        17,
+        31,
+        17,
+        0,
+        8,
+        16,
+        15,
+        0,
+        30,
+        5,
+        30,
+        0,
+        31,
+        21,
+        10,
+        0,
+        14,
+        17,
+        17,
+        0,
+        31,
+        17,
+        14,
+        0,
+        31,
+        21,
+        17,
+        0,
+        31,
+        5,
+        1,
+        0,
+        14,
+        17,
+        29,
+        0,
+        31,
+        4,
+        31,
+        0,
+        17,
+        31,
+        17,
+        0,
+        8,
+        16,
+        15,
+        0,
+        30,
+        5,
+        30,
+        0,
+        31,
+        21,
+        10,
+        0,
+        14,
+        17,
+        17,
+        0,
+        31,
+        17,
+        14,
+        0,
+        31,
+        21,
+        17,
+        0,
+        31,
+        5,
+        1,
+        0,
+        14,
+        17,
+        29,
+        0,
+        31,
+        4,
+        31,
+        0,
+        17,
+        31,
+        17,
+        0,
+        8,
+        16,
+        15,
+        0,
+        30,
+        5,
+        30,
+        0,
+        31,
+        21,
+        10,
+        0,
+        14,
+        17,
+        17,
+        0,
+        31,
+        17,
+        14,
+        0,
+        31,
+        21,
+        17,
+        0,
+        31,
+        5,
+        1,
+        0,
+        14,
+        17,
+        29,
+        0,
+        31,
+        4,
+        31,
+        0,
+        17,
+        31,
+        17,
+        0,
+        8,
+        16,
+        15,
+        0,
+        30,
+        5,
+        30,
+        0,
+        31,
+        21,
+        10,
+        0,
+        14,
+        17,
+        17,
+        0,
+        31,
+        17,
+        14,
+        0,
+        31,
+        21,
+        17,
+        0,
+        31,
+        5,
+        1,
+        0,
+        14,
+        17,
+        29,
+        0,
+        31,
+        4,
+        31,
+        0
+      ],
+      "frameCount" : 255,
+      "framesSha256" : "003ac93f91f6280631b53f088c0fa644fecddc5cbacb12e30ff58700b22af50e",
+      "name" : "“ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGH”",
+      "text" : "ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ"
+    },
+    {
+      "bufferBlocks" : 15,
+      "bufferSha256" : "ea06bb750cee45d33b5f62b592439aaf2cc45b12a0cababc302aac6b45fbec9c",
+      "color" : [
+        9,
+        9,
+        9
+      ],
+      "columns" : [
+
+      ],
+      "frameCount" : 63,
+      "framesSha256" : "f60765b92bac90f9015774fbce9ed224113ed2edf8e146f50f33f799192b1d40",
+      "name" : "“”",
+      "text" : ""
+    },
+    {
+      "bufferBlocks" : 39,
+      "bufferSha256" : "17a50c5298a9c5b18b1127d5098a52af1933e41f6e80b497ab6cc6e07577aa10",
+      "color" : [
+        10,
+        20,
+        30
+      ],
+      "columns" : [
+        30,
+        5,
+        30,
+        0,
+        31,
+        21,
+        10,
+        0,
+        14,
+        17,
+        17,
+        0,
+        31,
+        17,
+        14,
+        0,
+        31,
+        21,
+        17,
+        0,
+        31,
+        5,
+        1,
+        0,
+        14,
+        17,
+        29,
+        0,
+        31,
+        4,
+        31,
+        0,
+        17,
+        31,
+        17,
+        0,
+        8,
+        16,
+        15,
+        0,
+        31,
+        4,
+        27,
+        0,
+        31,
+        16,
+        16,
+        0,
+        31,
+        6,
+        31,
+        0,
+        31,
+        1,
+        30,
+        0,
+        14,
+        17,
+        14,
+        0,
+        31,
+        5,
+        2,
+        0,
+        14,
+        25,
+        22,
+        0,
+        31,
+        5,
+        26,
+        0,
+        18,
+        21,
+        9,
+        0,
+        1,
+        31,
+        1,
+        0,
+        31,
+        16,
+        31,
+        0,
+        15,
+        16,
+        15,
+        0,
+        31,
+        12,
+        31,
+        0,
+        27,
+        4,
+        27,
+        0,
+        3,
+        28,
+        3,
+        0,
+        25,
+        21,
+        19,
+        0
+      ],
+      "frameCount" : 167,
+      "framesSha256" : "a87ef921c5b4deb9d62460b2815a19bcd4221c2242b74140c9296e5e26e4e0eb",
+      "name" : "“ABCDEFGHIJKLMNOPQRSTUVWXYZ”",
+      "text" : "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    },
+    {
+      "bufferBlocks" : 38,
+      "bufferSha256" : "5124402784d3d36ef25adcff38668bebee5aa6d60628d84a947a1d643118e53f",
+      "color" : [
+        30,
+        20,
+        10
+      ],
+      "columns" : [
+        31,
+        17,
+        31,
+        0,
+        18,
+        31,
+        16,
+        0,
+        25,
+        21,
+        18,
+        0,
+        17,
+        21,
+        10,
+        0,
+        7,
+        4,
+        31,
+        0,
+        23,
+        21,
+        9,
+        0,
+        30,
+        21,
+        29,
+        0,
+        1,
+        29,
+        3,
+        0,
+        31,
+        21,
+        31,
+        0,
+        23,
+        21,
+        15,
+        0,
+        0,
+        23,
+        0,
+        0,
+        1,
+        21,
+        2,
+        0,
+        0,
+        16,
+        0,
+        0,
+        16,
+        8,
+        0,
+        0,
+        0,
+        10,
+        0,
+        0,
+        4,
+        4,
+        4,
+        0,
+        4,
+        14,
+        4,
+        0,
+        0,
+        3,
+        0,
+        0,
+        24,
+        4,
+        3,
+        0,
+        31,
+        10,
+        31,
+        0,
+        4,
+        10,
+        17,
+        0,
+        17,
+        10,
+        4,
+        0,
+        25,
+        4,
+        19,
+        0,
+        10,
+        10,
+        10,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "frameCount" : 163,
+      "framesSha256" : "c52f84ad4989a7d562ce64276445b373d5a744dfffcd05d57597dd63e94a9661",
+      "name" : "“0123456789!?.,:-+'\/#<>%= ”",
+      "text" : "0123456789!?.,:-+'\/#<>%= "
+    }
+  ],
+  "stripBuffers" : [
+    {
+      "blocks" : 1,
+      "brightness" : 1,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "030000000103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "2adff9e3af0f87d8450f4e74aee1e3d71c325a155f45df5e3ae0c07c9e6814cc",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.59999999999999998,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "03000000000198020403040707060a0b070d0f0910130b13180d161c0f1920101c24121f2814222d16253118283572256d732872752b76772e7a79317e7b3482",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "a0be10a62cc5ee3544cdb08c0b7192e66287b71e0677fbafae03b32c92bb4a5d",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.37,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "0300000000015d010201020404030607040809050a0c070c0e080e11090f130a11160b13190c151b0d171e0e1920461643471846481a48491c4b4a1e4e4b2050",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "8b359f13c6cdeee47ca09906728f6da4d75c4a7e5acf1b03d7caacfc33d85169",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.20000000000000001,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "0300000000003200010101020202030302040503050603060804070905080a05090c060a0d060b0f070c10080d11260c24260d26270e27270f2828102a29112b",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "43c8398d04c2fbbbc9b01f1979aa0690999a089ee03d5969620f7ff5b9c3da65",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "03000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "b0aa8531d53e158a2a476ff5a417c074b82d8320098b1939419c31b9a5325b77",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1.7,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "030000000103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "2adff9e3af0f87d8450f4e74aee1e3d71c325a155f45df5e3ae0c07c9e6814cc",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : -0.29999999999999999,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "03000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "b0aa8531d53e158a2a476ff5a417c074b82d8320098b1939419c31b9a5325b77",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a000103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "7d1d78b6beeb26ca213945d33873b9bc19efdbc07d31ea3a1c8860e68e832df4",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.59999999999999998,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a00000198020403040707060a0b070d0f0910130b13180d161c0f1920101c24121f2814222d16253118283572256d732872752b76772e7a79317e7b3482",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "bef72a55fad82dca00a1ba3e9b59c3ed950c576d6092e5b02a5471a0ba05007b",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.37,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a0000015d010201020404030607040809050a0c070c0e080e11090f130a11160b13190c151b0d171e0e1920461643471846481a48491c4b4a1e4e4b2050",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "56acde5aaee9d33258ca008a5b11ea530a1a8f93264a5585a7dfb095095a2b75",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.20000000000000001,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a0000003200010101020202030302040503050603060804070905080a05090c060a0d060b0f070c10080d11260c24260d26270e27270f2828102a29112b",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "77de3dfab46addb7242b83db39d2d2161dda6079577e7b1afa30202bb0f71bab",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "a84403aac163c872b88f66f95d77a237e06e0c6e10276f5f1fdecc7431598312",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1.7,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a000103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "7d1d78b6beeb26ca213945d33873b9bc19efdbc07d31ea3a1c8860e68e832df4",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : -0.29999999999999999,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "a84403aac163c872b88f66f95d77a237e06e0c6e10276f5f1fdecc7431598312",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c010103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "50ea2d4a22291c26a5337c68bdcf2ca4672d0b987ceb02c3627281c4dd97814d",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.59999999999999998,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c01000198020403040707060a0b070d0f0910130b13180d161c0f1920101c24121f2814222d16253118283572256d732872752b76772e7a79317e7b3482",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "788742d86d5be08f1002433aa487abddadad8d623d2b96dad7d03e26ec925487",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.37,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c0100015d010201020404030607040809050a0c070c0e080e11090f130a11160b13190c151b0d171e0e1920461643471846481a48491c4b4a1e4e4b2050",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "9dbae2d32a040caa245fa916f0fa7564a7309dceaf02bae68c8038346978455d",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.20000000000000001,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c0100003200010101020202030302040503050603060804070905080a05090c060a0d060b0f070c10080d11260c24260d26270e27270f2828102a29112b",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "20f4eb016fee0eae10c6d47231308e2cf82216e90504cc5ed0b90339ece98a56",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "2d1b6ecff9867271433603892b2b349b9c76c8ddf7459d644b31316cf057f4cb",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1.7,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c010103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "50ea2d4a22291c26a5337c68bdcf2ca4672d0b987ceb02c3627281c4dd97814d",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : -0.29999999999999999,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "2d1b6ecff9867271433603892b2b349b9c76c8ddf7459d644b31316cf057f4cb",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff0103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "271dcfe5e26f33fd1e9562bf35c78ba8887f805d5188bce7d13096f98a52adc1",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.59999999999999998,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff000198020403040707060a0b070d0f0910130b13180d161c0f1920101c24121f2814222d16253118283572256d732872752b76772e7a79317e7b3482",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "5cac412f6c4550c093566948ba42a49f590997aae28aac2a4c0d017d81763024",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.37,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff00015d010201020404030607040809050a0c070c0e080e11090f130a11160b13190c151b0d171e0e1920461643471846481a48491c4b4a1e4e4b2050",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "edce01de4a991e561f795358d99480a16c6a17e8771b14f65f1d958ad8d9657b",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.20000000000000001,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff00003200010101020202030302040503050603060804070905080a05090c060a0d060b0f070c10080d11260c24260d26270e27270f2828102a29112b",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "13d6eae73371de37b0f32f53b3a4f4c556e691191b33f306281337e11589fedc",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "d01ad76cc9b6b714d245716267fe7e820242409b285663cd1922fb7ee5580518",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1.7,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff0103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "271dcfe5e26f33fd1e9562bf35c78ba8887f805d5188bce7d13096f98a52adc1",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : -0.29999999999999999,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "d01ad76cc9b6b714d245716267fe7e820242409b285663cd1922fb7ee5580518",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 60,
+      "brightness" : 0.80000000000000004,
+      "count" : 261,
+      "delay" : 10,
+      "head" : "04010a000104ca040803060c0808100e0b14140d1819101c1f12202414242a172830192c351c303b1e34402038469834919b38979d3c9ca040a2a244a8a448ad",
+      "pixels" : 315,
+      "seed" : 2,
+      "sha256" : "c7a1cca3523a2e94757b550f40d70b1cf61ceccd8680d23f399b77867eb2b2ad",
+      "size" : 245760,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "030000000103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "2adff9e3af0f87d8450f4e74aee1e3d71c325a155f45df5e3ae0c07c9e6814cc",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.59999999999999998,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "03000000000198020403040707060a0b070d0f0910130b13180d161c0f1920101c24121f2814222d16253118283572256d732872752b76772e7a79317e7b3482",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "a0be10a62cc5ee3544cdb08c0b7192e66287b71e0677fbafae03b32c92bb4a5d",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.37,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "0300000000015d010201020404030607040809050a0c070c0e080e11090f130a11160b13190c151b0d171e0e1920461643471846481a48491c4b4a1e4e4b2050",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "8b359f13c6cdeee47ca09906728f6da4d75c4a7e5acf1b03d7caacfc33d85169",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.20000000000000001,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "0300000000003200010101020202030302040503050603060804070905080a05090c060a0d060b0f070c10080d11260c24260d26270e27270f2828102a29112b",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "43c8398d04c2fbbbc9b01f1979aa0690999a089ee03d5969620f7ff5b9c3da65",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "03000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "b0aa8531d53e158a2a476ff5a417c074b82d8320098b1939419c31b9a5325b77",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1.7,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "030000000103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "2adff9e3af0f87d8450f4e74aee1e3d71c325a155f45df5e3ae0c07c9e6814cc",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : -0.29999999999999999,
+      "count" : 3,
+      "delay" : 0,
+      "head" : "03000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "b0aa8531d53e158a2a476ff5a417c074b82d8320098b1939419c31b9a5325b77",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a000103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "7d1d78b6beeb26ca213945d33873b9bc19efdbc07d31ea3a1c8860e68e832df4",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.59999999999999998,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a00000198020403040707060a0b070d0f0910130b13180d161c0f1920101c24121f2814222d16253118283572256d732872752b76772e7a79317e7b3482",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "bef72a55fad82dca00a1ba3e9b59c3ed950c576d6092e5b02a5471a0ba05007b",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.37,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a0000015d010201020404030607040809050a0c070c0e080e11090f130a11160b13190c151b0d171e0e1920461643471846481a48491c4b4a1e4e4b2050",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "56acde5aaee9d33258ca008a5b11ea530a1a8f93264a5585a7dfb095095a2b75",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.20000000000000001,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a0000003200010101020202030302040503050603060804070905080a05090c060a0d060b0f070c10080d11260c24260d26270e27270f2828102a29112b",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "77de3dfab46addb7242b83db39d2d2161dda6079577e7b1afa30202bb0f71bab",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "a84403aac163c872b88f66f95d77a237e06e0c6e10276f5f1fdecc7431598312",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1.7,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a000103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "7d1d78b6beeb26ca213945d33873b9bc19efdbc07d31ea3a1c8860e68e832df4",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : -0.29999999999999999,
+      "count" : 3,
+      "delay" : 10,
+      "head" : "03000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "a84403aac163c872b88f66f95d77a237e06e0c6e10276f5f1fdecc7431598312",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c010103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "50ea2d4a22291c26a5337c68bdcf2ca4672d0b987ceb02c3627281c4dd97814d",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.59999999999999998,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c01000198020403040707060a0b070d0f0910130b13180d161c0f1920101c24121f2814222d16253118283572256d732872752b76772e7a79317e7b3482",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "788742d86d5be08f1002433aa487abddadad8d623d2b96dad7d03e26ec925487",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.37,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c0100015d010201020404030607040809050a0c070c0e080e11090f130a11160b13190c151b0d171e0e1920461643471846481a48491c4b4a1e4e4b2050",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "9dbae2d32a040caa245fa916f0fa7564a7309dceaf02bae68c8038346978455d",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.20000000000000001,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c0100003200010101020202030302040503050603060804070905080a05090c060a0d060b0f070c10080d11260c24260d26270e27270f2828102a29112b",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "20f4eb016fee0eae10c6d47231308e2cf82216e90504cc5ed0b90339ece98a56",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "2d1b6ecff9867271433603892b2b349b9c76c8ddf7459d644b31316cf057f4cb",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1.7,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c010103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "50ea2d4a22291c26a5337c68bdcf2ca4672d0b987ceb02c3627281c4dd97814d",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : -0.29999999999999999,
+      "count" : 3,
+      "delay" : 300,
+      "head" : "03002c01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "2d1b6ecff9867271433603892b2b349b9c76c8ddf7459d644b31316cf057f4cb",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff0103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "271dcfe5e26f33fd1e9562bf35c78ba8887f805d5188bce7d13096f98a52adc1",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.59999999999999998,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff000198020403040707060a0b070d0f0910130b13180d161c0f1920101c24121f2814222d16253118283572256d732872752b76772e7a79317e7b3482",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "5cac412f6c4550c093566948ba42a49f590997aae28aac2a4c0d017d81763024",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.37,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff00015d010201020404030607040809050a0c070c0e080e11090f130a11160b13190c151b0d171e0e1920461643471846481a48491c4b4a1e4e4b2050",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "edce01de4a991e561f795358d99480a16c6a17e8771b14f65f1d958ad8d9657b",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.20000000000000001,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff00003200010101020202030302040503050603060804070905080a05090c060a0d060b0f070c10080d11260c24260d26270e27270f2828102a29112b",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "13d6eae73371de37b0f32f53b3a4f4c556e691191b33f306281337e11589fedc",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "d01ad76cc9b6b714d245716267fe7e820242409b285663cd1922fb7ee5580518",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1.7,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff0103fe040805070d0c0a12130d171a101c2113212816262f192b361c303d1f3544223a4b253f52284459be3eb7c143bec448c5c74dccca52d3cd57da",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "271dcfe5e26f33fd1e9562bf35c78ba8887f805d5188bce7d13096f98a52adc1",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : -0.29999999999999999,
+      "count" : 3,
+      "delay" : 65535,
+      "head" : "0300ffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 1,
+      "sha256" : "d01ad76cc9b6b714d245716267fe7e820242409b285663cd1922fb7ee5580518",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 47,
+      "brightness" : 0.80000000000000004,
+      "count" : 261,
+      "delay" : 10,
+      "head" : "c8000a000104ca040803060c0808100e0b14140d1819101c1f12202414242a172830192c351c303b1e34402038469834919b38979d3c9ca040a2a244a8a448ad",
+      "pixels" : 315,
+      "seed" : 2,
+      "sha256" : "b45b80fd932f5c7d19e14d5a6292da418012fc6d5d97d88c5a3d29401076b5f4",
+      "size" : 192512,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1,
+      "count" : 2,
+      "delay" : 20,
+      "head" : "020014000309fc060e0309130a0c18110f1d1812221f152726182c2d1b31341e363b213b422440492745502a4a57c044b5c349bcc64ec3c953cacc58d1cf5dd8",
+      "pixels" : 300,
+      "seed" : 3,
+      "sha256" : "200db49e6f52db50a4025b5eef6afb7221c33eb8f48592ff555f832fee28ad4c",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 0.5,
+      "count" : 2,
+      "delay" : 20,
+      "head" : "0200140002067d030801050b04060d0808100b09120f0b15120c17160e1a190f1c1d111f2012212414242715262b60235a62265d632861652b64662d6868306b",
+      "pixels" : 330,
+      "seed" : 4,
+      "sha256" : "d31d3204e7957cc795895dcfcc6ab724f644fd84dfe72167daf0bf0c2edb362a",
+      "size" : 4096,
+      "target" : "boot"
+    },
+    {
+      "blocks" : 1,
+      "brightness" : 1,
+      "count" : 0,
+      "delay" : 7,
+      "head" : "00000700aa5500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "pixels" : 315,
+      "seed" : 0,
+      "sha256" : "320d9b8d22a529b40402aa33504e608af4e6220f3844c2693afcec11edfe3ce3",
+      "size" : 4096,
+      "target" : "animation"
+    },
+    {
+      "blocks" : 2,
+      "brightness" : 0.90000000000000002,
+      "count" : 5,
+      "delay" : 1,
+      "head" : "05000100040de10712000916070c1b0d0f1f1312241a142820172d261a312d1c36331f3a39223f3f24434627484cae42a1b147a7b44badb650b4b954babc59c0",
+      "pixels" : 315,
+      "seed" : 5,
+      "sha256" : "2a3a591fbac954e1211847acfa46b2fad7049105fdb0f54ef8cb37801aaed76e",
+      "size" : 8192,
+      "target" : "animation"
+    }
+  ],
+  "stripHeaders" : [
+    {
+      "blocks" : 1,
+      "hex" : "04330000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "animation"
+    },
+    {
+      "blocks" : 2,
+      "hex" : "04330000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "animation"
+    },
+    {
+      "blocks" : 49,
+      "hex" : "04330000000000003100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "animation"
+    },
+    {
+      "blocks" : 60,
+      "hex" : "04330000000000003c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "animation"
+    },
+    {
+      "blocks" : 255,
+      "hex" : "0433000000000000ff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "animation"
+    },
+    {
+      "blocks" : 256,
+      "hex" : "04330000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "animation"
+    },
+    {
+      "blocks" : 4096,
+      "hex" : "04330000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "animation"
+    },
+    {
+      "blocks" : 1,
+      "hex" : "04310000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "boot"
+    },
+    {
+      "blocks" : 2,
+      "hex" : "04310000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "boot"
+    },
+    {
+      "blocks" : 49,
+      "hex" : "04310000000000003100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "boot"
+    },
+    {
+      "blocks" : 60,
+      "hex" : "04310000000000003c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "boot"
+    },
+    {
+      "blocks" : 255,
+      "hex" : "0431000000000000ff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "boot"
+    },
+    {
+      "blocks" : 256,
+      "hex" : "04310000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "boot"
+    },
+    {
+      "blocks" : 4096,
+      "hex" : "04310000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "target" : "boot"
+    }
+  ],
+  "stripPosition" : [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    147,
+    148,
+    149,
+    150,
+    151,
+    152,
+    153,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219,
+    220,
+    221,
+    222,
+    223,
+    280,
+    281,
+    282,
+    283,
+    284,
+    285,
+    286,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    154,
+    155,
+    156,
+    157,
+    158,
+    159,
+    160,
+    161,
+    162,
+    163,
+    164,
+    165,
+    166,
+    167,
+    224,
+    225,
+    226,
+    227,
+    228,
+    229,
+    230,
+    231,
+    232,
+    233,
+    234,
+    235,
+    236,
+    237,
+    287,
+    288,
+    289,
+    290,
+    291,
+    292,
+    293,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    168,
+    169,
+    170,
+    171,
+    172,
+    173,
+    174,
+    175,
+    176,
+    177,
+    178,
+    179,
+    180,
+    181,
+    238,
+    239,
+    240,
+    241,
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249,
+    250,
+    251,
+    294,
+    295,
+    296,
+    297,
+    298,
+    299,
+    300,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    182,
+    183,
+    184,
+    185,
+    186,
+    187,
+    188,
+    189,
+    190,
+    191,
+    192,
+    193,
+    194,
+    195,
+    252,
+    253,
+    254,
+    255,
+    256,
+    257,
+    258,
+    259,
+    260,
+    261,
+    262,
+    263,
+    264,
+    265,
+    301,
+    302,
+    303,
+    304,
+    305,
+    306,
+    307,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    196,
+    197,
+    198,
+    199,
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    266,
+    267,
+    268,
+    269,
+    270,
+    271,
+    272,
+    273,
+    274,
+    275,
+    276,
+    277,
+    278,
+    279,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    314
+  ],
+  "stripTargets" : [
+    {
+      "command" : 51,
+      "maxFrames" : 260,
+      "target" : "animation"
+    },
+    {
+      "command" : 49,
+      "maxFrames" : 200,
+      "target" : "boot"
+    }
+  ]
+}
