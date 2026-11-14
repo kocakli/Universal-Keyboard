@@ -73,7 +73,20 @@ public final class VIAClient: @unchecked Sendable {
     }
 
     public func layerCount() throws -> Int {
-        Int(try command(.getLayerCount)[1])
+        let count = Int(try command(.getLayerCount)[1])
+        guard (1...Self.maxLayers).contains(count) else { throw HIDError.unexpectedResponse("geçersiz katman sayısı \(count)") }
+        return count
+    }
+
+    /// Sanity limits; VIA addresses rows, cols and layers with one byte each.
+    public static let maxLayers = 32
+    public static let maxMatrix = 64
+    public static let maxEncoders = 32
+
+    /// Range-checked conversion for protocol fields (bad definitions must not crash the app).
+    private func byte(_ value: Int) throws -> UInt8 {
+        guard let result = UInt8(exactly: value) else { throw HIDError.unexpectedResponse("aralık dışı değer \(value)") }
+        return result
     }
 
     /// Packed layout options value (id_layout_options).
@@ -83,17 +96,22 @@ public final class VIAClient: @unchecked Sendable {
     }
 
     public func keycode(layer: Int, row: Int, col: Int) throws -> UInt16 {
-        let r = try command(.getKeycode, [UInt8(layer), UInt8(row), UInt8(col)])
+        let r = try command(.getKeycode, [try byte(layer), try byte(row), try byte(col)])
         return UInt16(r[4]) << 8 | UInt16(r[5])
     }
 
     public func setKeycode(_ code: UInt16, layer: Int, row: Int, col: Int) throws {
-        try command(.setKeycode, [UInt8(layer), UInt8(row), UInt8(col), UInt8(code >> 8), UInt8(code & 0xFF)])
+        try command(.setKeycode, [try byte(layer), try byte(row), try byte(col), UInt8(code >> 8), UInt8(code & 0xFF)])
     }
 
     /// Reads the whole dynamic keymap: [layer][row][col].
     public func readKeymap(layers: Int, rows: Int, cols: Int) throws -> [[[UInt16]]] {
+        // The VIA buffer offset is 16 bit; anything larger is a bogus definition or reply.
+        guard (1...Self.maxLayers).contains(layers), (1...Self.maxMatrix).contains(rows), (1...Self.maxMatrix).contains(cols) else {
+            throw HIDError.unexpectedResponse("geçersiz keymap boyutu \(layers)x\(rows)x\(cols)")
+        }
         let total = layers * rows * cols * 2
+        guard total <= 0x10000 else { throw HIDError.unexpectedResponse("keymap VIA tamponuna sığmıyor (\(total) bayt)") }
         var bytes: [UInt8] = []
         bytes.reserveCapacity(total)
         var offset = 0
@@ -116,12 +134,12 @@ public final class VIAClient: @unchecked Sendable {
     }
 
     public func encoder(layer: Int, index: Int, clockwise: Bool) throws -> UInt16 {
-        let r = try command(.getEncoder, [UInt8(layer), UInt8(index), clockwise ? 1 : 0])
+        let r = try command(.getEncoder, [try byte(layer), try byte(index), clockwise ? 1 : 0])
         return UInt16(r[4]) << 8 | UInt16(r[5])
     }
 
     public func setEncoder(_ code: UInt16, layer: Int, index: Int, clockwise: Bool) throws {
-        try command(.setEncoder, [UInt8(layer), UInt8(index), clockwise ? 1 : 0, UInt8(code >> 8), UInt8(code & 0xFF)])
+        try command(.setEncoder, [try byte(layer), try byte(index), clockwise ? 1 : 0, UInt8(code >> 8), UInt8(code & 0xFF)])
     }
 
     // MARK: Vial
@@ -155,12 +173,12 @@ public final class VIAClient: @unchecked Sendable {
     }
 
     public func vialEncoder(layer: Int, index: Int) throws -> (ccw: UInt16, cw: UInt16) {
-        let r = try vial(.getEncoder, [UInt8(layer), UInt8(index)])
+        let r = try vial(.getEncoder, [try byte(layer), try byte(index)])
         return (UInt16(r[0]) << 8 | UInt16(r[1]), UInt16(r[2]) << 8 | UInt16(r[3]))
     }
 
     public func vialSetEncoder(_ code: UInt16, layer: Int, index: Int, clockwise: Bool) throws {
-        _ = try vial(.setEncoder, [UInt8(layer), UInt8(index), clockwise ? 1 : 0, UInt8(code >> 8), UInt8(code & 0xFF)])
+        _ = try vial(.setEncoder, [try byte(layer), try byte(index), clockwise ? 1 : 0, UInt8(code >> 8), UInt8(code & 0xFF)])
     }
 
     public func vialUnlockStatus() throws -> VialUnlockStatus {

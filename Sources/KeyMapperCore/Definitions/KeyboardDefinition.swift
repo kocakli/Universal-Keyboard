@@ -111,7 +111,7 @@ public struct KeyboardDefinition: Codable, Sendable {
 
     /// Number of rotary encoders referenced by the layout.
     public var encoderCount: Int {
-        let indices = keys.compactMap { $0.encoderIndex ?? $0.knobIndex }
+        let indices = keys.compactMap { $0.encoderIndex ?? $0.knobIndex }.filter { (0..<VIAClient.maxEncoders).contains($0) }
         return (indices.max() ?? -1) + 1
     }
 

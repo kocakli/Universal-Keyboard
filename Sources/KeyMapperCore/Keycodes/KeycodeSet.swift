@@ -334,7 +334,7 @@ public final class KeycodeSet: @unchecked Sendable {
     public func parse(_ input: String) -> UInt16? {
         let text = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return nil }
-        if let number = KeycodeSet.parseNumber(text) { return number <= 0xFFFF ? UInt16(number) : nil }
+        if let number = KeycodeSet.parseNumber(text) { return UInt16(exactly: number) }
 
         if let open = text.firstIndex(of: "("), text.hasSuffix(")") {
             let function = text[..<open].trimmingCharacters(in: .whitespaces).uppercased()
@@ -409,8 +409,8 @@ public final class KeycodeSet: @unchecked Sendable {
             let token = part.trimmingCharacters(in: .whitespaces).uppercased()
             if let bits = KeycodeTables.modBitNames[token] {
                 mask |= bits
-            } else if let number = KeycodeSet.parseNumber(token), number <= 0x1F {
-                mask |= UInt8(number)
+            } else if let number = KeycodeSet.parseNumber(token), number <= 0x1F, let bits = UInt8(exactly: number) {
+                mask |= bits
             } else {
                 return nil
             }
@@ -420,8 +420,9 @@ public final class KeycodeSet: @unchecked Sendable {
 
     static func parseNumber(_ text: String) -> Int? {
         let t = text.trimmingCharacters(in: .whitespaces).lowercased()
-        if t.hasPrefix("0x") { return Int(t.dropFirst(2), radix: 16) }
-        return Int(t)
+        let value = t.hasPrefix("0x") ? Int(t.dropFirst(2), radix: 16) : Int(t)
+        guard let value, value >= 0 else { return nil }
+        return value
     }
 
     static func suffixNumber(_ text: String, prefixes: [String]) -> Int? {

@@ -21,13 +21,13 @@ public struct Keymap: Equatable, Sendable {
     public var layerCount: Int { layers.count }
 
     public func keycode(layer: Int, slot: KeySlot) -> UInt16? {
-        guard layer < layers.count else { return nil }
+        guard layer >= 0, layer < layers.count else { return nil }
         switch slot {
         case let .matrix(row, col):
             guard row >= 0, row < layers[layer].count, col >= 0, col < layers[layer][row].count else { return nil }
             return layers[layer][row][col]
         case let .encoder(index, clockwise):
-            guard layer < encoders.count, index < encoders[layer].count else { return nil }
+            guard layer < encoders.count, index >= 0, index < encoders[layer].count else { return nil }
             return clockwise ? encoders[layer][index].cw : encoders[layer][index].ccw
         }
     }
@@ -35,10 +35,10 @@ public struct Keymap: Equatable, Sendable {
     public mutating func set(_ code: UInt16, layer: Int, slot: KeySlot) {
         switch slot {
         case let .matrix(row, col):
-            guard layer < layers.count, row < layers[layer].count, col < layers[layer][row].count else { return }
+            guard layer >= 0, layer < layers.count, row >= 0, row < layers[layer].count, col >= 0, col < layers[layer][row].count else { return }
             layers[layer][row][col] = code
         case let .encoder(index, clockwise):
-            guard layer < encoders.count, index < encoders[layer].count else { return }
+            guard layer >= 0, layer < encoders.count, index >= 0, index < encoders[layer].count else { return }
             if clockwise { encoders[layer][index].cw = code } else { encoders[layer][index].ccw = code }
         }
     }

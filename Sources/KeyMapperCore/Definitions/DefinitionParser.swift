@@ -3,11 +3,13 @@ import Foundation
 public enum DefinitionError: LocalizedError {
     case invalidJSON
     case missingField(String)
+    case invalidMatrix(rows: Int, cols: Int)
 
     public var errorDescription: String? {
         switch self {
         case .invalidJSON: return "Tanım dosyası okunamadı (geçersiz JSON)."
         case let .missingField(field): return "Tanım dosyasında '\(field)' alanı yok."
+        case let .invalidMatrix(rows, cols): return "Tanımdaki matris boyutu geçersiz (\(rows)x\(cols))."
         }
     }
 }
@@ -19,6 +21,9 @@ public enum DefinitionParser {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw DefinitionError.invalidJSON }
         guard let matrix = json["matrix"] as? [String: Any],
               let rows = int(matrix["rows"]), let cols = int(matrix["cols"]) else { throw DefinitionError.missingField("matrix") }
+        guard (1...VIAClient.maxMatrix).contains(rows), (1...VIAClient.maxMatrix).contains(cols) else {
+            throw DefinitionError.invalidMatrix(rows: rows, cols: cols)
+        }
         guard let layouts = json["layouts"] as? [String: Any] else { throw DefinitionError.missingField("layouts") }
 
         var vendorID = int(json["vendorId"]) ?? 0
@@ -55,6 +60,15 @@ public enum DefinitionParser {
         let custom: [CustomKeycode] = (json["customKeycodes"] as? [[String: Any]] ?? []).compactMap { item in
             guard let name = item["name"] as? String else { return nil }
             return CustomKeycode(name: name, title: item["title"] as? String, shortName: item["shortName"] as? String)
+        }
+
+        // Drop keys that point outside the matrix or use absurd encoder indices.
+        keys = keys.filter { key in
+            if let index = key.encoderIndex {
+                return (0..<VIAClient.maxEncoders).contains(index) && (0...1).contains(key.encoderDirection ?? -1)
+            }
+            if let knob = key.knobIndex, !(0..<VIAClient.maxEncoders).contains(knob) { return false }
+            return (0..<rows).contains(key.row) && (0..<cols).contains(key.col)
         }
 
         return KeyboardDefinition(
