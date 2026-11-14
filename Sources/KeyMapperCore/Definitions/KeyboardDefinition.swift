@@ -73,7 +73,7 @@ public struct LayoutOption: Hashable, Codable, Sendable {
 }
 
 public enum DefinitionSource: String, Codable, Sendable {
-    case vialFirmware, viaRepository, userFile, builtIn
+    case vialFirmware, viaRepository, userFile, builtIn, vendor
 
     public var title: String {
         switch self {
@@ -81,6 +81,7 @@ public enum DefinitionSource: String, Codable, Sendable {
         case .viaRepository: return "VIA deposu"
         case .userFile: return "İçe aktarılan dosya"
         case .builtIn: return "Yerleşik"
+        case .vendor: return "Keychron Launcher"
         }
     }
 }

@@ -9,6 +9,8 @@ public struct KeyboardState: Sendable {
     public var vialProtocol: Int?
     public var vialUID: UInt64?
     public var layoutOptions: [Int]
+    /// Vendor firmware version string when the keyboard reports one (Keychron 0xA1).
+    public var firmwareVersion: String?
 
     public var layerCount: Int { keymap.layerCount }
 }
@@ -63,12 +65,19 @@ public final class KeyboardSession: @unchecked Sendable {
             let json = try client.vialDefinitionJSON()
             return (via, id.protocol, id.uid, json)
         }
+        let isKeychron = device.vendorID == KeychronLauncher.vendorID
+        let vendorInfo = try await perform { client -> (variant: Int, firmware: String?) in
+            guard isKeychron else { return (0, nil) }
+            let value = (try? client.firmwareValue()) ?? 0
+            return (value <= 100 ? Int(value) : 0, try? client.keychronFirmwareVersion())
+        }
 
         let definition: KeyboardDefinition
         if let json = info.3 {
             definition = try DefinitionParser.parse(json, source: .vialFirmware)
         } else {
-            definition = try await definitionStore.definition(vendorID: device.vendorID, productID: device.productID)
+            definition = try await definitionStore.definition(vendorID: device.vendorID, productID: device.productID,
+                                                              viaProtocol: info.0, variant: vendorInfo.variant)
         }
 
         let version: KeycodeVersion
@@ -112,7 +121,8 @@ public final class KeyboardSession: @unchecked Sendable {
             viaProtocol: info.0,
             vialProtocol: info.1,
             vialUID: info.2,
-            layoutOptions: definition.selectedOptions(packed: packedOptions)
+            layoutOptions: definition.selectedOptions(packed: packedOptions),
+            firmwareVersion: vendorInfo.firmware
         )
     }
 

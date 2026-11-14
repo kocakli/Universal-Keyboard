@@ -56,6 +56,7 @@ case "dump":
         defer { session.close() }
         print("\(state.definition.name) — VIA protokol \(state.viaProtocol)\(state.vialProtocol.map { ", Vial protokol \($0)" } ?? ""), keycode \(state.keycodes.version.rawValue)")
         print("Matris \(state.definition.rows)x\(state.definition.cols), \(state.layerCount) katman, \(state.definition.keys.count) tuş, kaynak: \(state.definition.source.title)")
+        if let firmware = state.firmwareVersion ?? target.firmwareVersion { print("Firmware: \(firmware)") }
         for layer in 0..<state.layerCount where onlyLayer == nil || onlyLayer == layer {
             print("\n— Katman \(layer)")
             for (row, codes) in state.keymap.layers[layer].enumerated() {
@@ -100,6 +101,28 @@ case "apply":
         print("\(count) tuş güncellendi.")
     }
 
+case "firmware":
+    let target = device(at: args.dropFirst().first)
+    runAsync {
+        var current = target.firmwareVersion
+        if target.capability != .osRemap, let (session, state) = try? await loadState(target) {
+            current = state.firmwareVersion ?? current
+            session.close()
+        }
+        print("Yüklü: \(current ?? "bilinmiyor")")
+        guard target.vendorID == KeychronLauncher.vendorID else {
+            print("Bu üretici için çevrimiçi güncelleme kaynağı yok.")
+            return
+        }
+        guard let product = await KeychronLauncher.product(vendorProductID: target.vendorProductID), let latest = product.latest else {
+            print("Keychron sunucusunda bilgi bulunamadı.")
+            return
+        }
+        let status = FirmwareStatus(current: current, latest: latest, updatePage: KeychronLauncher.site)
+        print("En yeni: \(latest.version) (\(latest.date ?? "?")) — \(status.isUpdateAvailable ? "GÜNCELLEME VAR" : "güncel")")
+        if let notes = latest.notes { print(notes) }
+    }
+
 case "remap":
     let target = device(at: args.dropFirst().first)
     guard args.count > 2 else {
@@ -130,5 +153,6 @@ default:
     kmctl export <n> <dosya>         .vil (Vial) veya .json (VIA) olarak kaydet
     kmctl apply <n> <dosya>          .vil / VIA .json / profil dosyasını klavyeye yaz
     kmctl remap <n> [hazır|clear]    macOS seviyesinde eşleme
+    kmctl firmware <n>               firmware sürümü ve güncelleme kontrolü
     """)
 }

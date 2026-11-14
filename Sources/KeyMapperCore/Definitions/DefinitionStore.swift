@@ -62,12 +62,27 @@ public final class DefinitionStore: @unchecked Sendable {
         try? FileManager.default.removeItem(at: userDefinitionURL(vendorID: vendorID, productID: productID))
     }
 
-    public func definition(vendorID: Int, productID: Int) async throws -> KeyboardDefinition {
+    public func definition(vendorID: Int, productID: Int, viaProtocol: Int = 12, variant: Int = 0) async throws -> KeyboardDefinition {
         let userURL = userDefinitionURL(vendorID: vendorID, productID: productID)
         if let data = try? Data(contentsOf: userURL) {
             return try DefinitionParser.parse(data, source: .userFile)
         }
         let vpid = (vendorID << 16) | productID
+
+        // Keychron publishes definitions (including trackballs / mice) through Keychron Launcher.
+        if vendorID == KeychronLauncher.vendorID {
+            let cacheURL = AppPaths.viaCache.appendingPathComponent("keychron_\(vpid)_\(variant).json")
+            if let data = try? Data(contentsOf: cacheURL),
+               let definition = try? KeychronLauncher.parseDefinition(data, vendorID: vendorID, productID: productID) {
+                return definition
+            }
+            if let data = await KeychronLauncher.definitionData(vendorProductID: vpid, viaProtocol: viaProtocol, variant: variant, session: session),
+               let definition = try? KeychronLauncher.parseDefinition(data, vendorID: vendorID, productID: productID) {
+                try? data.write(to: cacheURL, options: .atomic)
+                return definition
+            }
+        }
+
         let cacheURL = AppPaths.viaCache.appendingPathComponent("\(vpid).json")
         if let data = try? Data(contentsOf: cacheURL), let definition = try? DefinitionParser.parse(data, source: .viaRepository) {
             return definition

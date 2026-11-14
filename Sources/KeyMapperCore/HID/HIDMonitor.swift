@@ -115,7 +115,8 @@ public final class HIDMonitor {
             serial: string(kIOHIDSerialNumberKey),
             transport: string(kIOHIDTransportKey),
             locationID: int(kIOHIDLocationIDKey),
-            builtIn: builtIn
+            builtIn: builtIn,
+            versionNumber: int(kIOHIDVersionNumberKey)
         )
     }
 
@@ -133,7 +134,7 @@ public final class HIDMonitor {
             let primary = sorted.first { $0.isKeyboard } ?? sorted[0]
             let raw = sorted.first { $0.isRawHID }
             let serial = sorted.map(\.serial).first { !$0.isEmpty } ?? ""
-            return KeyboardDevice(
+            var device = KeyboardDevice(
                 id: key,
                 vendorID: primary.vendorID,
                 productID: primary.productID,
@@ -144,6 +145,8 @@ public final class HIDMonitor {
                 rawHIDRegistryID: raw?.registryID,
                 interfaceRegistryIDs: sorted.map(\.registryID)
             )
+            device.versionNumber = primary.versionNumber
+            return device
         }
         .sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
     }

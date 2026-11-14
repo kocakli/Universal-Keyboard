@@ -12,6 +12,8 @@ public struct HIDInterfaceInfo: Hashable, Sendable {
     public let transport: String
     public let locationID: Int
     public let builtIn: Bool
+    /// USB bcdDevice; many vendors (Keychron among them) store the firmware version here.
+    public var versionNumber: Int = 0
 
     public struct UsagePair: Hashable, Sendable {
         public let page: Int
@@ -60,6 +62,8 @@ public struct KeyboardDevice: Identifiable, Hashable, Sendable {
     public let transport: String
     public let rawHIDRegistryID: UInt64?
     public let interfaceRegistryIDs: [UInt64]
+    /// USB bcdDevice of the keyboard (0 when unknown).
+    public var versionNumber: Int = 0
 
     public init(id: String, vendorID: Int, productID: Int, name: String, manufacturer: String,
                 serial: String, transport: String, rawHIDRegistryID: UInt64?, interfaceRegistryIDs: [UInt64]) {
@@ -100,4 +104,10 @@ public struct KeyboardDevice: Identifiable, Hashable, Sendable {
     }
 
     public var displayName: String { name.isEmpty ? "Klavye \(deviceKey)" : name }
+
+    /// bcdDevice as a dotted version (0x0133 → "1.3.3"), nil when the device reports none.
+    public var firmwareVersion: String? {
+        guard versionNumber > 0 else { return nil }
+        return "\(versionNumber >> 8 & 0xFF).\(versionNumber >> 4 & 0x0F).\(versionNumber & 0x0F)"
+    }
 }

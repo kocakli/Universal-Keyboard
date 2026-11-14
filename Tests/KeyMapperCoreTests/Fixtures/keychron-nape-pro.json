@@ -1,0 +1,738 @@
+{
+  "name": "Nape Pro",
+  "type": "trackball",
+  "bootloader": "telink",
+  "keys": {
+    "0": [
+      {
+        "x": 45.283203125,
+        "y": 23.189174107142858,
+        "dir": "left",
+        "id": "03",
+        "col": 0
+      },
+      {
+        "x": 55.19391741071429,
+        "y": 22.83203125,
+        "dir": "right",
+        "id": "04",
+        "col": 1
+      },
+      {
+        "x": 44.568917410714285,
+        "y": 77.47488839285714,
+        "dir": "left",
+        "id": "01",
+        "col": 2
+      },
+      {
+        "x": 55.283203125,
+        "y": 76.76060267857143,
+        "dir": "right",
+        "id": "02",
+        "col": 3
+      },
+      {
+        "x": 45.193917410714285,
+        "y": 94.08203125,
+        "dir": "left",
+        "id": "m1",
+        "col": 4
+      },
+      {
+        "x": 54.65820312500001,
+        "y": 94.26060267857143,
+        "dir": "right",
+        "id": "m2",
+        "col": 5
+      },
+      {
+        "x": 55.72963169642857,
+        "y": 49.97488839285714,
+        "dir": "right",
+        "id": "knob",
+        "labels": [
+          {
+            "id": "knob-ccw",
+            "col": 0
+          },
+          {
+            "id": "knob-cw",
+            "col": 1
+          }
+        ]
+      }
+    ],
+    "45": [
+      {
+        "x": 56.05119977678571,
+        "y": 23.189174107142858,
+        "dir": "left",
+        "id": "03",
+        "col": 0
+      },
+      {
+        "x": 63.104771205357146,
+        "y": 37.65345982142857,
+        "dir": "right",
+        "id": "04",
+        "col": 1
+      },
+      {
+        "x": 37.33677455357143,
+        "y": 60.51060267857142,
+        "dir": "left",
+        "id": "01",
+        "col": 2
+      },
+      {
+        "x": 44.747488839285715,
+        "y": 75.15345982142857,
+        "dir": "right",
+        "id": "02",
+        "col": 3
+      },
+      {
+        "x": 32.247488839285715,
+        "y": 71.93917410714286,
+        "dir": "left",
+        "id": "m1",
+        "col": 4
+      },
+      {
+        "x": 38.11465935083324,
+        "y": 87.373046875,
+        "dir": "right",
+        "id": "m2",
+        "col": 5
+      },
+      {
+        "x": 54.97977120535714,
+        "y": 55.33203125,
+        "dir": "right",
+        "id": "knob",
+        "labels": [
+          {
+            "id": "knob-ccw",
+            "col": 0
+          },
+          {
+            "id": "knob-cw",
+            "col": 1
+          }
+        ]
+      }
+    ],
+    "90": [
+      {
+        "x": 63.318917410714285,
+        "y": 41.224888392857146,
+        "w": 90,
+        "dir": "up",
+        "id": "03",
+        "col": 0
+      },
+      {
+        "x": 63.09193537704317,
+        "y": 59.06947544642858,
+        "w": 85,
+        "dir": "down",
+        "id": "04",
+        "col": 1
+      },
+      {
+        "x": 36.533203125,
+        "y": 39.796316964285715,
+        "w": 85,
+        "dir": "up",
+        "id": "01",
+        "col": 2
+      },
+      {
+        "x": 36.622488839285715,
+        "y": 59.08203125,
+        "w": 85,
+        "dir": "down",
+        "id": "02",
+        "col": 3
+      },
+      {
+        "x": 27.747843405344685,
+        "y": 41.212332589285715,
+        "w": 70,
+        "dir": "left",
+        "id": "m1",
+        "col": 4
+      },
+      {
+        "x": 27.8607638269795,
+        "y": 57.86411830357143,
+        "w": 70,
+        "dir": "left",
+        "id": "m2",
+        "col": 5
+      },
+      {
+        "x": 56.655471343858466,
+        "y": 49.42661830357143,
+        "w": 180,
+        "dir": "right",
+        "id": "knob",
+        "labels": [
+          {
+            "id": "knob-ccw",
+            "col": 0
+          },
+          {
+            "id": "knob-cw",
+            "col": 1
+          }
+        ]
+      }
+    ],
+    "135": [
+      {
+        "x": 63.140345982142854,
+        "y": 61.046316964285715,
+        "dir": "right",
+        "id": "03",
+        "col": 0
+      },
+      {
+        "x": 56.62248883928571,
+        "y": 76.22488839285714,
+        "dir": "left",
+        "id": "04",
+        "col": 1
+      },
+      {
+        "x": 43.13372045528809,
+        "y": 25.944475446428573,
+        "dir": "right",
+        "id": "01",
+        "col": 2
+      },
+      {
+        "x": 36.622488839285715,
+        "y": 38.546316964285715,
+        "dir": "left",
+        "id": "02",
+        "col": 3
+      },
+      {
+        "x": 39.658203125,
+        "y": 14.439174107142858,
+        "dir": "right",
+        "id": "m1",
+        "col": 4
+      },
+      {
+        "x": 31.979631696428573,
+        "y": 26.046316964285715,
+        "dir": "left",
+        "id": "m2",
+        "col": 5
+      },
+      {
+        "x": 55.01534598214286,
+        "y": 43.18917410714286,
+        "dir": "right",
+        "id": "knob",
+        "labels": [
+          {
+            "id": "knob-ccw",
+            "col": 0
+          },
+          {
+            "id": "knob-cw",
+            "col": 1
+          }
+        ]
+      }
+    ],
+    "180": [
+      {
+        "x": 55.283203125,
+        "y": 76.76060267857143,
+        "dir": "right",
+        "id": "03",
+        "col": 0
+      },
+      {
+        "x": 45.46177455357142,
+        "y": 77.83203125,
+        "dir": "left",
+        "id": "04",
+        "col": 1
+      },
+      {
+        "x": 55.818917410714285,
+        "y": 23.546316964285715,
+        "dir": "right",
+        "id": "01",
+        "col": 2
+      },
+      {
+        "x": 44.747488839285715,
+        "y": 23.724888392857142,
+        "dir": "left",
+        "id": "02",
+        "col": 3
+      },
+      {
+        "x": 55.283203125,
+        "y": 10.33203125,
+        "dir": "right",
+        "id": "m1",
+        "col": 4
+      },
+      {
+        "x": 45.81891741071429,
+        "y": 10.510602678571429,
+        "dir": "left",
+        "id": "m2",
+        "col": 5
+      },
+      {
+        "x": 55.997488839285715,
+        "y": 49.617745535714285,
+        "dir": "right",
+        "id": "knob",
+        "labels": [
+          {
+            "id": "knob-ccw",
+            "col": 0
+          },
+          {
+            "id": "knob-cw",
+            "col": 1
+          }
+        ]
+      }
+    ],
+    "225": [
+      {
+        "x": 44.033203125,
+        "y": 77.11774553571429,
+        "dir": "right",
+        "id": "03",
+        "col": 0
+      },
+      {
+        "x": 36.97963169642857,
+        "y": 60.33203124999999,
+        "dir": "left",
+        "id": "04",
+        "col": 1
+      },
+      {
+        "x": 62.98689549068729,
+        "y": 40.230189732142854,
+        "dir": "right",
+        "id": "01",
+        "col": 2
+      },
+      {
+        "x": 53.283377355407914,
+        "y": 28.80161830357143,
+        "dir": "left",
+        "id": "02",
+        "col": 3
+      },
+      {
+        "x": 68.22963169642857,
+        "y": 28.010602678571427,
+        "dir": "right",
+        "id": "m1",
+        "col": 4
+      },
+      {
+        "x": 60.81891741071429,
+        "y": 16.224888392857142,
+        "dir": "left",
+        "id": "m2",
+        "col": 5
+      },
+      {
+        "x": 54.39034598214286,
+        "y": 57.83203125000001,
+        "dir": "right",
+        "id": "knob",
+        "labels": [
+          {
+            "id": "knob-ccw",
+            "col": 0
+          },
+          {
+            "id": "knob-cw",
+            "col": 1
+          }
+        ]
+      }
+    ],
+    "270": [
+      {
+        "x": 36.44391741071429,
+        "y": 59.97488839285714,
+        "w": 70,
+        "dir": "down",
+        "id": "03",
+        "col": 0
+      },
+      {
+        "x": 36.533203125,
+        "y": 40.867745535714285,
+        "w": 70,
+        "dir": "up",
+        "id": "04",
+        "col": 1
+      },
+      {
+        "x": 63.88237832848691,
+        "y": 60.498046875,
+        "w": 70,
+        "dir": "down",
+        "id": "01",
+        "col": 2
+      },
+      {
+        "x": 63.318917410714285,
+        "y": 40.867745535714285,
+        "w": 70,
+        "dir": "up",
+        "id": "02",
+        "col": 3
+      },
+      {
+        "x": 70.65760362657608,
+        "y": 58.75697544642857,
+        "w": 70,
+        "dir": "right",
+        "id": "m1",
+        "col": 4
+      },
+      {
+        "x": 70.65760362657608,
+        "y": 41.03376116071429,
+        "w": 70,
+        "dir": "right",
+        "id": "m2",
+        "col": 5
+      },
+      {
+        "x": 43.91446329375885,
+        "y": 49.873046875,
+        "w": 190,
+        "dir": "left",
+        "id": "knob",
+        "labels": [
+          {
+            "id": "knob-ccw",
+            "col": 0
+          },
+          {
+            "id": "knob-cw",
+            "col": 1
+          }
+        ]
+      }
+    ],
+    "315": [
+      {
+        "x": 37.33677455357143,
+        "y": 37.83203125,
+        "dir": "left",
+        "id": "03",
+        "col": 0
+      },
+      {
+        "x": 43.58677455357143,
+        "y": 23.546316964285715,
+        "dir": "right",
+        "id": "04",
+        "col": 1
+      },
+      {
+        "x": 54.62179364992921,
+        "y": 71.83733258928572,
+        "dir": "left",
+        "id": "01",
+        "col": 2
+      },
+      {
+        "x": 63.05106026785714,
+        "y": 61.046316964285715,
+        "dir": "right",
+        "id": "02",
+        "col": 3
+      },
+      {
+        "x": 62.87536079947718,
+        "y": 85.58733258928571,
+        "dir": "left",
+        "id": "m1",
+        "col": 4
+      },
+      {
+        "x": 68.408203125,
+        "y": 73.54631696428572,
+        "dir": "right",
+        "id": "m2",
+        "col": 5
+      },
+      {
+        "x": 54.39034598214286,
+        "y": 43.01060267857143,
+        "dir": "right",
+        "id": "knob",
+        "labels": [
+          {
+            "id": "knob-ccw",
+            "col": 0
+          },
+          {
+            "id": "knob-cw",
+            "col": 1
+          }
+        ]
+      }
+    ]
+  },
+  "customKeycodes": [
+    {
+      "name": "Bluetooth Host 1",
+      "title": "Bluetooth Host 1",
+      "shortName": "BTH1"
+    },
+    {
+      "name": "Bluetooth Host 2",
+      "title": "Bluetooth Host 2",
+      "shortName": "BTH2"
+    },
+    {
+      "name": "Bluetooth Host 3",
+      "title": "Bluetooth Host 3",
+      "shortName": "BTH3"
+    },
+    {
+      "name": "Keyboard Dfu",
+      "title": "BootLoader",
+      "shortName": "Boot"
+    },
+    {
+      "name": "2.4G Pair",
+      "title": "2.4G Pair",
+      "shortName": "2.4G"
+    },
+    {
+      "name": "Screen lock",
+      "title": "Screen lock in macOS",
+      "shortName": "SCRLOCK"
+    },
+    {
+      "name": "Open preferences for the front app",
+      "title": "Open preferences for the front app in macOS",
+      "shortName": "Cmd-Comma"
+    },
+    {
+      "name": "Left Option",
+      "title": "Left Option",
+      "shortName": "Opt"
+    },
+    {
+      "name": "Right Option",
+      "title": "Right Option",
+      "shortName": "Opt"
+    },
+    {
+      "name": "Left Cmd",
+      "title": "Left Command",
+      "shortName": "Cmd"
+    },
+    {
+      "name": "Right Cmd",
+      "title": "Right Command",
+      "shortName": "Cmd"
+    },
+    {
+      "name": "Switch desktops Left",
+      "title": "Switch desktops Left in macOS",
+      "shortName": "DESKTOP_L-m"
+    },
+    {
+      "name": "Switch desktops Right",
+      "title": "Switch desktops Right in macOS",
+      "shortName": "DESKTOP_R-m"
+    },
+    {
+      "name": "Open emoji ",
+      "title": "Open emoji in macOS",
+      "shortName": "Emoji-m"
+    },
+    {
+      "name": "Task View",
+      "title": "Task View in Windows",
+      "shortName": "Task"
+    },
+    {
+      "name": "Switch desktops Left ",
+      "title": "Switch desktops Left in Windows",
+      "shortName": "DESKTOP_L-w"
+    },
+    {
+      "name": "Switch desktops Right ",
+      "title": "Switch desktops Right in Windows",
+      "shortName": "DESKTOP_R-w"
+    },
+    {
+      "name": "File Explorer",
+      "title": "File Explorer in Windows",
+      "shortName": "File"
+    },
+    {
+      "name": "Win Lock",
+      "title": "Lock your PC or switch accounts",
+      "shortName": "WinLock"
+    },
+    {
+      "name": "Open Settings",
+      "title": "Open Settings in Windows",
+      "shortName": "Set"
+    },
+    {
+      "name": "Open emoji",
+      "title": "Open emoji in Windows",
+      "shortName": "Emoji-w"
+    },
+    {
+      "name": "Print Screen",
+      "title": "Print Screen in Windows",
+      "shortName": "PrtSc-w"
+    },
+    {
+      "name": "Print Screen",
+      "title": "Print Screen in macOS",
+      "shortName": "PrtSc-m"
+    },
+    {
+      "name": "Battery Level",
+      "title": "Show battery level",
+      "shortName": "Batt"
+    },
+    {
+      "name": "Siri",
+      "title": "call siri",
+      "shortName": "Siri"
+    },
+    {
+      "name": "Cortana",
+      "title": "call cortana",
+      "shortName": "Cortana"
+    },
+    {
+      "name": "ori increase",
+      "title": "increase orientation",
+      "shortName": "ORI+"
+    },
+    {
+      "name": "ori decrease",
+      "title": "decrease orientation",
+      "shortName": "ORI-"
+    },
+    {
+      "name": "ori 0",
+      "title": "set orientation 0",
+      "shortName": "ORI0"
+    },
+    {
+      "name": "ori 45",
+      "title": "set orientation 45",
+      "shortName": "ORI45"
+    },
+    {
+      "name": "ori 90",
+      "title": "set orientation 90",
+      "shortName": "ORI90"
+    },
+    {
+      "name": "ori 135",
+      "title": "set orientation 135",
+      "shortName": "ORI135"
+    },
+    {
+      "name": "ori 180",
+      "title": "set orientation 180",
+      "shortName": "ORI180"
+    },
+    {
+      "name": "ori 225",
+      "title": "set orientation 225",
+      "shortName": "ORI225"
+    },
+    {
+      "name": "ori 270",
+      "title": "set orientation 270",
+      "shortName": "ORI270"
+    },
+    {
+      "name": "ori 315",
+      "title": "set orientation 315",
+      "shortName": "ORI315"
+    },
+    {
+      "name": "sel or clear",
+      "title": "bt sel or clear",
+      "shortName": "SEL/CLR"
+    },
+    {
+      "name": "dpi increase",
+      "title": "increase dpi",
+      "shortName": "DPI+"
+    },
+    {
+      "name": "dpi decrease",
+      "title": "decrease dpi",
+      "shortName": "DPI-"
+    },
+    {
+      "name": "report rate increase",
+      "title": "increase report rate",
+      "shortName": "RPT+"
+    },
+    {
+      "name": "report rate decrease",
+      "title": "decrease report rate",
+      "shortName": "RPT-"
+    },
+    {
+      "name": "tap hold keypress",
+      "title": "tap hold keypress",
+      "shortName": "TH-KP"
+    },
+    {
+      "name": "tap hold mouse keypress",
+      "title": "tap hold mouse keypress",
+      "shortName": "TH-MKP"
+    },
+    {
+      "name": "ori loop",
+      "title": "loop orientation",
+      "shortName": "ORI-LP"
+    },
+    {
+      "name": "dpi loop",
+      "title": "loop dpi",
+      "shortName": "DPI-LP"
+    },
+    {
+      "name": "report rate loop",
+      "title": "loop report rate",
+      "shortName": "RPT-LP"
+    },
+    {
+      "name": "double left click",
+      "title": "double left click",
+      "shortName": "DB-LCLK"
+    }
+  ]
+}
