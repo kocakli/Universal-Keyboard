@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Builds KeyMapper.app (menu bar app) into ./build. Usage: scripts/build-app.sh [--install]
+# Optional: SIGN_IDENTITY="Developer ID Application: Name (TEAMID)" signs for distribution.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -60,7 +61,18 @@ write_infoplist_strings es "KeyMapper usa Bluetooth para mostrar el nivel de bat
 write_infoplist_strings ja "KeyMapper は Bluetooth キーボードのバッテリー残量を表示するために Bluetooth を使用します。"
 write_infoplist_strings zh-Hans "KeyMapper 使用蓝牙来显示蓝牙键盘的电池电量。"
 
-codesign --force --deep --sign - "$APP"
+# Signing: ad-hoc by default. Set SIGN_IDENTITY to a "Developer ID Application: …" identity for a
+# distributable build; that adds the hardened runtime and a secure timestamp, which notarization needs.
+SIGN_IDENTITY="${SIGN_IDENTITY:--}"
+if [[ "$SIGN_IDENTITY" == "-" ]]; then
+    codesign --force --deep --sign - "$APP"
+else
+    # Nested code first, then the bundle (--deep is not meant for signing).
+    codesign --force --options runtime --timestamp --identifier dev.keymapper.kmctl \
+        --sign "$SIGN_IDENTITY" "$APP/Contents/MacOS/kmctl"
+    codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
+fi
+codesign --verify --deep --strict "$APP"
 # Let Finder and the Dock pick up a changed icon.
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP" 2>/dev/null || true
 echo "Hazır: $APP"

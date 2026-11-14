@@ -53,7 +53,19 @@ To build an installable package (disk image):
 scripts/make-dmg.sh
 ```
 
-This creates `build/KeyMapper-<version>.dmg`; open it and drag KeyMapper onto the Applications shortcut. With `--install`, the app inside the disk image is installed straight into `/Applications` (a running copy is quit first). The package is ad-hoc signed and not notarized: when it is downloaded to another Mac, macOS blocks the first launch; allow it with **Open Anyway** in **System Settings → Privacy & Security**.
+This creates `build/KeyMapper-<version>.dmg`; open it and drag KeyMapper onto the Applications shortcut. With `--install`, the app inside the disk image is installed straight into `/Applications` (a running copy is quit first).
+
+By default the build is ad-hoc signed: it runs on the Mac that built it, but macOS blocks the first launch on another Mac (allow it with **Open Anyway** in **System Settings → Privacy & Security**). For a package that opens anywhere, sign it with a Developer ID and have Apple notarize it:
+
+```bash
+xcrun notarytool store-credentials KeyMapper-notary --apple-id "<Apple ID>" --team-id <TEAMID>
+```
+
+```bash
+SIGN_IDENTITY="Developer ID Application: <Name> (<TEAMID>)" NOTARY_PROFILE=KeyMapper-notary scripts/make-dmg.sh
+```
+
+The first command is needed once; it asks for an app-specific password from account.apple.com and stores it in the keychain. The second signs the app and `kmctl` with the hardened runtime and a secure timestamp, signs the disk image, submits it to Apple's notary service, waits for the result (usually a few minutes) and staples the ticket to the disk image. If Apple rejects it, the script prints the notary log and stops. A Developer ID signature also keeps the Accessibility and Bluetooth permissions across rebuilds.
 
 The app doesn't appear in the Dock; use the keyboard icon in the menu bar. Opening the app again from Finder or Spotlight brings up the editor window.
 
