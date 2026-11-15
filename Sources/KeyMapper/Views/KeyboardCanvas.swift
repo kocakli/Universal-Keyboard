@@ -20,6 +20,8 @@ struct KeyboardCanvas: View {
     let cap: (LayoutKey) -> KeyCapModel
     let onSelect: (LayoutKey) -> Void
     var maxUnit: CGFloat = 60
+    /// A trackball's or mouse's body, drawn behind its buttons.
+    var deviceBody: DeviceBody?
 
     private struct Placed {
         let key: LayoutKey
@@ -27,12 +29,16 @@ struct KeyboardCanvas: View {
     }
 
     var body: some View {
-        let geometry = Self.layout(keys)
+        let geometry = Self.layout(keys, body: deviceBody)
         GeometryReader { proxy in
             let unit = max(16, min(maxUnit,
                                    proxy.size.width / max(geometry.size.width, 1),
                                    proxy.size.height / max(geometry.size.height, 1)))
             ZStack(alignment: .topLeading) {
+                if let deviceBody {
+                    DeviceBodyView(shape: deviceBody, unit: unit)
+                        .offset(x: -geometry.origin.x * unit, y: -geometry.origin.y * unit)
+                }
                 ForEach(Array(geometry.placed.enumerated()), id: \.offset) { _, item in
                     let model = cap(item.key)
                     Button {
@@ -58,10 +64,14 @@ struct KeyboardCanvas: View {
         .frame(maxWidth: geometry.size.width * maxUnit, maxHeight: geometry.size.height * maxUnit)
     }
 
-    /// Rotates each key around its cluster origin and normalises everything to start at (0, 0).
-    private static func layout(_ keys: [LayoutKey]) -> (placed: [Placed], size: CGSize) {
-        guard !keys.isEmpty else { return ([], .zero) }
+    /// Rotates each key around its cluster origin and normalises everything (keys and body) to start at (0, 0);
+    /// `origin` is where the layout's (0, 0) ended up.
+    private static func layout(_ keys: [LayoutKey], body: DeviceBody?) -> (placed: [Placed], size: CGSize, origin: CGPoint) {
+        guard !keys.isEmpty else { return ([], .zero, .zero) }
         var minX = Double.infinity, minY = Double.infinity, maxX = -Double.infinity, maxY = -Double.infinity
+        if let body {
+            minX = 0; minY = 0; maxX = body.width; maxY = body.height
+        }
         var centers: [CGPoint] = []
         for key in keys {
             let angle = key.r * .pi / 180
@@ -81,7 +91,64 @@ struct KeyboardCanvas: View {
         let placed = zip(keys, centers).map { key, center in
             Placed(key: key, center: CGPoint(x: center.x - minX, y: center.y - minY))
         }
-        return (placed, CGSize(width: maxX - minX, height: maxY - minY))
+        return (placed, CGSize(width: maxX - minX, height: maxY - minY), CGPoint(x: minX, y: minY))
+    }
+}
+
+/// A pointing device's shell: sections, the ball in its scroll ring, small buttons with no keycode.
+private struct DeviceBodyView: View {
+    let shape: DeviceBody
+    let unit: CGFloat
+
+    var body: some View {
+        let shell = RoundedRectangle(cornerRadius: shape.cornerRadius * unit, style: .continuous)
+        ZStack(alignment: .topLeading) {
+            shell.fill(Theme.raised)
+                .overlay(shell.strokeBorder(Theme.line, lineWidth: 1))
+                .frame(width: shape.width * unit, height: shape.height * unit)
+            ForEach(Array(shape.seams.enumerated()), id: \.offset) { _, x in
+                Rectangle().fill(Theme.line)
+                    .frame(width: 1, height: shape.height * unit - 2)
+                    .offset(x: x * unit, y: 1)
+            }
+            if let ring = shape.ring {
+                // Knurled scroll ring.
+                circle(ring) {
+                    Circle().fill(Theme.stage)
+                        .overlay(Circle().inset(by: unit * 0.1)
+                            .stroke(CapKind.edge.opacity(0.7), style: StrokeStyle(lineWidth: unit * 0.16, dash: [1.5, 2.5])))
+                        .overlay(Circle().strokeBorder(Theme.line, lineWidth: 1))
+                }
+            }
+            if let ball = shape.ball {
+                circle(ball) {
+                    Circle()
+                        .fill(RadialGradient(colors: [CapKind.edge.opacity(0.9), Theme.stage],
+                                             center: UnitPoint(x: 0.35, y: 0.3), startRadius: 0, endRadius: ball.radius * unit * 1.6))
+                        .overlay(Circle().strokeBorder(Theme.line, lineWidth: 1))
+                        .overlay(alignment: .topLeading) {
+                            Circle().fill(Color.white.opacity(0.4))
+                                .frame(width: unit * 0.22, height: unit * 0.22)
+                                .blur(radius: unit * 0.05)
+                                .offset(x: ball.radius * unit * 0.55, y: ball.radius * unit * 0.5)
+                        }
+                }
+            }
+            ForEach(Array(shape.buttons.enumerated()), id: \.offset) { _, button in
+                circle(button) {
+                    Circle().fill(Theme.control).overlay(Circle().strokeBorder(CapKind.edge, lineWidth: 1))
+                }
+            }
+        }
+        .frame(width: shape.width * unit, height: shape.height * unit, alignment: .topLeading)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    private func circle(_ circle: DeviceBody.Circle, @ViewBuilder content: () -> some View) -> some View {
+        content()
+            .frame(width: circle.radius * 2 * unit, height: circle.radius * 2 * unit)
+            .offset(x: (circle.x - circle.radius) * unit, y: (circle.y - circle.radius) * unit)
     }
 }
 

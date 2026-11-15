@@ -236,3 +236,26 @@ public enum AMG65MouseActions {
         Button(mask: 0x04, name: "Middle click"), Button(mask: 0x08, name: "Back"), Button(mask: 0x10, name: "Forward"),
     ]
 }
+
+// MARK: - macOS remapping
+
+extension AMG65Layout {
+    /// The keys for macOS remapping, placed as on the keyboard: Studio's 50 pt grid (rows 52 pt apart) in key units,
+    /// `col` = the factory HID usage. Fn has `col` -1: the keyboard handles it itself and macOS never sees it.
+    public static var remapKeys: [LayoutKey] {
+        litKeys.map { key in
+            LayoutKey(row: 0, col: key.remappable ? Int(key.code) : -1,
+                      x: key.rect.minX / 50, y: key.rect.minY / 52, w: (key.rect.width + 4) / 50)
+        }
+    }
+
+    /// Usages of a full-size layout the keyboard has no key for (`, the F row, PrtSc, ScrLk, Pause, Ins, End, Menu,
+    /// right ⌥ and ⌘). A macOS remap still catches one when the keyboard sends it, as a 65% board does through Fn;
+    /// which Fn combinations send what isn't known here. Two rows in key units, as `remapKeys`.
+    public static var offBoardKeys: [LayoutKey] {
+        let rows: [[Int]] = [[0x35] + Array(0x3A...0x45), [0x46, 0x47, 0x48, 0x49, 0x4D, 0x65, 0xE6, 0xE7]]
+        return rows.enumerated().flatMap { y, usages in
+            usages.enumerated().map { x, usage in LayoutKey(row: 0, col: usage, x: Double(x), y: Double(y)) }
+        }
+    }
+}

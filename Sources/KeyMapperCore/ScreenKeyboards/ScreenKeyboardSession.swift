@@ -26,6 +26,17 @@ public final class ScreenKeyboardSession: @unchecked Sendable {
     public func close() {
         queue.async { [link] in link.close() }
     }
+
+    /// For quitting: waits up to `timeout` for the work already queued (the transaction in progress), then closes the
+    /// channel. Sends nothing new.
+    public func finish(timeout: TimeInterval) {
+        let done = DispatchSemaphore(value: 0)
+        queue.async { [link] in
+            link.close()
+            done.signal()
+        }
+        _ = done.wait(timeout: .now() + timeout)
+    }
 }
 
 extension AMG65Effect {

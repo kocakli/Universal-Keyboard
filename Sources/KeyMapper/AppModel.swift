@@ -60,9 +60,13 @@ final class AppModel {
     var screenStatus: [String: ScreenKeyboardStatus] = [:]
     var screenPreferences: [String: ScreenKeyboardPreferences] = [:]
     @ObservationIgnored var screenSessions: [String: ScreenKeyboardSession] = [:]
+    /// The vendor channel last seen per device id, to notice a replug (new registry id) or a channel appearing late.
+    @ObservationIgnored var screenChannels: [String: ScreenKeyboardChannel] = [:]
     @ObservationIgnored var screenObservers: [NSObjectProtocol] = []
     @ObservationIgnored var screenTimer: Timer?
     @ObservationIgnored var ledStreams: [String: Task<Void, Never>] = [:]
+    /// Devices whose LED stream must resend its frame even if unchanged (an upload ended the live frames).
+    @ObservationIgnored var ledResend: Set<String> = []
     /// AI tool quotas (opt-in per provider) and the refresh state.
     var usage: [ProviderUsage] = []
     var usageProviders: [String] = AppModel.loadUsageProviders()
@@ -73,6 +77,13 @@ final class AppModel {
     @ObservationIgnored let usageStore = UsageStore(cacheURL: UsageStore.defaultCacheURL)
     @ObservationIgnored var usageTimer: Timer?
     @ObservationIgnored var usageLastRequest: Date?
+    /// Uploads to a screen keyboard's flash memory (LCD image, LED animation), per device id.
+    var screenUploads: [String: ScreenUploadState] = [:]
+    /// AI tool activity (opt-in): the latest snapshot and each tool's hook state.
+    var activityEnabled = UserDefaults.standard.bool(forKey: AppModel.activityEnabledKey)
+    var activityRows: [ActivityRow] = []
+    var hookStates: [ActivityProvider: HookState] = [:]
+    @ObservationIgnored var activityTask: Task<Void, Never>?
     /// Extra app tabs the user added per deviceKey (before any rule exists).
     var extraAppTabs: [String: [AppChoice]] = AppModel.loadExtraAppTabs()
     var accessibilityTrusted = ActionPerformer.isAccessibilityTrusted
@@ -101,6 +112,7 @@ final class AppModel {
         monitor.start()
         setUpUsage()
         setUpScreenKeyboards()
+        setUpActivity()
         devicesChanged(monitor.snapshot())
         setUpActions()
         // Battery levels change slowly; IORegistry has no change notification for them.
@@ -136,7 +148,7 @@ final class AppModel {
             Task { await refreshFirmware(device) }
         }
         bluetoothBattery.watch(names: Set(list.filter(\.isBluetoothLE).map(\.name).filter { !$0.isEmpty }))
-        screenKeyboardsChanged(list, added: added)
+        screenKeyboardsChanged(list)
         refreshBatteries()
     }
 

@@ -8,6 +8,7 @@ import KeyMapperCore
 //   kmctl apply <n> <file>         write a .vil / VIA .json / profile onto keyboard n
 //   kmctl remap <n> <preset|clear> macOS level remap (non-programmable keyboards)
 //   kmctl screen <n> [sync-time]   keyboards with a display (LEOBOG AMG65): status, clock
+//   kmctl screen <n> frame-recovery  check that a cut-off LED frame is closed and sending goes on
 
 func fail(_ message: String) -> Never {
     FileHandle.standardError.write((message + "\n").data(using: .utf8)!)
@@ -61,6 +62,7 @@ case "list", nil:
 case "screen":
     // kmctl screen <n>            read-only status of the vendor channel
     // kmctl screen <n> sync-time  set the keyboard clock from the Mac (writes to the keyboard)
+    // kmctl screen <n> frame-recovery  live LED frames (RAM only): cut one short, close it, send a whole one
     let target = device(at: args.dropFirst().first)
     guard let channel = target.screenKeyboard else { fail(L("Bu klavye ekranlı klavye olarak tanınmadı.")) }
     print(L("%@ — %@", channel.model.name, channel.link == .wired ? L("USB kablosu") : L("2.4 GHz alıcı")))
@@ -81,8 +83,19 @@ case "screen":
             guard channel.supportsClock else { fail(ScreenKeyboardError.needsCable.localizedDescription) }
             try await session.perform { link in try link.run(AMG65Protocol.timeSync(Date())) }
             print(L("Klavye saati Mac ile eşitlendi."))
+        case "frame-recovery":
+            // A frame cut off before, inside and after its data, as a lost reply leaves it.
+            guard channel.supportsLEDMatrix else { fail(ScreenKeyboardError.needsCable.localizedDescription) }
+            try await session.perform { link in
+                for cut in [0, 5, 15] {
+                    let packets = try link.checkFrameRecovery(dataPackets: cut)
+                    print(L("Yarım kare (%@/15 veri paketi): %@ end paketiyle kapandı, ardından tam kare onaylandı.", "\(cut)", "\(packets)"))
+                }
+                try link.endFrames()
+            }
+            print(L("LED ekran klavyenin kendi animasyonuna döndü."))
         default:
-            fail(L("Kullanım: kmctl screen <n> [status|sync-time]"))
+            fail(L("Kullanım: kmctl screen <n> [status|sync-time|frame-recovery]"))
         }
     }
 
@@ -210,7 +223,7 @@ default:
         ("kmctl apply <n> <file>", L(".vil / VIA .json / profil dosyasını klavyeye yaz")),
         ("kmctl remap <n> [preset|clear]", L("macOS seviyesinde eşleme")),
         ("kmctl firmware <n>", L("firmware sürümü ve güncelleme kontrolü")),
-        ("kmctl screen <n> [sync-time]", L("ekranlı klavye: durum, saat eşitleme")),
+        ("kmctl screen <n> [sync-time|frame-recovery]", L("ekranlı klavye: durum, saat eşitleme, LED kare kurtarma denemesi")),
     ]
     for (command, help) in commands { print(command.padding(toLength: 33, withPad: " ", startingAt: 0) + help) }
 }

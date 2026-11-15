@@ -52,6 +52,14 @@ public struct ScreenKeyboardChannel: Hashable, Sendable {
 
     public var supportsClock: Bool { link == .wired }
     public var supportsLEDMatrix: Bool { link == .wired }
+
+    /// Which devices' channels went away or changed, and which appeared or changed, between two device lists (device
+    /// id → channel). A replug gives the channel a new registry id, so it is both. A keyboard's interfaces appear one
+    /// at a time, so its channel can appear after the keyboard itself.
+    public static func changes(from old: [String: ScreenKeyboardChannel], to new: [String: ScreenKeyboardChannel])
+        -> (gone: Set<String>, appeared: Set<String>) {
+        (Set(old.keys.filter { new[$0] != old[$0] }), Set(new.keys.filter { old[$0] != new[$0] }))
+    }
 }
 
 public enum ScreenKeyboardCatalog {

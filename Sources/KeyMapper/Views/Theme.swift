@@ -31,6 +31,8 @@ enum Theme {
     static let modified = Color.dynamic(light: 0x935400, dark: 0xE9A23B)
     static let modifiedFace = Color.dynamic(light: 0xFFF0CC, dark: 0x38301F)
     static let error = Color.dynamic(light: 0xC8001E, dark: 0xFF7B72)
+    /// Confirmed / healthy states (tested on the keyboard, hooks installed).
+    static let success = Color.dynamic(light: 0x1B7F3B, dark: 0x30D158)
     /// Fixed brand colour of the app icon and mark (from the icon artwork).
     static let brand = Color(hex: 0x1643EA)
 

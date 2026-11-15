@@ -186,48 +186,8 @@ enum CursorProvider {
             ?? (isBlob ? String(data: data, encoding: .utf16LittleEndian) : nil)
     }
 
-    static func deriveKey(password: String) -> Data? {
-        let password = Data(password.utf8), salt = Data("saltysalt".utf8)
-        var key = Data(count: kCCKeySizeAES128)
-        let status = key.withUnsafeMutableBytes { keyBytes in
-            password.withUnsafeBytes { passwordBytes in
-                salt.withUnsafeBytes { saltBytes in
-                    CCKeyDerivationPBKDF(CCPBKDFAlgorithm(kCCPBKDF2),
-                        passwordBytes.bindMemory(to: Int8.self).baseAddress, password.count,
-                        saltBytes.bindMemory(to: UInt8.self).baseAddress, salt.count,
-                        CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA1), 1003,
-                        keyBytes.bindMemory(to: UInt8.self).baseAddress, kCCKeySizeAES128)
-                }
-            }
-        }
-        return status == kCCSuccess ? key : nil
-    }
-
     static func decrypt(_ encrypted: Data, password: String) -> Data? {
-        guard encrypted.count > 3, encrypted.count <= maximumTokenBytes,
-              encrypted.starts(with: Data("v10".utf8)),
-              (encrypted.count - 3).isMultiple(of: kCCBlockSizeAES128),
-              let key = deriveKey(password: password)
-        else { return nil }
-        let payload = Data(encrypted.dropFirst(3))
-        let iv = Data(repeating: 0x20, count: kCCBlockSizeAES128)
-        var output = Data(count: payload.count + kCCBlockSizeAES128), count = 0
-        let capacity = output.count
-        let result = output.withUnsafeMutableBytes { outputBytes in
-            payload.withUnsafeBytes { inputBytes in
-                key.withUnsafeBytes { keyBytes in
-                    iv.withUnsafeBytes { ivBytes in
-                        CCCrypt(CCOperation(kCCDecrypt), CCAlgorithm(kCCAlgorithmAES),
-                            CCOptions(kCCOptionPKCS7Padding), keyBytes.baseAddress, key.count,
-                            ivBytes.baseAddress, inputBytes.baseAddress, payload.count,
-                            outputBytes.baseAddress, capacity, &count)
-                    }
-                }
-            }
-        }
-        guard result == kCCSuccess else { return nil }
-        output.count = count
-        return output
+        SafeStorage.decrypt(encrypted, password: password, maximumBytes: maximumTokenBytes)
     }
 
     // MARK: Quota decoding

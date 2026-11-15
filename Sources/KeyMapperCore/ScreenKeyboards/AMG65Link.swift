@@ -1,5 +1,6 @@
 import Darwin
 import Foundation
+import os
 
 public enum ScreenKeyboardError: LocalizedError, Equatable {
     /// Another program (e.g. AMG65 Studio's bridge) holds the keyboard's vendor channel.
@@ -38,12 +39,52 @@ public enum ScreenKeyboardError: LocalizedError, Equatable {
     }
 }
 
+/// Why sending to a keyboard stopped: what failed, on which step, what the keyboard answered, and how many sends had
+/// finished on that link before (0: none since the channel opened, so the keyboard may still have been waiting for the
+/// rest of a transaction an earlier program left unfinished; live frames the matrix dropped as busy don't count).
+public struct ScreenKeyboardStop: Codable, Equatable, Sendable {
+    public enum Reason: String, Codable, Sendable { case rejected, noAcknowledgement, checksumMismatch }
+
+    public let registryID: UInt64
+    public let date: Date
+    public let reason: Reason
+    public let step: String
+    /// The status byte the keyboard rejected the packet with.
+    public let status: UInt8?
+    /// The keyboard's reply (first bytes, in hex) or the transport error; not localised.
+    public let detail: String
+    public let completedBefore: Int
+
+    init(registryID: UInt64, date: Date, error: ScreenKeyboardError, step: String, detail: String, completedBefore: Int) {
+        self.registryID = registryID
+        self.date = date
+        switch error {
+        case let .rejected(_, status): (reason, self.status) = (.rejected, status)
+        case .checksumMismatch: (reason, status) = (.checksumMismatch, nil)
+        default: (reason, status) = (.noAcknowledgement, nil)
+        }
+        self.step = step
+        self.detail = detail
+        self.completedBefore = completedBefore
+    }
+
+    /// The error that stopped sending, for its description.
+    public var error: ScreenKeyboardError {
+        switch reason {
+        case .rejected: return .rejected(step: step, status: status ?? 0)
+        case .noAcknowledgement: return .noAcknowledgement(step: step)
+        case .checksumMismatch: return .checksumMismatch
+        }
+    }
+}
+
 /// Serialised transactions with a LEOBOG AMG65 over its vendor HID interface.
 ///
 /// Safety rules (from AMG65 Studio, verified on the keyboard):
 /// - every packet must be acknowledged; a failure status, a missing or wrong acknowledgement or a checksum
 ///   mismatch stops all sending until the keyboard is reconnected (a new IORegistry id), and the stop survives
-///   an app restart;
+///   an app restart. Live LED frames are the exception: they only touch RAM, so a failed frame is closed and
+///   dropped (`recoverFrame`), and only a frame that can't be closed stops sending;
 /// - no packet is ever retried, because a repeated packet would corrupt the transaction;
 /// - the per-user lock `/private/tmp/amg65-hid-<uid>.lock` is held while connected, the same lock AMG65 Studio
 ///   takes, so two programs never interleave packets.
@@ -55,6 +96,8 @@ public final class AMG65Link: @unchecked Sendable {
     private let lock: Int32
     private var liveFramesActive = false
     private var lastFrame = Date.distantPast
+    /// Sends (`run`, `upload`, `runDongle`) that finished on this link; kept with a stop.
+    private var completed = 0
 
     public init(channel: ScreenKeyboardChannel) throws {
         guard !Self.isBlocked(channel.registryID) else { throw ScreenKeyboardError.needsReconnect }
@@ -117,6 +160,7 @@ public final class AMG65Link: @unchecked Sendable {
         }
         if isFrame { liveFramesActive = true }
         if isStop { liveFramesActive = false }
+        completed += 1
     }
 
     /// Sends one live LED-matrix frame, paced to what the keyboard acknowledges reliably.
@@ -133,8 +177,9 @@ public final class AMG65Link: @unchecked Sendable {
         try run(AMG65Protocol.stopLiveFrames)
     }
 
-    /// `liveFrame`: a busy status (0xFF) on the frame's end packet drops that frame without stopping the
-    /// link. AMG65 Studio treated it as fatal and needed a replug every ~15 minutes; live frames only touch RAM.
+    /// `liveFrame`: live frames only touch RAM, so a failed frame doesn't stop the link. A busy status (0xFF) on the
+    /// frame's end packet drops that frame (AMG65 Studio treated it as fatal and needed a replug every ~15 minutes);
+    /// an unanswered or refused frame packet is closed with `recoverFrame` and dropped too.
     private func transact(_ steps: [AMG65Protocol.Step], liveFrame: Bool) throws {
         let checksum = AMG65Protocol.checksum(steps)
         let hasCountedData = steps.contains { $0.kind == .data }
@@ -144,23 +189,107 @@ public final class AMG65Link: @unchecked Sendable {
                 // A flush may be answered with 00 00 00 FF, so it doesn't filter on the 04 prefix.
                 reply = try connection.exchange(step.bytes, timeout: 1.0, retries: 0,
                                                 expecting: step.kind == .flush ? nil : 0x04)
+            } catch HIDError.timeout where liveFrame {
+                try recoverFrame(.noAcknowledgement(step: step.label), step: step.label, detail: "timeout")
             } catch {
-                throw fail(.noAcknowledgement(step: step.label))
+                throw fail(.noAcknowledgement(step: step.label), step: step.label, detail: "\(error)")
             }
             let expected = step.expectedOpcode
             let envelope = reply.count >= 4 && reply[0] == 0x04 && reply[1] == expected && reply[2] == 0
             if envelope && reply[3] == 0xFF && liveFrame && step.kind == .command && step.bytes[1] == 0x02 {
                 throw ScreenKeyboardError.frameBusy
             }
-            if envelope && reply[3] != 1 { throw fail(.rejected(step: step.label, status: reply[3])) }
+            if envelope && reply[3] != 1 {
+                let error = ScreenKeyboardError.rejected(step: step.label, status: reply[3])
+                guard !liveFrame else { try recoverFrame(error, step: step.label, detail: Self.reply(reply)) }
+                throw fail(error, step: step.label, detail: Self.reply(reply))
+            }
             let acknowledged = envelope || (step.kind == .flush && reply.starts(with: [0, 0, 0, 0xFF]))
-            guard acknowledged else { throw fail(.noAcknowledgement(step: step.label)) }
+            guard acknowledged else {
+                let error = ScreenKeyboardError.noAcknowledgement(step: step.label)
+                guard !liveFrame else { try recoverFrame(error, step: step.label, detail: Self.reply(reply)) }
+                throw fail(error, step: step.label, detail: Self.reply(reply))
+            }
             if hasCountedData && step.bytes[1] == 0x02 && step.kind == .command {
                 let echoed = reply.count >= 6 ? UInt16(reply[4]) | UInt16(reply[5]) << 8 : nil
-                guard echoed == checksum else { throw fail(.checksumMismatch) }
+                guard echoed == checksum else {
+                    throw fail(.checksumMismatch, step: step.label,
+                               detail: String(format: "sent %04X, ", checksum) + Self.reply(reply))
+                }
             }
             Thread.sleep(forTimeInterval: 0.010)
         }
+    }
+
+    // MARK: Half-sent live frames
+
+    /// Live frames the keyboard left unanswered (or refused) that were closed and dropped instead of stopping the link.
+    public private(set) var recoveredFrames = 0
+    /// Wait before closing a half-sent frame, and between unanswered tries; tests shorten it.
+    var recoveryPause: TimeInterval = 1.0
+
+    /// A live-frame packet went unanswered or was refused: closes the half-sent frame and throws `frameBusy`, so the
+    /// frame is dropped and sending goes on. When the frame can't be closed, stops sending like any other failure.
+    private func recoverFrame(_ error: ScreenKeyboardError, step: String, detail: String) throws -> Never {
+        let (packets, outcome) = closeHalfSentFrame()
+        guard let packets else {
+            throw fail(error, step: step, detail: detail + "; closing the frame: " + outcome)
+        }
+        recoveredFrames += 1
+        Self.log.notice("""
+            Live frame unanswered at "\(step, privacy: .public)" (\(detail, privacy: .public)); \
+            closed with \(packets) end packets, sending goes on
+            """)
+        throw ScreenKeyboardError.frameBusy
+    }
+
+    /// Sends `end` until the keyboard answers it as a command (`04 02 00 …`). An open frame takes each one as part of
+    /// the frame instead (`04 41 …` for data, `00 00 00 FF` for the flush), so this works whether or not the keyboard
+    /// got the packet whose reply was lost. The keyboard waits for at most 15 data packets: on the AMG65 a frame cut
+    /// after k of them closed with 16 − k `end` packets (`checkFrameRecovery`, 2026-11-15).
+    /// Before it, a pause lets a late reply arrive unawaited (and be dropped). Returns the number of `end` packets,
+    /// or nil and what went wrong.
+    private func closeHalfSentFrame() -> (packets: Int?, outcome: String) {
+        Thread.sleep(forTimeInterval: recoveryPause)
+        var unanswered = 0
+        for sent in 1...20 {
+            let reply: [UInt8]
+            do {
+                reply = try connection.exchange(AMG65Protocol.end.bytes, timeout: 1.0, retries: 0, expecting: nil)
+            } catch HIDError.timeout {
+                unanswered += 1
+                guard unanswered < 3 else { return (nil, "no reply to \(unanswered) end packets") }
+                Thread.sleep(forTimeInterval: recoveryPause)
+                continue
+            } catch {
+                return (nil, "\(error)")
+            }
+            if reply.starts(with: [0x04, 0x02, 0x00]) { return (sent, Self.reply(reply)) }
+            guard reply.starts(with: [0x04, 0x41, 0x00]) || reply.starts(with: [0, 0, 0, 0xFF]) else {
+                return (nil, "end answered with " + Self.reply(reply))
+            }
+            Thread.sleep(forTimeInterval: 0.010)
+        }
+        return (nil, "frame still open after 20 end packets")
+    }
+
+    /// Diagnostic (`kmctl screen <n> frame-recovery`): leaves a live frame cut off after `dataPackets` of its 15 data
+    /// packets, as a lost reply leaves the keyboard, closes it the way a failed frame is closed, then sends one whole
+    /// (blank) frame, which must be acknowledged. RAM only. Returns how many `end` packets closed the cut frame; when
+    /// it can't be closed, stops sending like any failure.
+    public func checkFrameRecovery(dataPackets: Int) throws -> Int {
+        guard channel.link == .wired else { throw ScreenKeyboardError.needsCable }
+        guard !Self.isBlocked(channel.registryID) else { throw ScreenKeyboardError.needsReconnect }
+        guard (0...15).contains(dataPackets) else { throw AMG65UploadError.invalidBuffer(blocks: dataPackets, bytes: 0, header: 0) }
+        let blank = [RGB24](repeating: .off, count: 315)
+        try transact(Array(AMG65Protocol.liveFrame(blank).prefix(2 + dataPackets)), liveFrame: false)
+        liveFramesActive = true
+        let (packets, outcome) = closeHalfSentFrame()
+        guard let packets else {
+            throw fail(.noAcknowledgement(step: "end"), step: "frame recovery check (\(dataPackets) data packets)", detail: outcome)
+        }
+        try showFrame(blank)
+        return packets
     }
 
     // MARK: Uploads (LCD images, LED-matrix animations)
@@ -200,18 +329,22 @@ public final class AMG65Link: @unchecked Sendable {
             do {
                 reply = try connection.awaitReport(expecting: 0x04, timeout: 3) { try bulk.write(block, timeout: AMG65BulkChannel.writeTimeout) }
             } catch {
-                throw fail(.noAcknowledgement(step: label))
+                // A failed block write or no acknowledgement within 3 s.
+                throw fail(.noAcknowledgement(step: label), step: label, detail: "\(error)")
             }
             guard reply.count >= 4, reply[0] == 0x04, reply[1] == 0x41, reply[2] == 0 else {
-                throw fail(.noAcknowledgement(step: label))
+                throw fail(.noAcknowledgement(step: label), step: label, detail: Self.reply(reply))
             }
-            guard reply[3] == 1 else { throw fail(.rejected(step: label, status: reply[3])) }
+            guard reply[3] == 1 else {
+                throw fail(.rejected(step: label, status: reply[3]), step: label, detail: Self.reply(reply))
+            }
             // Studio's pause after the first block.
             if index == 0 { Thread.sleep(forTimeInterval: 0.5) }
             progress(Double(index + 1) / Double(blocks))
             Thread.sleep(forTimeInterval: 0.010)
         }
         try transact(applyAfter ? [AMG65Protocol.end, AMG65Protocol.apply] : [AMG65Protocol.end], liveFrame: false)
+        completed += 1
     }
 
     // MARK: Receiver
@@ -222,22 +355,63 @@ public final class AMG65Link: @unchecked Sendable {
         guard !Self.isBlocked(channel.registryID) else { throw ScreenKeyboardError.needsReconnect }
         for (index, packet) in packets.enumerated() {
             let label = L("alıcı paketi %@", "\(index + 1)/\(packets.count)")
-            guard packet.count == 32,
-                  let reply = try? connection.exchange(packet, timeout: 1.0, retries: 0, expecting: packet[0]),
-                  reply.count >= 3, Array(reply.prefix(3)) == Array(packet.prefix(3)) else {
-                throw fail(.noAcknowledgement(step: label))
+            guard packet.count == 32 else {
+                throw fail(.noAcknowledgement(step: label), step: label, detail: "packet length \(packet.count)")
+            }
+            let reply: [UInt8]
+            do {
+                reply = try connection.exchange(packet, timeout: 1.0, retries: 0, expecting: packet[0])
+            } catch {
+                throw fail(.noAcknowledgement(step: label), step: label, detail: "\(error)")
+            }
+            guard reply.count >= 3, Array(reply.prefix(3)) == Array(packet.prefix(3)) else {
+                throw fail(.noAcknowledgement(step: label), step: label, detail: Self.reply(reply))
             }
             Thread.sleep(forTimeInterval: 0.010)
         }
+        completed += 1
     }
 
     // MARK: Stop after failure
 
-    /// Blocks further sending to this keyboard until it is reconnected, and returns the error to throw.
-    private func fail(_ error: ScreenKeyboardError) -> ScreenKeyboardError {
+    /// Blocks further sending to this keyboard until it is reconnected, records why (`lastStop`), and returns the
+    /// error to throw. `detail`: the keyboard's reply or the transport error, never what was sent.
+    private func fail(_ error: ScreenKeyboardError, step: String, detail: String) -> ScreenKeyboardError {
         Self.block(channel.registryID)
         liveFramesActive = false
+        let stop = ScreenKeyboardStop(registryID: channel.registryID, date: Date(), error: error, step: step,
+                                      detail: detail, completedBefore: completed)
+        Self.remember(stop)
+        Self.log.error("""
+            Sending stopped (\(String(describing: error), privacy: .public)) at "\(step, privacy: .public)": \
+            \(detail, privacy: .public); \(self.completed) sends had finished on this link
+            """)
         return error
+    }
+
+    private static let log = Logger(subsystem: "dev.keymapper.KeyMapper", category: "screen-keyboard")
+
+    /// The first 8 bytes of a reply, in hex.
+    private static func reply(_ bytes: [UInt8]) -> String {
+        "reply " + bytes.prefix(8).map { String(format: "%02X", $0) }.joined(separator: " ")
+    }
+
+    static let stopsKey = "screenKeyboard.stops"
+
+    /// The last stops, oldest first. Kept apart from the block list, so a stop can still be read after the replug
+    /// that lifted it.
+    public static var recentStops: [ScreenKeyboardStop] {
+        UserDefaults.standard.data(forKey: stopsKey).flatMap { try? JSONDecoder().decode([ScreenKeyboardStop].self, from: $0) } ?? []
+    }
+
+    /// Why sending to this keyboard (this registry ID) last stopped, also after an app restart.
+    public static func lastStop(for registryID: UInt64) -> ScreenKeyboardStop? {
+        recentStops.last { $0.registryID == registryID }
+    }
+
+    private static func remember(_ stop: ScreenKeyboardStop) {
+        let stops = Array((recentStops + [stop]).suffix(10))
+        if let data = try? JSONEncoder().encode(stops) { UserDefaults.standard.set(data, forKey: stopsKey) }
     }
 
     static let blockedKey = "screenKeyboard.blockedRegistryIDs"

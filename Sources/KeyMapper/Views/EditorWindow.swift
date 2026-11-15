@@ -419,7 +419,8 @@ private struct FirmwareEditor: View {
             }
 
             KeyboardStage {
-                KeyboardCanvas(keys: keys, selected: selection, cap: cap(for:)) { key in select(key.slot) }
+                KeyboardCanvas(keys: keys, selected: selection, cap: cap(for:), onSelect: { key in select(key.slot) },
+                               deviceBody: state.definition.deviceBody)
                     .frame(minHeight: 220)
                 if state.definition.encoderCount > 0 { encoderRow }
             }

@@ -22,11 +22,14 @@ public struct LayoutKey: Hashable, Codable, Sendable {
     public var optionChoice: Int?
     public var decal: Bool
     public var color: String?
+    /// What the device prints on the key ("M1" on a trackball); nil for keyboards, whose legends come from the keymap.
+    public var name: String?
 
     public init(row: Int, col: Int, x: Double, y: Double, w: Double = 1, h: Double = 1,
                 r: Double = 0, rx: Double = 0, ry: Double = 0,
                 encoderIndex: Int? = nil, encoderDirection: Int? = nil, knobIndex: Int? = nil,
-                optionGroup: Int? = nil, optionChoice: Int? = nil, decal: Bool = false, color: String? = nil) {
+                optionGroup: Int? = nil, optionChoice: Int? = nil, decal: Bool = false, color: String? = nil,
+                name: String? = nil) {
         self.row = row
         self.col = col
         self.x = x
@@ -43,12 +46,50 @@ public struct LayoutKey: Hashable, Codable, Sendable {
         self.optionChoice = optionChoice
         self.decal = decal
         self.color = color
+        self.name = name
     }
 
     public var isEncoder: Bool { encoderIndex != nil }
     public var slot: KeySlot {
         if let index = encoderIndex { return .encoder(index: index, clockwise: encoderDirection == 1) }
         return .matrix(row: row, col: col)
+    }
+}
+
+/// A pointing device's body in key units (the same space as its keys), drawn behind them.
+public struct DeviceBody: Hashable, Codable, Sendable {
+    public struct Circle: Hashable, Codable, Sendable {
+        public var x: Double
+        public var y: Double
+        public var radius: Double
+
+        public init(x: Double, y: Double, radius: Double) {
+            self.x = x
+            self.y = y
+            self.radius = radius
+        }
+    }
+
+    public var width: Double
+    public var height: Double
+    public var cornerRadius: Double
+    /// The trackball, and the scroll ring around it (outer edge).
+    public var ball: Circle?
+    public var ring: Circle?
+    /// Seams across the body between its sections, at these x positions.
+    public var seams: [Double]
+    /// Controls with no keycode (a pairing button).
+    public var buttons: [Circle]
+
+    public init(width: Double, height: Double, cornerRadius: Double, ball: Circle? = nil, ring: Circle? = nil,
+                seams: [Double] = [], buttons: [Circle] = []) {
+        self.width = width
+        self.height = height
+        self.cornerRadius = cornerRadius
+        self.ball = ball
+        self.ring = ring
+        self.seams = seams
+        self.buttons = buttons
     }
 }
 
@@ -98,10 +139,12 @@ public struct KeyboardDefinition: Codable, Sendable {
     public var source: DefinitionSource
     /// Optional so definitions encoded before lighting support still decode.
     private var lightingCapabilities: [LightingCapability]?
+    /// The body a trackball's or mouse's buttons sit on, when KeyMapper knows its shape; nil for keyboards.
+    public var deviceBody: DeviceBody?
 
     public init(name: String, vendorID: Int, productID: Int, rows: Int, cols: Int, keys: [LayoutKey],
                 layoutOptions: [LayoutOption] = [], customKeycodes: [CustomKeycode] = [], source: DefinitionSource,
-                lighting: [LightingCapability] = []) {
+                lighting: [LightingCapability] = [], deviceBody: DeviceBody? = nil) {
         self.name = name
         self.vendorID = vendorID
         self.productID = productID
@@ -112,6 +155,7 @@ public struct KeyboardDefinition: Codable, Sendable {
         self.customKeycodes = customKeycodes
         self.source = source
         self.lightingCapabilities = lighting
+        self.deviceBody = deviceBody
     }
 
     /// Lighting systems the definition declares (VIA `menus` / `lighting`, Vial `lighting`).

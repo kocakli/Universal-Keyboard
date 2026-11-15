@@ -16,6 +16,8 @@ struct ScreenKeyboardStatus: Equatable {
     var link: Link = .idle
     /// What is being sent right now, for a progress line.
     var working: String?
+    /// Why sending stopped, while `link` is `needsReconnect` (nil when no reason was recorded).
+    var stop: ScreenKeyboardStop?
 }
 
 /// Settings the keyboard can't report back, remembered per keyboard model and ID (`deviceKey`).
@@ -29,9 +31,27 @@ struct ScreenKeyboardPreferences: Codable, Equatable {
     var lastClockSync: Date?
     /// What the LED matrix shows while KeyMapper streams to it.
     var display = LEDDisplaySettings()
+    /// Per-key colours (key slot → colour) and their brightness (1…5); unpainted keys stay dark.
+    var keyColors: [Int: RGB24] = [:]
+    var keyColorBrightness: UInt8 = 5
+    var appliedKeyColors: [Int: RGB24]?
+    var appliedKeyColorBrightness: UInt8?
+    /// The keyboard's own key table (slot → action); a missing slot is the factory key.
+    var keyMap: [Int: AMG65KeyAction] = [:]
+    var appliedKeyMap: [Int: AMG65KeyAction]?
+    /// Which backlight was sent last: an effect, or the per-key colours (which replace the effect).
+    var lastBacklight: Backlight?
+
+    enum Backlight: String, Codable { case effect, keyColors }
+
+    var keyColorsPending: Bool { keyColors != appliedKeyColors || keyColorBrightness != appliedKeyColorBrightness }
+    var keyMapPending: Bool { keyMap != (appliedKeyMap ?? [:]) }
 
     // Decoding stays tolerant of preferences saved by older versions.
-    enum CodingKeys: String, CodingKey { case lighting, appliedLighting, settings, appliedSettings, autoClock, lastClockSync, display }
+    enum CodingKeys: String, CodingKey {
+        case lighting, appliedLighting, settings, appliedSettings, autoClock, lastClockSync, display
+        case keyColors, keyColorBrightness, appliedKeyColors, appliedKeyColorBrightness, keyMap, appliedKeyMap, lastBacklight
+    }
 
     init() {}
 
@@ -44,6 +64,13 @@ struct ScreenKeyboardPreferences: Codable, Equatable {
         autoClock = try c.decodeIfPresent(Bool.self, forKey: .autoClock) ?? true
         lastClockSync = try c.decodeIfPresent(Date.self, forKey: .lastClockSync)
         display = try c.decodeIfPresent(LEDDisplaySettings.self, forKey: .display) ?? LEDDisplaySettings()
+        keyColors = (try? c.decodeIfPresent([Int: RGB24].self, forKey: .keyColors)) ?? [:]
+        keyColorBrightness = (try? c.decodeIfPresent(UInt8.self, forKey: .keyColorBrightness)) ?? 5
+        appliedKeyColors = try? c.decodeIfPresent([Int: RGB24].self, forKey: .appliedKeyColors)
+        appliedKeyColorBrightness = try? c.decodeIfPresent(UInt8.self, forKey: .appliedKeyColorBrightness)
+        keyMap = (try? c.decodeIfPresent([Int: AMG65KeyAction].self, forKey: .keyMap)) ?? [:]
+        appliedKeyMap = try? c.decodeIfPresent([Int: AMG65KeyAction].self, forKey: .appliedKeyMap)
+        lastBacklight = try? c.decodeIfPresent(Backlight.self, forKey: .lastBacklight)
     }
 }
 
@@ -63,18 +90,24 @@ extension AppModel {
         screenTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.syncScreenClocks(force: false) }
         }
+        AppDelegate.isUploading = { [weak self] in self?.isUploadingToScreen ?? false }
+        AppDelegate.willTerminate = { [weak self] in self?.finishScreenSessions() }
     }
 
-    func screenKeyboardsChanged(_ list: [KeyboardDevice], added: [KeyboardDevice]) {
+    /// Follows the vendor channels, not the devices: a replug gives the channel a new registry id (which lifts a stop),
+    /// and the channel's interface often appears after the keyboard's, when the device is no longer new.
+    func screenKeyboardsChanged(_ list: [KeyboardDevice]) {
         let present = Dictionary(uniqueKeysWithValues: list.compactMap { device in device.screenKeyboard.map { (device.id, $0) } })
-        for (id, session) in screenSessions where present[id] != session.channel {
+        let (gone, appeared) = ScreenKeyboardChannel.changes(from: screenChannels, to: present)
+        screenChannels = present
+        for id in gone {
             ledStreams[id]?.cancel()
             ledStreams[id] = nil
-            session.close()
+            screenSessions[id]?.close()
             screenSessions[id] = nil
             screenStatus[id] = nil
         }
-        for device in added where device.screenKeyboard != nil {
+        for device in list where appeared.contains(device.id) {
             Task {
                 if preferences(for: device).autoClock { await syncClock(device) }
                 updateLEDStream(device)
@@ -103,7 +136,7 @@ extension AppModel {
     // MARK: Channel
 
     /// Opens the vendor channel on first use. Another program holding it is reported, not treated as an error.
-    private func screenSession(for device: KeyboardDevice) -> ScreenKeyboardSession? {
+    func screenSession(for device: KeyboardDevice) -> ScreenKeyboardSession? {
         if let session = screenSessions[device.id], !session.isClosed { return session }
         guard let channel = device.screenKeyboard else { return nil }
         do {
@@ -119,7 +152,7 @@ extension AppModel {
 
     /// Sends one job; the label shows while it runs. Returns false when nothing (or not all of it) was sent.
     @discardableResult
-    private func send(_ label: String, to device: KeyboardDevice, _ work: @escaping (AMG65Link) throws -> Void) async -> Bool {
+    func send(_ label: String, to device: KeyboardDevice, _ work: @escaping (AMG65Link) throws -> Void) async -> Bool {
         guard let session = screenSession(for: device) else { return false }
         screenStatus[device.id, default: .init()].working = label
         defer { screenStatus[device.id]?.working = nil }
@@ -133,7 +166,7 @@ extension AppModel {
         }
     }
 
-    private func record(_ error: Error, device: KeyboardDevice) {
+    func record(_ error: Error, device: KeyboardDevice) {
         let link: ScreenKeyboardStatus.Link
         switch error as? ScreenKeyboardError {
         case .busy: link = .busy
@@ -141,6 +174,9 @@ extension AppModel {
         default: link = .failed(error.localizedDescription)
         }
         screenStatus[device.id, default: .init()].link = link
+        // Looked up by the keyboard, not read off the error: after a restart the error is a bare `needsReconnect`.
+        screenStatus[device.id]?.stop = link == .needsReconnect
+            ? device.screenKeyboard.flatMap { AMG65Link.lastStop(for: $0.registryID) } : nil
         if link != .busy {
             // A stopped transaction leaves the channel unusable; drop it so a replug starts clean.
             screenSessions[device.id]?.close()
@@ -178,15 +214,12 @@ extension AppModel {
         var step = 0
         var last: [RGB24]?
         while !Task.isCancelled, !session.isClosed {
-            let display = preferences(for: device).display
-            guard display.enabled else { break }
-            let scene = LEDScene.frame(settings: display, quotas: ledQuotas, activities: [],
-                                       seconds: Date().timeIntervalSince(started), animationStep: step,
-                                       now: Date().timeIntervalSince1970)
-            if scene.pixels != last {
+            guard preferences(for: device).display.enabled else { break }
+            let pixels = ledScene(for: device, seconds: Date().timeIntervalSince(started), step: step)
+            if pixels != last || ledResend.remove(device.id) != nil {
                 do {
-                    try await session.perform { try $0.showFrame(scene.pixels) }
-                    last = scene.pixels
+                    try await session.perform { try $0.showFrame(pixels) }
+                    last = pixels
                 } catch ScreenKeyboardError.frameBusy {
                     // The matrix dropped this frame; give it a moment, then carry on.
                     try? await Task.sleep(for: .seconds(1))
@@ -198,8 +231,37 @@ extension AppModel {
             step += 1
             try? await Task.sleep(for: .milliseconds(500))
         }
-        if ledStreams[device.id]?.isCancelled == false { ledStreams[device.id] = nil }
+        // Frees the slot for a restart, unless a newer stream (to the session a replug opened) already took it.
+        if ledStreams[device.id]?.isCancelled == false, screenSessions[device.id].map({ $0 === session }) ?? true {
+            ledStreams[device.id] = nil
+        }
     }
+
+    /// The LED matrix frame for this moment; the stream and every preview use this one function.
+    func ledScene(for device: KeyboardDevice, seconds: Double, step: Int, now: Date = Date()) -> [RGB24] {
+        LEDScene.frame(settings: preferences(for: device).display, quotas: ledQuotas, activities: ledActivities,
+                       seconds: seconds, animationStep: step, now: now.timeIntervalSince1970).pixels
+    }
+
+    /// True while something is being sent, or while sending is stopped until the cable is replugged (a send would
+    /// only fail); write buttons are disabled then, the rest of the section stays usable.
+    func isScreenBusy(_ device: KeyboardDevice) -> Bool {
+        screenStatus[device.id]?.working != nil || screenUploads[device.id]?.isRunning == true
+            || screenStatus[device.id]?.link == .needsReconnect
+    }
+
+    /// On quit: lets each keyboard's transaction in progress finish (a process that exits half way through one leaves
+    /// the keyboard waiting for the rest), then closes the channels. Closing sends one more transaction when live
+    /// frames are running: end and apply, which hand the LED matrix back to the keyboard's own animation.
+    func finishScreenSessions() {
+        for task in ledStreams.values { task.cancel() }
+        ledStreams = [:]
+        for session in screenSessions.values { session.finish(timeout: 3) }
+        screenSessions = [:]
+    }
+
+    /// Writing a file to a keyboard's memory; quitting is refused until it ends.
+    var isUploadingToScreen: Bool { screenUploads.values.contains { $0.isRunning } }
 
     // MARK: Clock
 
@@ -209,6 +271,8 @@ extension AppModel {
             guard prefs.autoClock else { continue }
             // Don't fight another program for the channel every minute.
             if !force, screenStatus[device.id]?.link == .busy { continue }
+            // An upload holds the channel for minutes; the clock waits for the next check.
+            if screenUploads[device.id]?.isRunning == true { continue }
             let due = prefs.lastClockSync.map { Date().timeIntervalSince($0) >= Self.clockInterval } ?? true
             if force || due { Task { await syncClock(device) } }
         }
@@ -236,7 +300,10 @@ extension AppModel {
             }
         }
         if ok {
-            updatePreferences(for: device) { $0.appliedLighting = lighting }
+            updatePreferences(for: device) {
+                $0.appliedLighting = lighting
+                $0.lastBacklight = .effect
+            }
             notice = L("Işık ayarları klavyeye gönderildi.")
         }
     }

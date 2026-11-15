@@ -61,7 +61,8 @@ enum CredentialReader {
     /// The only path allowed to show macOS's dialog. Only an explicit user action in the
     /// native app starts it. The secret is read to satisfy the ACL, then discarded unseen.
     static func requestKeychainAccess(provider:String)->KeychainAccess {
-        guard let target=keychainAccessTarget(provider:provider),
+        let desktop=provider=="claude" && ClaudeDesktop.isSignedIn(home:FileManager.default.homeDirectoryForCurrentUser)
+        guard let target=keychainAccessTarget(provider:provider,claudeDesktopSignedIn:desktop),
               SecKeychainSetUserInteractionAllowed(true)==errSecSuccess else { return .failed }
         for account in target.accounts {
             var item:CFTypeRef?
@@ -74,9 +75,11 @@ enum CredentialReader {
         }
         return .missing
     }
-    /// The records each provider's reader opens, in the order it opens them.
-    static func keychainAccessTarget(provider:String)->(service:String,accounts:[String?])? {
+    /// The records each provider's reader opens, in the order it opens them. Claude's is the desktop app's
+    /// safe-storage key when the app is signed in (the sign-in the reader prefers), else Claude Code's own record.
+    static func keychainAccessTarget(provider:String,claudeDesktopSignedIn:Bool=false)->(service:String,accounts:[String?])? {
         switch provider {
+        case "claude" where claudeDesktopSignedIn:return (ClaudeDesktop.service,[ClaudeDesktop.account])
         case "claude":return ("Claude Code-credentials",[nil])
         case "cursor":return ("Cursor Safe Storage",["Cursor Key","Cursor"])
         default:return nil

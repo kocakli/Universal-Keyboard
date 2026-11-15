@@ -2,7 +2,7 @@
 import Foundation
 
 enum ClaudeProvider {
-    struct Credentials { let token:String; let fingerprint:String }
+    struct Credentials { let token:String; let fingerprint:String; var source:String="Claude Code" }
     static func credentials(_ data:Data,now:Date)throws->Credentials {
         let root=try JSONValue.object(data)
         guard let oauth=root["claudeAiOauth"] as? [String:Any],
@@ -37,6 +37,17 @@ enum ClaudeProvider {
         }
         throw UsageFailure(code:"auth_required")
     }
+    /// The Claude desktop app's sign-in when it has one (it stays fresh while the app runs), else Claude Code's.
+    /// With a desktop sign-in, its failure is the one reported: the Keychain button then asks for its item, and a
+    /// locked Claude Code item the user never needed can't keep the button asking for the wrong one.
+    static func preferDesktop(caches:[Data],desktop:()throws->Credentials,terminal:()throws->Credentials)throws->Credentials {
+        guard !caches.isEmpty else { return try terminal() }
+        do { return try desktop() }
+        catch let desktopFailure {
+            if let fallback=try? terminal() { return fallback }
+            throw desktopFailure
+        }
+    }
     static func fetch(context:FetchContext) async->ProviderResult {
         var fingerprint:String?
         do {
@@ -49,16 +60,32 @@ enum ClaudeProvider {
                 && secure.standardizedFileURL==standard.standardizedFileURL
             let keychain:(()throws->Data?)?=defaultProfile
                 ? { try CredentialReader.keychain(service:"Claude Code-credentials",account:nil) }:nil
-            let credentials=try loadCredentials(now:context.now,file:{
+            let terminal={ try loadCredentials(now:context.now,file:{
                 try CredentialReader.file(secure.appendingPathComponent(".credentials.json"))
-            },keychain:keychain)
+            },keychain:keychain) }
+            // The desktop app's sign-in is the default profile's too; a custom Claude Code profile never borrows it.
+            let caches=defaultProfile
+                ? ((try? CredentialReader.file(ClaudeDesktop.configURL(home:context.home))).flatMap { $0 }
+                    .map(ClaudeDesktop.encryptedCaches(config:)) ?? []):[]
+            let credentials=try preferDesktop(caches:caches,desktop:{
+                try ClaudeDesktop.credentials(caches:caches,now:context.now) {
+                    try CredentialReader.keychain(service:ClaudeDesktop.service,account:ClaudeDesktop.account)
+                }
+            },terminal:terminal)
             fingerprint=credentials.fingerprint
-            let response=try await context.http.get(url:URL(string:"https://api.anthropic.com/api/oauth/usage")!,headers:[
-                "Authorization":"Bearer "+credentials.token,
-                "anthropic-beta":"oauth-2025-04-20",
-                "Content-Type":"application/json",
-                "User-Agent":"claude-code/2.1.0",
-            ],deadline:context.deadline)
+            let response:Data
+            do {
+                response=try await context.http.get(url:URL(string:"https://api.anthropic.com/api/oauth/usage")!,headers:[
+                    "Authorization":"Bearer "+credentials.token,
+                    "anthropic-beta":"oauth-2025-04-20",
+                    "Content-Type":"application/json",
+                    "User-Agent":"claude-code/2.1.0",
+                ],deadline:context.deadline)
+            } catch let failure as UsageFailure where ["auth_required","access_denied"].contains(failure.code) {
+                // A sign-in that was found but refused is not a missing one.
+                ClaudeDesktop.log.error("Claude usage request refused (\(failure.code, privacy: .public)) for the \(credentials.source, privacy: .public) sign-in")
+                throw UsageFailure(code:"access_denied")
+            }
             return try parse(response,now:Date(),fingerprint:fingerprint)
         } catch { return .failed("claude",error:error,fingerprint:fingerprint) }
     }

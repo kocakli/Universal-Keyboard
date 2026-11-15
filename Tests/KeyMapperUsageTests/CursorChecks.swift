@@ -140,7 +140,7 @@ private func cursorCredentialChecks(token: String, now: Date) throws {
 }
 
 private func cursorEncryptedToken(_ token: String, password: String) throws -> String {
-    guard let key = CursorProvider.deriveKey(password: password) else { throw UsageFailure(code: "test_encrypt") }
+    guard let key = SafeStorage.deriveKey(password: password) else { throw UsageFailure(code: "test_encrypt") }
     let input = Data(token.utf8), iv = Data(repeating: 0x20, count: kCCBlockSizeAES128)
     var output = Data(count: input.count + kCCBlockSizeAES128), count = 0
     let capacity = output.count

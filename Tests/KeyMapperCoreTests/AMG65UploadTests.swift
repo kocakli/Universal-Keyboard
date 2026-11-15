@@ -67,10 +67,15 @@ import Testing
         return AMG65Link(channel: channel, transport: fake, openBulkChannel: openBulk ?? { [fake] _ in FakeBulk(fake) })
     }
 
-    private func unblock(_ link: AMG65Link) {
+    /// Lifts the block, as a replug does; `forgetStop` also drops the link's stop records.
+    private func unblock(_ link: AMG65Link, forgetStop: Bool = true) {
+        let id = link.channel.registryID
         let key = AMG65Link.blockedKey
-        let list = (UserDefaults.standard.array(forKey: key) as? [String] ?? []).filter { $0 != String(link.channel.registryID) }
+        let list = (UserDefaults.standard.array(forKey: key) as? [String] ?? []).filter { $0 != String(id) }
         UserDefaults.standard.set(list, forKey: key)
+        guard forgetStop else { return }
+        let stops = AMG65Link.recentStops.filter { $0.registryID != id }
+        UserDefaults.standard.set(try? JSONEncoder().encode(stops), forKey: AMG65Link.stopsKey)
     }
 
     /// Block n is filled with n + 1.
@@ -182,35 +187,44 @@ import Testing
         let defaultReply = fake.hidReply
         var expectedEvents: [String]
         var expectedError: ScreenKeyboardError
+        // What the stop records: the keyboard's reply (padded to 64 bytes by the fake) or the transport error.
+        var expectedDetail: String
         switch failure {
         case .headerRejected:
             fake.hidReply = { $0[1] == 0x72 ? [0x04, 0x72, 0x00, 0x00] : defaultReply($0) }
             expectedEvents = ["hid 0418", "hid 0472"]
             expectedError = .rejected(step: "upload header", status: 0)
+            expectedDetail = "reply 04 72 00 00 00 00 00 00"
         case .headerUnanswered:
             fake.hidReply = { $0[1] == 0x72 ? nil : defaultReply($0) }
             expectedEvents = ["hid 0418", "hid 0472"]
             expectedError = .noAcknowledgement(step: "upload header")
+            expectedDetail = "timeout"
         case .blockUnanswered:
             fake.blockReply = { $0 == 1 ? nil : [0x04, 0x41, 0x00, 0x01] }
             expectedEvents = ["hid 0418", "hid 0472", "block 0", "block 1"]
             expectedError = .noAcknowledgement(step: "upload block 2/3")
+            expectedDetail = "timeout"
         case .blockRejected:
             fake.blockReply = { $0 == 1 ? [0x04, 0x41, 0x00, 0x02] : [0x04, 0x41, 0x00, 0x01] }
             expectedEvents = ["hid 0418", "hid 0472", "block 0", "block 1"]
             expectedError = .rejected(step: "upload block 2/3", status: 2)
+            expectedDetail = "reply 04 41 00 02 00 00 00 00"
         case .wrongBlockOpcode:
             fake.blockReply = { _ in [0x04, 0x42, 0x00, 0x01] }
             expectedEvents = ["hid 0418", "hid 0472", "block 0"]
             expectedError = .noAcknowledgement(step: "upload block 1/3")
+            expectedDetail = "reply 04 42 00 01 00 00 00 00"
         case .writeFailed:
             fake.failWrite = 2
             expectedEvents = ["hid 0418", "hid 0472", "block 0", "block 1", "block 2"]
             expectedError = .noAcknowledgement(step: "upload block 3/3")
+            expectedDetail = "writeFailed(-1)"
         case .endUnanswered:
             fake.hidReply = { $0[1] == 0x02 ? nil : defaultReply($0) }
             expectedEvents = ["hid 0418", "hid 0472", "block 0", "block 1", "block 2", "hid 0402"]
             expectedError = .noAcknowledgement(step: "end")
+            expectedDetail = "timeout"
         }
         let link = link(fake)
         defer { unblock(link) }
@@ -222,12 +236,172 @@ import Testing
         #expect(fake.bulkClosed)
         #expect(AMG65Link.isBlocked(link.channel.registryID))
 
-        // Blocked until reconnected: the next upload sends nothing.
+        // The stop is recorded and read back by the keyboard's id alone, as after an app restart.
+        let stop = try #require(AMG65Link.lastStop(for: link.channel.registryID))
+        #expect(stop.error == expectedError)
+        #expect(stop.detail == expectedDetail)
+        #expect(stop.completedBefore == 0)
+
+        // Blocked until reconnected: the next upload sends nothing and keeps the recorded cause.
         fake.events = []
         #expect(throws: ScreenKeyboardError.needsReconnect) {
             try link.upload(payload(3), blocks: 3, header: header, applyAfter: true, progress: { _ in })
         }
         #expect(fake.events.isEmpty)
+        #expect(AMG65Link.lastStop(for: link.channel.registryID) == stop)
+    }
+
+    @Test func aStopRecordsTheStepTheReplyAndTheSendsBeforeIt() throws {
+        let fake = Fake()
+        let link = link(fake)
+        defer { unblock(link) }
+        try link.run(AMG65Protocol.timeSync(Date()))
+        #expect(AMG65Link.lastStop(for: link.channel.registryID) == nil)
+
+        // Counted data: the fake's end reply echoes 00 00, not the checksum.
+        let steps = AMG65Protocol.lighting(AMG65Lighting())
+        #expect(throws: ScreenKeyboardError.checksumMismatch) { try link.run(steps) }
+        let stop = try #require(AMG65Link.lastStop(for: link.channel.registryID))
+        #expect(stop.reason == .checksumMismatch)
+        #expect(stop.step == "end")
+        #expect(stop.status == nil)
+        #expect(stop.detail == String(format: "sent %04X, ", AMG65Protocol.checksum(steps)) + "reply 04 02 00 01 00 00 00 00")
+        #expect(stop.completedBefore == 1)
+
+        // A replug lifts the block; the record stays.
+        unblock(link, forgetStop: false)
+        #expect(!AMG65Link.isBlocked(link.channel.registryID))
+        #expect(AMG65Link.lastStop(for: link.channel.registryID) == stop)
+    }
+
+    @Test func onlyTheLastTenStopsAreKept() throws {
+        let links = (0..<11).map { _ in
+            let fake = Fake()
+            fake.hidReply = { _ in nil }
+            return link(fake)
+        }
+        defer { links.forEach { unblock($0) } }
+        for link in links {
+            #expect(throws: ScreenKeyboardError.noAcknowledgement(step: "begin")) { try link.run(AMG65Protocol.timeSync(Date())) }
+        }
+        let kept = Set(AMG65Link.recentStops.map(\.registryID))
+        #expect(AMG65Link.recentStops.count == 10)
+        #expect(!kept.contains(links[0].channel.registryID))
+        #expect(kept.isSuperset(of: links.dropFirst().map(\.channel.registryID)))
+    }
+
+    // MARK: Half-sent live frames
+
+    /// The keyboard's side of live frames, as measured on the AMG65 (`kmctl screen <n> frame-recovery`, 2026-11-15: a
+    /// frame cut after k data packets closed with 16 − k end packets): after a frame header (0x35) it takes the next
+    /// 15 packets as frame data, whatever they hold, and answers each with `04 41 00 01`; outside a frame a command
+    /// packet is answered with its opcode and a zero packet (the flush) with `00 00 00 FF`. Packet `lost` (1-based) is lost on the way; packet `unanswered` arrives but
+    /// its reply is lost; after `silentAfter` packets the keyboard answers nothing.
+    final class FrameKeyboard: @unchecked Sendable {
+        var pending = 0
+        var count = 0
+        var lost: Int?
+        var unanswered: Int?
+        var silentAfter: Int?
+
+        func reply(_ packet: [UInt8]) -> [UInt8]? {
+            count += 1
+            if let silentAfter, count > silentAfter { return nil }
+            if count == lost { return nil }
+            let reply: [UInt8]
+            if pending > 0 {
+                pending -= 1
+                reply = [0x04, 0x41, 0x00, 0x01]
+            } else if packet[0] == 0x04 {
+                if packet[1] == 0x35 { pending = 15 }
+                reply = [0x04, packet[1], 0x00, 0x01]
+            } else {
+                reply = [0x00, 0x00, 0x00, 0xFF]
+            }
+            return count == unanswered ? nil : reply
+        }
+    }
+
+    private func frameLink(_ keyboard: FrameKeyboard) -> (AMG65Link, Fake) {
+        let fake = Fake()
+        fake.hidReply = keyboard.reply
+        let link = link(fake)
+        link.recoveryPause = 0
+        return (link, fake)
+    }
+
+    private let blank = [RGB24](repeating: .off, count: 315)
+
+    /// Packet 5 is the frame's third data packet (begin, header, data 1, data 2, data 3).
+    @Test(arguments: [true, false])
+    func anUnansweredFrameIsClosedAndSendingGoesOn(replyLost: Bool) throws {
+        let keyboard = FrameKeyboard()
+        if replyLost { keyboard.unanswered = 5 } else { keyboard.lost = 5 }
+        let (link, fake) = frameLink(keyboard)
+        defer { unblock(link) }
+        #expect(throws: ScreenKeyboardError.frameBusy) { try link.showFrame(blank) }
+        // The keyboard waited for 12 (or, without packet 5, 13) more data packets; the next end closed the frame.
+        let ends = fake.events.dropFirst(5).filter { $0 == "hid 0402" }.count
+        #expect(ends == (replyLost ? 13 : 14))
+        #expect(fake.events.dropFirst(5).allSatisfy { $0 == "hid 0402" })
+        #expect(keyboard.pending == 0)
+        #expect(link.recoveredFrames == 1)
+        #expect(!AMG65Link.isBlocked(link.channel.registryID))
+        #expect(AMG65Link.lastStop(for: link.channel.registryID) == nil)
+        // Back in step: the next frame and the end of live frames go through.
+        try link.showFrame(blank)
+        try link.endFrames()
+    }
+
+    @Test func aFrameThatCantBeClosedStopsSending() throws {
+        let keyboard = FrameKeyboard()
+        keyboard.silentAfter = 4
+        let (link, fake) = frameLink(keyboard)
+        defer { unblock(link) }
+        #expect(throws: ScreenKeyboardError.noAcknowledgement(step: "frame data 3/15")) { try link.showFrame(blank) }
+        // Three unanswered end packets, then nothing more.
+        #expect(fake.events.dropFirst(5) == ["hid 0402", "hid 0402", "hid 0402"])
+        #expect(AMG65Link.isBlocked(link.channel.registryID))
+        let stop = try #require(AMG65Link.lastStop(for: link.channel.registryID))
+        #expect(stop.detail == "timeout; closing the frame: no reply to 3 end packets")
+        #expect(link.recoveredFrames == 0)
+    }
+
+    @Test func aRefusedFramePacketIsClosedToo() throws {
+        let keyboard = FrameKeyboard()
+        let (link, fake) = frameLink(keyboard)
+        defer { unblock(link) }
+        let answer = keyboard.reply
+        fake.hidReply = { packet in
+            // The header is refused (status 0) but taken: the keyboard still waits for the frame's 15 data packets.
+            let reply = answer(packet)
+            return packet[0] == 0x04 && packet[1] == 0x35 ? [0x04, 0x35, 0x00, 0x00] : reply
+        }
+        #expect(throws: ScreenKeyboardError.frameBusy) { try link.showFrame(blank) }
+        #expect(fake.events.dropFirst(2).filter { $0 == "hid 0402" }.count == 16)
+        #expect(!AMG65Link.isBlocked(link.channel.registryID))
+    }
+
+    @Test func otherTransactionsStillStopAtTheFirstMissingReply() throws {
+        let keyboard = FrameKeyboard()
+        keyboard.unanswered = 2
+        let (link, fake) = frameLink(keyboard)
+        defer { unblock(link) }
+        #expect(throws: ScreenKeyboardError.noAcknowledgement(step: "clock header")) { try link.run(AMG65Protocol.timeSync(Date())) }
+        #expect(fake.events.count == 2)
+        #expect(AMG65Link.isBlocked(link.channel.registryID))
+    }
+
+    @Test func theRecoveryCheckClosesCutFrames() throws {
+        for cut in [0, 5, 15] {
+            let keyboard = FrameKeyboard()
+            let (link, _) = frameLink(keyboard)
+            defer { unblock(link) }
+            // As on the keyboard: 15 data packets were awaited, `cut` were sent, so the rest plus one end close it.
+            #expect(try link.checkFrameRecovery(dataPackets: cut) == 16 - cut)
+            #expect(keyboard.pending == 0)
+            #expect(!AMG65Link.isBlocked(link.channel.registryID))
+        }
     }
 
     // MARK: Bulk interface lookup (IORegistry only)

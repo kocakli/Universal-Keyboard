@@ -125,6 +125,55 @@ import Testing
         for key in AMG65Effect.titleKeys.values.sorted() { #expect(table[key] != nil, "\(key) has no \(language) translation") }
     }
 
+    @Test func channelChangesFollowReplugsAndLateInterfaces() {
+        let cable = ScreenKeyboardChannel(model: .leobogAMG65, link: .wired, registryID: 1)
+        let replugged = ScreenKeyboardChannel(model: .leobogAMG65, link: .wired, registryID: 2)
+        let dongle = ScreenKeyboardChannel(model: .leobogAMG65, link: .dongle, registryID: 3)
+        // The vendor channel appears after the keyboard (the device was already known).
+        var change = ScreenKeyboardChannel.changes(from: [:], to: ["k": cable])
+        #expect(change.gone.isEmpty && change.appeared == ["k"])
+        // Nothing changed.
+        change = ScreenKeyboardChannel.changes(from: ["k": cable, "d": dongle], to: ["k": cable, "d": dongle])
+        #expect(change.gone.isEmpty && change.appeared.isEmpty)
+        // A replug: same device, new registry id. The old channel goes, the new one appears.
+        change = ScreenKeyboardChannel.changes(from: ["k": cable], to: ["k": replugged])
+        #expect(change.gone == ["k"] && change.appeared == ["k"])
+        // Unplugged.
+        change = ScreenKeyboardChannel.changes(from: ["k": cable, "d": dongle], to: ["d": dongle])
+        #expect(change.gone == ["k"] && change.appeared.isEmpty)
+    }
+
+    @Test func remapLayoutIsTheKeyboardsOwn() throws {
+        let keys = AMG65Layout.remapKeys
+        #expect(keys.count == AMG65Layout.litKeys.count)
+        // Every key has its factory usage, except Fn, which macOS never sees.
+        for (layout, key) in zip(keys, AMG65Layout.litKeys) {
+            #expect(layout.col == (key.code == 0xAF ? -1 : Int(key.code)), "\(key.name)")
+        }
+        #expect(keys.filter { $0.col == -1 }.count == 1)
+        // Keys in a row touch end to end, in key units.
+        for row in Dictionary(grouping: keys, by: \.y).values {
+            let sorted = row.sorted { $0.x < $1.x }
+            #expect(sorted.first?.x == 0)
+            for (left, right) in zip(sorted, sorted.dropFirst()) {
+                #expect(abs(left.x + left.w - right.x) < 1e-9, "\(left.col) → \(right.col)")
+            }
+        }
+        #expect(Set(keys.map(\.y)) == [0, 1, 2, 3, 4])
+        func width(_ usage: Int) -> Double? { keys.first { $0.col == usage }?.w }
+        #expect(width(0x2A) == 2)     // Backspace
+        #expect(width(0x2C) == 6.25)  // Space
+        #expect(width(0x28) == 2.25)  // Enter
+        #expect(width(0xE1) == 2.25)  // left Shift
+        #expect(width(0x39) == 1.75)  // Caps Lock
+
+        // Keys the board lacks, the F row among them, are offered apart and never twice.
+        let offBoard = Set(AMG65Layout.offBoardKeys.map(\.col))
+        #expect(offBoard.count == AMG65Layout.offBoardKeys.count)
+        #expect(offBoard.isDisjoint(with: keys.map(\.col)))
+        #expect(offBoard.isSuperset(of: (0x3A...0x45).map { $0 }))
+    }
+
     @Test func hexColoursParseStrictly() {
         #expect(RGB24(hex: "#0C64FF") == RGB24(r: 12, g: 100, b: 255))
         #expect(RGB24(hex: "0c64ff")?.hex == "#0C64FF")

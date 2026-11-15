@@ -13,48 +13,45 @@ struct RemapEditor: View {
 
     var body: some View {
         let remaps = Dictionary(model.currentRemaps(device).map { ($0.from, $0.to) }, uniquingKeysWith: { a, _ in a })
+        let layout = RemapLayout.for(device)
+        // A layout with nothing selectable (a trackball over Bluetooth) shows no selection, even one left from another device.
+        let selected: KeySlot? = layout.hasSelectableKeys ? selection.map { .matrix(row: 0, col: Int($0)) } : nil
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 12) {
-                Text(L("Bu klavye programlanabilir firmware sunmuyor; eşlemeler macOS tarafından yalnızca bu klavyeye uygulanır ve klavye her bağlandığında yeniden uygulanır."))
+                Text(layout.note ?? L("Bu klavye programlanabilir firmware sunmuyor; eşlemeler macOS tarafından yalnızca bu klavyeye uygulanır ve klavye her bağlandığında yeniden uygulanır."))
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 12)
-                presetMenu
+                if layout.hasSelectableKeys { presetMenu }
                 Button(L("Tümünü kaldır")) { model.setRemaps([], device: device, persist: true) }
                     .buttonStyle(SecondaryButtonStyle(height: 32))
                     .disabled(remaps.isEmpty)
             }
 
             KeyboardStage {
-                KeyboardCanvas(
-                    keys: ANSILayout.keys,
-                    selected: selection.map { .matrix(row: 0, col: Int($0)) },
-                    cap: { key in
-                        let usage = UInt16(key.col)
-                        if let app = model.selectedApp[device.id] {
-                            return model.appCap(code: remaps[usage] ?? usage, app: app, keycodes: keycodes)
-                        }
-                        if let target = remaps[usage], var cap = model.actionCap(code: target) {
-                            cap.isHighlighted = true
-                            return cap
-                        }
-                        if let target = remaps[usage] {
-                            var label = keycodes.label(for: target)
-                            label.sub = model.actionNamesByUsage[target] ?? ("← " + keycodes.shortLabel(usage))
-                            return KeyCapModel(label: label, kind: CapKind.of(target, keycodes: keycodes), isHighlighted: true,
-                                               tooltip: "\(keycodes.title(for: usage)) → \(keycodes.title(for: target))")
-                        }
-                        return KeyCapModel(label: keycodes.label(for: usage), kind: CapKind.of(usage, keycodes: keycodes),
-                                           tooltip: "\(keycodes.title(for: usage))\n\(keycodes.explanation(for: usage))")
-                    },
-                    onSelect: { selection = UInt16($0.col) },
-                    maxUnit: 52
-                )
-                .frame(minHeight: 260)
+                KeyboardCanvas(keys: layout.board, selected: selected,
+                               cap: { cap(for: $0, in: layout, remaps: remaps) }, onSelect: { select($0, in: layout) },
+                               maxUnit: 52, deviceBody: layout.deviceBody)
+                    .frame(minHeight: layout.hasSelectableKeys ? 260 : 180)
+                if !layout.offBoard.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(L("Klavyenin üstünde olmayan tuşlar")).font(.system(size: 12, weight: .semibold))
+                        Text(L("Klavye bunları Fn ile ya da başka bir yolla gönderirse macOS onları da eşler."))
+                            .font(.system(size: 11))
+                            .foregroundStyle(Theme.textSecondary)
+                        KeyboardCanvas(keys: layout.offBoard, selected: selected,
+                                       cap: { cap(for: $0, in: layout, remaps: remaps) }, onSelect: { select($0, in: layout) },
+                                       maxUnit: 40)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
 
-            if let app = model.selectedApp[device.id] {
+            if !layout.hasSelectableKeys {
+                // Nothing to select, so no picker.
+            } else if let app = model.selectedApp[device.id] {
                 AppKeyPanel(device: device, app: app, layer: 0, slot: selection.map { .matrix(row: 0, col: Int($0)) },
                             code: selection.map { remaps[$0] ?? $0 }, keycodes: keycodes)
             } else {
@@ -114,6 +111,34 @@ struct RemapEditor: View {
         }
     }
 
+    /// Fixed keys (the AMG65's Fn, a trackball's buttons) can't be selected: macOS can't remap them.
+    private func select(_ key: LayoutKey, in layout: RemapLayout) {
+        guard layout.fixed[key] == nil, key.col >= 0 else { return }
+        selection = UInt16(key.col)
+    }
+
+    private func cap(for key: LayoutKey, in layout: RemapLayout, remaps: [UInt16: UInt16]) -> KeyCapModel {
+        if let fixed = layout.fixed[key] {
+            return KeyCapModel(label: fixed.label, kind: .empty, tooltip: fixed.tooltip)
+        }
+        let usage = UInt16(clamping: key.col)
+        if let app = model.selectedApp[device.id] {
+            return model.appCap(code: remaps[usage] ?? usage, app: app, keycodes: keycodes)
+        }
+        if let target = remaps[usage], var cap = model.actionCap(code: target) {
+            cap.isHighlighted = true
+            return cap
+        }
+        if let target = remaps[usage] {
+            var label = keycodes.label(for: target)
+            label.sub = model.actionNamesByUsage[target] ?? ("← " + keycodes.shortLabel(usage))
+            return KeyCapModel(label: label, kind: CapKind.of(target, keycodes: keycodes), isHighlighted: true,
+                               tooltip: "\(keycodes.title(for: usage)) → \(keycodes.title(for: target))")
+        }
+        return KeyCapModel(label: keycodes.label(for: usage), kind: CapKind.of(usage, keycodes: keycodes),
+                           tooltip: "\(keycodes.title(for: usage))\n\(keycodes.explanation(for: usage))")
+    }
+
     private func startAction(_ kind: KeyAction.Kind) {
         guard let selection else {
             model.errorMessage = L("Klavyeden bir tuş seçin")
@@ -156,6 +181,63 @@ struct RemapEditor: View {
         .menuIndicator(.hidden)
         .fixedSize()
     }
+}
+
+/// What the remap editor draws for a keyboard. A plain HID keyboard reports which usages it can send, not where its
+/// keys are, so a keyboard gets its real layout only when KeyMapper knows the model; the rest get a generic TKL.
+struct RemapLayout {
+    /// A key macOS can't remap: what its cap shows instead of a usage.
+    struct Fixed {
+        var label: KeyLabel
+        var tooltip: String
+    }
+
+    /// Keys whose `col` is the HID usage they send, except those in `fixed`.
+    var board: [LayoutKey]
+    /// Usages with no key on the board that the keyboard may still send (e.g. through Fn).
+    var offBoard: [LayoutKey] = []
+    var fixed: [LayoutKey: Fixed] = [:]
+    /// Shown instead of the firmware sentence and the key picker when no key can be selected.
+    var note: String?
+    /// A trackball's or mouse's body, drawn behind its buttons.
+    var deviceBody: DeviceBody?
+
+    var hasSelectableKeys: Bool { board.contains { fixed[$0] == nil } || !offBoard.isEmpty }
+
+    @MainActor static func `for`(_ device: KeyboardDevice) -> RemapLayout {
+        // By model, not by the vendor channel: the Bluetooth AMG65 has none, and the cable's appears after the keyboard.
+        if device.screenKeyboard?.model == .leobogAMG65 || device.name.range(of: "AMG65", options: .caseInsensitive) != nil {
+            let keys = AMG65Layout.remapKeys
+            let fn = Fixed(label: KeyLabel(main: "Fn"),
+                           tooltip: L("Fn'yi klavye kendisi işler; macOS onu görmediği için burada eşlenemez."))
+            return RemapLayout(board: keys, offBoard: AMG65Layout.offBoardKeys,
+                               fixed: Dictionary(uniqueKeysWithValues: keys.filter { $0.col < 0 }.map { ($0, fn) }))
+        }
+        if let pointing = pointingDevice(device) { return pointing }
+        return RemapLayout(board: ANSILayout.keys)
+    }
+
+    /// A Keychron trackball or mouse (Nape Pro…) without its raw HID channel (Bluetooth): its own buttons, from the
+    /// definition the cable editor cached. What each button sends is set in its firmware and isn't known here, so
+    /// none can be selected.
+    @MainActor private static func pointingDevice(_ device: KeyboardDevice) -> RemapLayout? {
+        let key = device.vendorProductID
+        if pointingCache[key] == nil {
+            pointingCache[key] = .some(KeychronLauncher.cachedPointingDevice(vendorID: device.vendorID, productID: device.productID))
+        }
+        guard let definition = pointingCache[key] ?? nil else { return nil }
+        let tooltip = L("Bu düğmenin ne gönderdiği cihazın firmware'inde ayarlanır; USB kablosuyla bağlayınca değiştirebilirsiniz.")
+        let fixed = Dictionary(definition.keys.map { key -> (LayoutKey, Fixed) in
+            guard let direction = key.encoderDirection else { return (key, Fixed(label: KeyLabel(main: key.name ?? ""), tooltip: tooltip)) }
+            return (key, Fixed(label: KeyLabel(main: direction == 0 ? "↺" : "↻"), tooltip: tooltip))
+        }, uniquingKeysWith: { a, _ in a })
+        return RemapLayout(board: definition.keys, fixed: fixed,
+                           note: L("%@ fare tipi bir cihaz; düğmelerinin ne gönderdiği firmware'inde ayarlanır ve kablosuz bağlantıda okunamaz. Düğmeleri değiştirmek için USB kablosuyla bağlayın.", definition.name),
+                           deviceBody: definition.deviceBody)
+    }
+
+    /// Cached definitions per vendor/product id (`.some(nil)`: looked, not a pointing device or never opened by cable).
+    @MainActor private static var pointingCache: [Int: KeyboardDefinition?] = [:]
 }
 
 /// A generic ANSI TKL layout; `col` carries the HID usage of each key.

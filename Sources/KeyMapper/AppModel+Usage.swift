@@ -156,8 +156,19 @@ extension ProviderUsage {
     var errorDescription: String? {
         guard let error else { return nil }
         switch error {
+        // Claude's quota comes from the desktop app's sign-in when it has one, else from Claude Code's.
+        case "auth_required" where provider == "claude":
+            return L("Bu Mac'te Claude oturumu bulunamadı; Claude masaüstü uygulamasında ya da Claude Code'da oturum açın.")
+        case "relogin_required" where provider == "claude":
+            return L("Bu Mac'teki Claude oturumunun süresi geçmiş. Claude masaüstü uygulamasını açınca ya da Terminal'de claude komutu çalışınca kendiliğinden yenilenir.")
+        case "access_denied" where provider == "claude":
+            return L("Claude oturumu bulundu ama Anthropic kullanım isteğini reddetti.")
+        case "keychain_locked" where provider == "claude":
+            return L("Claude oturumunu okumak için Anahtar Zinciri izni gerekiyor. Claude masaüstü uygulamasında oturum açıksa macOS \"Claude Safe Storage\" için sorar; KeyMapper oradan yalnızca oturum anahtarını okur, saklamaz ve yenilemez.")
+        case "credentials_unreadable" where provider == "claude":
+            return L("Claude masaüstü uygulamasının oturum kaydı beklenen biçimde değil; KeyMapper okuyamadı.")
         case "auth_required": return L("Oturum bulunamadı; %@ uygulamasında oturum açın.", label)
-        case "relogin_required": return L("Oturumun süresi dolmuş; %@ uygulamasında yeniden oturum açın.", label)
+        case "relogin_required": return L("%@ oturumunun bu Mac'teki kopyasının süresi geçmiş; %@ bir sonraki açılışında kendiliğinden yenilenir.", label, label)
         case "keychain_locked": return L("Okumak için Anahtar Zinciri izni gerekiyor.")
         case "network_error": return L("Ağ hatası; daha sonra yeniden denenecek.")
         case "rate_limited": return L("Sağlayıcı istekleri sınırladı; daha sonra yeniden denenecek.")
