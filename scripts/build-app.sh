@@ -5,7 +5,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 APP="build/KeyMapper.app"
-VERSION="0.1.0"
+VERSION="0.2.0"
+# Raise with every release so macOS and the About window can tell builds apart.
+BUILD="2"
 
 swift build -c release --product KeyMapper
 swift build -c release --product kmctl
@@ -42,7 +44,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleLocalizations</key>
     <array><string>tr</string><string>en</string><string>es</string><string>ja</string><string>zh-Hans</string></array>
     <key>CFBundleAllowMixedLocalizations</key><true/>
-    <key>CFBundleVersion</key><string>1</string>
+    <key>CFBundleVersion</key><string>${BUILD}</string>
     <key>NSHumanReadableCopyright</key><string>© 2026 Oğuzhan Koçaklı</string>
     <key>LSMinimumSystemVersion</key><string>15.0</string>
     <key>LSUIElement</key><true/>
