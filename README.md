@@ -12,7 +12,7 @@ Requires a Mac with Apple silicon and macOS 15 or later.
 2. Open KeyMapper from Applications. It is signed and notarized by Apple, so it opens without a security warning.
 3. KeyMapper lives in the menu bar (keyboard icon) and has no Dock icon; opening it again from Finder or Spotlight brings up the editor.
 
-macOS asks for **Bluetooth** permission the first time a Bluetooth LE keyboard is connected (used only to read its battery level) and for **Accessibility** only when you use an action that sends a key combination or types text.
+macOS asks for **Bluetooth** permission the first time a Bluetooth LE keyboard is connected (used only to read its battery level) and for **Accessibility** only when you use an action that sends a key combination or types text. Showing Claude or Cursor usage needs a one-time **Keychain** approval, asked only after you click **Allow Keychain access** (see [Privacy](#keyboards-with-a-screen-leobog-amg65)).
 
 To build it yourself instead, see [Installation](#installation).
 
@@ -100,7 +100,7 @@ xcrun notarytool store-credentials KeyMapper-notary --apple-id "<Apple ID>" --te
 SIGN_IDENTITY="Developer ID Application: <Name> (<TEAMID>)" NOTARY_PROFILE=KeyMapper-notary scripts/make-dmg.sh
 ```
 
-The first command is needed once; it asks for an app-specific password from account.apple.com and stores it in the keychain. The second signs the app and `kmctl` with the hardened runtime and a secure timestamp, signs the disk image, submits it to Apple's notary service, waits for the result (usually a few minutes) and staples the ticket to the disk image. If Apple rejects it, the script prints the notary log and stops. A Developer ID signature also keeps the Accessibility and Bluetooth permissions across rebuilds.
+The first command is needed once; it asks for an app-specific password from account.apple.com and stores it in the keychain. The second signs the app, `kmctl` and the `keymapper-usage` helper with the hardened runtime and a secure timestamp, signs the disk image, submits it to Apple's notary service, waits for the result (usually a few minutes) and staples the ticket to the disk image. If Apple rejects it, the script prints the notary log and stops. A Developer ID signature also keeps the Accessibility, Bluetooth and Keychain permissions across rebuilds.
 
 The app doesn't appear in the Dock; use the keyboard icon in the menu bar. Opening the app again from Finder or Spotlight brings up the editor window.
 
@@ -152,7 +152,7 @@ Some models from other brands (or keyboards connected through a 2.4 GHz receiver
 ## Known limitations
 
 - Keyboards that only speak the ZMK Studio protocol aren't supported at the firmware level yet; they can be edited with macOS remapping. (Keychron's ZMK firmware speaks VIA and is supported.)
-- Macros, tap dance, combos and RGB settings can't be edited yet (existing ones are kept).
+- Macros, tap dance and combos can't be edited yet (existing ones are kept).
 - Key assignments made in other brands' software (e.g. Logi Options+) work separately; KeyMapper remaps on top of them at the macOS level.
 - The built-in MacBook keyboard isn't listed.
 
@@ -187,3 +187,7 @@ The icon is generated from `Resources/AppIcon.icon` with `actool` at build time:
 Translations live in `Sources/KeyMapperCore/Localization/`: UI strings are written in Turkish in the source and marked with `L("…")`, and each language's dictionary uses those Turkish strings as keys. Tests check that every marked string is translated in every language with the same placeholders (`%@`).
 
 Data is stored in `~/Library/Application Support/KeyMapper/` (profiles, the VIA definition cache and user definitions).
+
+## License
+
+KeyMapper is released under the [MIT License](LICENSE). Code it builds on is listed with its own licenses in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
