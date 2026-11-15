@@ -18,6 +18,8 @@ public final class HIDMonitor {
         let matching: [[String: Any]] = [
             [kIOHIDDeviceUsagePageKey: 0x01, kIOHIDDeviceUsageKey: 0x06],
             [kIOHIDDeviceUsagePageKey: 0xFF60, kIOHIDDeviceUsageKey: 0x61],
+            // Screen keyboards' vendor channels (LEOBOG AMG65 by cable).
+            [kIOHIDDeviceUsagePageKey: 0xFF68, kIOHIDDeviceUsageKey: 0x61],
         ]
         IOHIDManagerSetDeviceMatchingMultiple(manager, matching as CFArray)
     }
@@ -120,6 +122,13 @@ public final class HIDMonitor {
         )
     }
 
+    /// Apple ships no QMK firmware: a 0xFF60 interface under Apple's vendor ID belongs to a clone that borrows
+    /// the ID for a Mac layout (e.g. the LEOBOG AMG65 2.4 GHz dongle, 05AC:024F), which speaks its own
+    /// checksummed protocol. Sending it VIA commands would be guesswork, so it is not treated as VIA.
+    static func spoofsAppleID(_ info: HIDInterfaceInfo) -> Bool {
+        info.vendorID == 0x05AC || info.vendorID == 0x004C
+    }
+
     /// Groups interfaces that belong to the same physical keyboard.
     static func group(_ interfaces: [HIDInterfaceInfo]) -> [KeyboardDevice] {
         // Built-in keyboards (and anonymous VID/PID 0 devices) cannot be targeted reliably.
@@ -132,7 +141,7 @@ public final class HIDMonitor {
             guard members.contains(where: { $0.isKeyboard || $0.isRawHID }) else { return nil }
             let sorted = members.sorted { $0.registryID < $1.registryID }
             let primary = sorted.first { $0.isKeyboard } ?? sorted[0]
-            let raw = sorted.first { $0.isRawHID }
+            let raw = sorted.first { $0.isRawHID && !spoofsAppleID($0) }
             let serial = sorted.map(\.serial).first { !$0.isEmpty } ?? ""
             var device = KeyboardDevice(
                 id: key,
@@ -146,6 +155,7 @@ public final class HIDMonitor {
                 interfaceRegistryIDs: sorted.map(\.registryID)
             )
             device.versionNumber = primary.versionNumber
+            device.screenKeyboard = sorted.lazy.compactMap(ScreenKeyboardCatalog.channel(for:)).first
             return device
         }
         .sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }

@@ -22,9 +22,13 @@ public enum HIDError: LocalizedError, Equatable {
     }
 }
 
-/// Request/response channel over a QMK raw HID interface (32 byte reports, no report ID).
+/// Request/response channel over a vendor HID interface without report IDs: QMK raw HID (32 byte reports)
+/// or vendor channels with other report sizes (the LEOBOG AMG65 uses 64).
 public final class RawHIDConnection: @unchecked Sendable {
+    /// QMK raw HID report size (VIA / Vial).
     public static let reportSize = 32
+    /// Report size of this connection.
+    public let reportSize: Int
 
     private let device: IOHIDDevice
     private let inputQueue = DispatchQueue(label: "keymapper.rawhid.input")
@@ -40,7 +44,9 @@ public final class RawHIDConnection: @unchecked Sendable {
     private var closed = false
     private var removed = false
 
-    public init(registryID: UInt64) throws {
+    public init(registryID: UInt64, reportSize: Int = RawHIDConnection.reportSize) throws {
+        precondition((1...64).contains(reportSize), "HID report size out of range")
+        self.reportSize = reportSize
         let service = IOServiceGetMatchingService(kIOMainPortDefault, IORegistryEntryIDMatching(registryID))
         guard service != IO_OBJECT_NULL else { throw HIDError.deviceNotFound }
         defer { IOObjectRelease(service) }
@@ -96,7 +102,7 @@ public final class RawHIDConnection: @unchecked Sendable {
         stateLock.lock(); unsolicited = handler; stateLock.unlock()
     }
 
-    /// Sends one 32 byte report and waits for the reply. With `expecting`, only a report whose
+    /// Sends one report (padded to `reportSize`) and waits for the reply. With `expecting`, only a report whose
     /// first byte echoes that id (or 0xFF, "unhandled") counts; anything else is passed on as unsolicited.
     public func exchange(_ request: [UInt8], timeout: TimeInterval = 1.0, retries: Int = 2, expecting: UInt8? = nil) throws -> [UInt8] {
         requestLock.lock(); defer { requestLock.unlock() }
@@ -110,20 +116,45 @@ public final class RawHIDConnection: @unchecked Sendable {
         }
     }
 
+    /// Waits for a report that answers something sent outside this connection (e.g. a block written to another USB
+    /// interface of the same device). The wait is armed before `send` runs, so a fast reply isn't missed; a report
+    /// counts like in `exchange` (first byte `expecting` or 0xFF). Errors thrown by `send` are passed on unchanged.
+    public func awaitReport(expecting: UInt8?, timeout: TimeInterval, after send: () throws -> Void) throws -> [UInt8] {
+        requestLock.lock(); defer { requestLock.unlock() }
+        if isClosed { throw HIDError.disconnected }
+        return try reply(expecting: expecting, timeout: timeout, after: send)
+    }
+
+    /// USB location of the device (kIOHIDLocationIDKey), shared by all of its interfaces; nil if not reported.
+    public var locationID: UInt32? {
+        (IOHIDDeviceGetProperty(device, kIOHIDLocationIDKey as CFString) as? NSNumber).map { UInt32(truncatingIfNeeded: $0.int64Value) }
+    }
+
     private func exchangeOnce(_ request: [UInt8], timeout: TimeInterval, expecting: UInt8?) throws -> [UInt8] {
         if isClosed { throw HIDError.disconnected }
-        var report = [UInt8](repeating: 0, count: Self.reportSize)
-        for (index, byte) in request.prefix(Self.reportSize).enumerated() { report[index] = byte }
+        var report = [UInt8](repeating: 0, count: reportSize)
+        for (index, byte) in request.prefix(reportSize).enumerated() { report[index] = byte }
 
+        return try reply(expecting: expecting, timeout: timeout) {
+            let result = IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput, 0, report, report.count)
+            guard result == kIOReturnSuccess else {
+                if isClosed { throw HIDError.disconnected }
+                throw HIDError.writeFailed(result)
+            }
+        }
+    }
+
+    /// Arms the reply wait, runs `send` and waits for the reply. Callers hold `requestLock`.
+    private func reply(expecting: UInt8?, timeout: TimeInterval, after send: () throws -> Void) throws -> [UInt8] {
         // Drop any stale report before sending.
         while responseSignal.wait(timeout: .now()) == .success {}
         stateLock.lock(); awaiting = true; expectedEcho = expecting; response = []; stateLock.unlock()
 
-        let result = IOHIDDeviceSetReport(device, kIOHIDReportTypeOutput, 0, report, report.count)
-        guard result == kIOReturnSuccess else {
+        do {
+            try send()
+        } catch {
             stateLock.lock(); awaiting = false; stateLock.unlock()
-            if isClosed { throw HIDError.disconnected }
-            throw HIDError.writeFailed(result)
+            throw error
         }
         if responseSignal.wait(timeout: .now() + timeout) == .timedOut {
             stateLock.lock(); awaiting = false; stateLock.unlock()
@@ -132,7 +163,7 @@ public final class RawHIDConnection: @unchecked Sendable {
         stateLock.lock(); defer { stateLock.unlock() }
         if (closed || removed) && response.isEmpty { throw HIDError.disconnected }
         var padded = response
-        if padded.count < Self.reportSize { padded += [UInt8](repeating: 0, count: Self.reportSize - padded.count) }
+        if padded.count < reportSize { padded += [UInt8](repeating: 0, count: reportSize - padded.count) }
         return padded
     }
 

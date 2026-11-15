@@ -1,4 +1,5 @@
 import AppKit
+import KeyMapperCore
 import SwiftUI
 
 @main
@@ -67,5 +68,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         NotificationCenter.default.post(name: .openEditor, object: nil)
         return true
+    }
+
+    /// Set by the model: whether a file is being written to a keyboard's memory, and what to finish before quitting.
+    @MainActor static var isUploading: () -> Bool = { false }
+    @MainActor static var willTerminate: () -> Void = {}
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard Self.isUploading() else { return .terminateNow }
+        let alert = NSAlert()
+        alert.messageText = L("Klavyeye yükleme sürüyor")
+        alert.informativeText = L("Yükleme yarıda kesilirse klavyenin belleğine eksik bir dosya yazılır. Yükleme bitince tekrar çıkın.")
+        alert.runModal()
+        return .terminateCancel
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        Self.willTerminate()
     }
 }

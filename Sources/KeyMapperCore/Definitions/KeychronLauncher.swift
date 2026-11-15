@@ -123,6 +123,22 @@ public enum KeychronLauncher {
         return byLanguage[L10n.current.releaseNotesTag] ?? byLanguage["en-US"] ?? byLanguage.values.first
     }
 
+    /// The button layout of a Keychron trackball or mouse, from a definition the cable editor already downloaded
+    /// (never from the network): nil for keyboards and for devices never opened by cable. Over Bluetooth these devices
+    /// have no raw HID, so this is the only way to draw them as themselves.
+    public static func cachedPointingDevice(vendorID: Int, productID: Int) -> KeyboardDefinition? {
+        guard vendorID == Self.vendorID else { return nil }
+        let url = AppPaths.viaCache.appendingPathComponent("keychron_\((vendorID << 16) | productID)_0.json")
+        guard let data = try? Data(contentsOf: url) else { return nil }
+        return pointingDevice(data, vendorID: vendorID, productID: productID)
+    }
+
+    /// `data` parsed as a pointing device's button layout; nil when it is a keyboard (it has a matrix).
+    static func pointingDevice(_ data: Data, vendorID: Int, productID: Int) -> KeyboardDefinition? {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], json["matrix"] == nil else { return nil }
+        return try? pointingDeviceDefinition(json, vendorID: vendorID, productID: productID)
+    }
+
     /// Keyboards come as VIA's compiled format; trackballs / mice as a button list placed on a product image.
     public static func parseDefinition(_ data: Data, vendorID: Int, productID: Int) throws -> KeyboardDefinition {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw DefinitionError.invalidJSON }
@@ -135,17 +151,34 @@ public enum KeychronLauncher {
         return try pointingDeviceDefinition(json, vendorID: vendorID, productID: productID)
     }
 
-    /// Buttons sit at percentages of a product image; keep their shape and make them at least 1.2u apart.
+    /// Buttons sit at percentages of a product image. The Nape Pro is drawn as itself (`NapeProLayout`); any other
+    /// device keeps the buttons' arrangement, at least 1.2u apart.
     static func pointingDeviceDefinition(_ json: [String: Any], vendorID: Int, productID: Int) throws -> KeyboardDefinition {
         guard let layouts = json["keys"] as? [String: Any],
               let entries = (layouts["0"] ?? layouts.values.first) as? [[String: Any]], !entries.isEmpty else {
             throw DefinitionError.missingField("keys")
         }
-        struct Point { let x: Double; let y: Double; let col: Int?; let knob: Bool }
+        let custom: [CustomKeycode] = (json["customKeycodes"] as? [[String: Any]] ?? []).compactMap { item in
+            guard let name = item["name"] as? String else { return nil }
+            return CustomKeycode(name: name, title: item["title"] as? String, shortName: item["shortName"] as? String)
+        }
+        func definition(_ keys: [LayoutKey], body: DeviceBody? = nil) -> KeyboardDefinition {
+            // Keychron Launcher reads 7 keycodes per layer for these devices; keep at least that many columns.
+            let maxCol = keys.filter { !$0.isEncoder }.map(\.col).max() ?? 0
+            return KeyboardDefinition(name: json["name"] as? String ?? "Keychron", vendorID: vendorID, productID: productID,
+                                      rows: 1, cols: max(maxCol + 1, 7), keys: keys, customKeycodes: custom, source: .vendor,
+                                      deviceBody: body)
+        }
+        if let keys = NapeProLayout.keys(entries, maxColumns: VIAClient.maxMatrix) {
+            return definition(keys, body: NapeProLayout.body)
+        }
+
+        struct Point { let x: Double; let y: Double; let col: Int?; let knob: Bool; let name: String? }
         let points: [Point] = entries.compactMap { entry in
             guard let x = DefinitionParser.double(entry["x"]), let y = DefinitionParser.double(entry["y"]) else { return nil }
             let isKnob = entry["labels"] != nil
-            return Point(x: x, y: y, col: DefinitionParser.int(entry["col"]), knob: isKnob)
+            return Point(x: x, y: y, col: DefinitionParser.int(entry["col"]), knob: isKnob,
+                         name: (entry["id"] as? String)?.uppercased())
         }
         // Horizontal: keep proportions, closest buttons 1.25u apart. Vertical: buttons at similar
         // heights form rows 1.4u apart, so the empty area around the ball does not shrink the keys.
@@ -163,24 +196,16 @@ public enum KeychronLauncher {
         }
 
         var keys: [LayoutKey] = []
-        var maxCol = 0
         for point in points {
             let x = (point.x - minX) * scale, y = row(for: point.y)
             if point.knob {
                 keys.append(LayoutKey(row: -1, col: -1, x: x - 0.55, y: y, encoderIndex: 0, encoderDirection: 0))
                 keys.append(LayoutKey(row: -1, col: -1, x: x + 0.55, y: y, encoderIndex: 0, encoderDirection: 1))
             } else if let col = point.col, (0..<VIAClient.maxMatrix).contains(col) {
-                keys.append(LayoutKey(row: 0, col: col, x: x, y: y))
-                maxCol = max(maxCol, col)
+                keys.append(LayoutKey(row: 0, col: col, x: x, y: y, name: point.name))
             }
         }
-        let custom: [CustomKeycode] = (json["customKeycodes"] as? [[String: Any]] ?? []).compactMap { item in
-            guard let name = item["name"] as? String else { return nil }
-            return CustomKeycode(name: name, title: item["title"] as? String, shortName: item["shortName"] as? String)
-        }
-        // Keychron Launcher reads 7 keycodes per layer for these devices; keep at least that many columns.
-        return KeyboardDefinition(name: json["name"] as? String ?? "Keychron", vendorID: vendorID, productID: productID,
-                                  rows: 1, cols: max(maxCol + 1, 7), keys: keys, customKeycodes: custom, source: .vendor)
+        return definition(keys)
     }
 
     // MARK: Versions

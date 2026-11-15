@@ -64,6 +64,8 @@ public struct KeyboardDevice: Identifiable, Hashable, Sendable {
     public let interfaceRegistryIDs: [UInt64]
     /// USB bcdDevice of the keyboard (0 when unknown).
     public var versionNumber: Int = 0
+    /// Vendor channel of a keyboard with its own display (clock, LED matrix), when recognised.
+    public var screenKeyboard: ScreenKeyboardChannel?
 
     public init(id: String, vendorID: Int, productID: Int, name: String, manufacturer: String,
                 serial: String, transport: String, rawHIDRegistryID: UInt64?, interfaceRegistryIDs: [UInt64]) {
@@ -92,7 +94,7 @@ public struct KeyboardDevice: Identifiable, Hashable, Sendable {
     /// VIA uses (vid << 16) | pid to look definitions up.
     public var vendorProductID: Int { (vendorID << 16) | productID }
 
-    public var brand: Brand { BrandDatabase.brand(vendorID: vendorID, productID: productID, manufacturer: manufacturer) }
+    public var brand: Brand { BrandDatabase.brand(vendorID: vendorID, productID: productID, manufacturer: manufacturer, product: name) }
 
     public var transportLabel: String {
         switch transport.lowercased() {

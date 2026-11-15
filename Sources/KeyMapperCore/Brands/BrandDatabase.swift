@@ -56,7 +56,17 @@ public enum BrandDatabase {
         0x17EF: Brand(name: "Lenovo", ecosystem: "—"),
     ]
 
-    public static func brand(vendorID: Int, productID: Int, manufacturer: String) -> Brand {
+    /// Brands recognised by product name: their keyboards borrow other vendors' IDs (LEOBOG uses Apple's
+    /// over Bluetooth and the dongle, SONiX's over USB).
+    static let productNameBrands: [(match: String, brand: Brand)] = [
+        ("LEOBOG", Brand(name: "LEOBOG", ecosystem: "LEOBOG Driver")),
+        ("AULA", Brand(name: "AULA", ecosystem: "AULA Driver")),
+    ]
+
+    public static func brand(vendorID: Int, productID: Int, manufacturer: String, product: String = "") -> Brand {
+        if let named = productNameBrands.first(where: { product.range(of: $0.match, options: .caseInsensitive) != nil }) {
+            return named.brand
+        }
         if vendorID == 0x1D50 && productID == 0x615E { return Brand(name: "ZMK", ecosystem: "ZMK Studio") }
         if let brand = vendors[vendorID] { return brand }
         let trimmed = manufacturer.trimmingCharacters(in: .whitespaces)

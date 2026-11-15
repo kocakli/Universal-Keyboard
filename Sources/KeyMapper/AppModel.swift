@@ -1,5 +1,6 @@
 import AppKit
 import KeyMapperCore
+import KeyMapperUsage
 import Observation
 import OSLog
 import ServiceManagement
@@ -50,12 +51,45 @@ final class AppModel {
     var firmware: [String: FirmwareStatus] = [:]
     /// Battery charge per device id, when the device reports one.
     var batteries: [String: BatteryStatus] = [:]
+    /// Lighting values per device id and system, as last read or changed (RAM on the keyboard until saved).
+    var lightingValues: [String: [LightingKind: LightingState]] = [:]
+    /// Values last read from or saved to the keyboard, for "Undo" and the unsaved marker.
+    var savedLighting: [String: [LightingKind: LightingState]] = [:]
+    @ObservationIgnored var lightingSends: [String: Task<Void, Never>] = [:]
+    /// Screen keyboards (LEOBOG AMG65…): connection state per device id, saved settings per deviceKey.
+    var screenStatus: [String: ScreenKeyboardStatus] = [:]
+    var screenPreferences: [String: ScreenKeyboardPreferences] = [:]
+    @ObservationIgnored var screenSessions: [String: ScreenKeyboardSession] = [:]
+    /// The vendor channel last seen per device id, to notice a replug (new registry id) or a channel appearing late.
+    @ObservationIgnored var screenChannels: [String: ScreenKeyboardChannel] = [:]
+    @ObservationIgnored var screenObservers: [NSObjectProtocol] = []
+    @ObservationIgnored var screenTimer: Timer?
+    @ObservationIgnored var ledStreams: [String: Task<Void, Never>] = [:]
+    /// Devices whose LED stream must resend its frame even if unchanged (an upload ended the live frames).
+    @ObservationIgnored var ledResend: Set<String> = []
+    /// AI tool quotas (opt-in per provider) and the refresh state.
+    var usage: [ProviderUsage] = []
+    var usageProviders: [String] = AppModel.loadUsageProviders()
+    var usageRefreshing = false
+    /// Providers switched on but not read yet (shown as "reading", not as missing data).
+    var usageAwaiting: Set<String> = []
+    @ObservationIgnored var usageQueued = false
+    @ObservationIgnored let usageStore = UsageStore(cacheURL: UsageStore.defaultCacheURL)
+    @ObservationIgnored var usageTimer: Timer?
+    @ObservationIgnored var usageLastRequest: Date?
+    /// Uploads to a screen keyboard's flash memory (LCD image, LED animation), per device id.
+    var screenUploads: [String: ScreenUploadState] = [:]
+    /// AI tool activity (opt-in): the latest snapshot and each tool's hook state.
+    var activityEnabled = UserDefaults.standard.bool(forKey: AppModel.activityEnabledKey)
+    var activityRows: [ActivityRow] = []
+    var hookStates: [ActivityProvider: HookState] = [:]
+    @ObservationIgnored var activityTask: Task<Void, Never>?
     /// Extra app tabs the user added per deviceKey (before any rule exists).
     var extraAppTabs: [String: [AppChoice]] = AppModel.loadExtraAppTabs()
     var accessibilityTrusted = ActionPerformer.isAccessibilityTrusted
     @ObservationIgnored let hotKeys = HotKeyCenter()
 
-    @ObservationIgnored private var sessions: [String: KeyboardSession] = [:]
+    @ObservationIgnored private(set) var sessions: [String: KeyboardSession] = [:]
     @ObservationIgnored private var loadTasks: [String: Task<Void, Never>] = [:]
     @ObservationIgnored private var knownDeviceIDs: Set<String> = []
     @ObservationIgnored private let monitor = HIDMonitor()
@@ -76,6 +110,9 @@ final class AppModel {
             }
         }
         monitor.start()
+        setUpUsage()
+        setUpScreenKeyboards()
+        setUpActivity()
         devicesChanged(monitor.snapshot())
         setUpActions()
         // Battery levels change slowly; IORegistry has no change notification for them.
@@ -111,6 +148,7 @@ final class AppModel {
             Task { await refreshFirmware(device) }
         }
         bluetoothBattery.watch(names: Set(list.filter(\.isBluetoothLE).map(\.name).filter { !$0.isEmpty }))
+        screenKeyboardsChanged(list)
         refreshBatteries()
     }
 
@@ -142,6 +180,8 @@ final class AppModel {
         loadTasks[id] = nil
         states[id] = nil
         phases[id] = nil
+        lightingValues[id] = nil
+        savedLighting[id] = nil
     }
 
     /// macOS forgets hidutil mappings on reconnect, so re-apply the assigned remap profile.
