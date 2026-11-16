@@ -1,5 +1,7 @@
 # KeyMapper
 
+**English** · [Türkçe](README.tr.md) · [Español](README.es.md) · [日本語](README.ja.md) · [简体中文](README.zh-Hans.md)
+
 A universal keyboard mapper for macOS that lives in the menu bar. Pick a connected keyboard and assign a layout (keymap) to it; KeyMapper chooses the right way to edit it from the keyboard's firmware.
 
 ## Download
@@ -36,26 +38,26 @@ The method is chosen from the interface the device exposes, not from its brand: 
 - **Vial unlock**: the Vial unlock flow for protected keys such as `QK_BOOT`.
 - **Actions** (like the per-app settings in Logitech Options+): assign a key to open an app, open a URL or file, run a Shortcut, send a key combination or type text. The same key can do different things depending on the frontmost app (e.g. a new tab in Safari, the command palette in VS Code, Spotlight everywhere else). Ready-made shortcuts cover about 30 apps, including Claude (approve / deny), ChatGPT, Terminal, iTerm2, Warp, Ghostty, Safari, Chrome, Brave, Arc, Firefox, Finder, Mail, Music, VS Code, Cursor, Xcode, Zoom, Teams, Slack, Discord, Notion, Obsidian, Word, Excel, PowerPoint, Photoshop, Final Cut Pro and Spotify.
 - **Battery level**: the charge of connected keyboards appears in the menu bar, the sidebar and the editor header, in red at 20 % and below. Apple keyboards are read through macOS, Bluetooth LE keyboards (e.g. the Cornix) through the standard Bluetooth Battery Service, which asks for Bluetooth permission the first time. Split keyboards show the lower half. Keychron's raw HID protocol has no battery command, so a Keychron connected over USB shows no battery.
-- **Backlight**: VIA / Vial keyboards that report a backlight, RGB light or RGB / LED matrix get a **Lights** button with effect, brightness, speed and colour, detected automatically. Not yet tried on hardware.
+- **Backlight**: VIA / Vial keyboards that report a backlight, RGB light or RGB / LED matrix get a **Lighting** button with effect, brightness, speed and colour, detected automatically. Not yet tried on hardware.
 - **Keyboards with a screen**: see [below](#keyboards-with-a-screen-leobog-amg65).
 - **Launch at login** option.
 - **Languages**: Türkçe, English, Español, 日本語 and 简体中文. The app follows the macOS language by default and can be switched instantly from the menu bar or the editor's sidebar. `kmctl` uses the same setting (override it for one command with `KEYMAPPER_LANG=ja kmctl list`).
 
 ## Keyboards with a screen (LEOBOG AMG65)
 
-KeyMapper detects the LEOBOG AMG65 over its USB cable or its 2.4 GHz receiver and shows a **Display & lighting** section above the keymap. It replaces the separate AMG65 Studio app: everything runs inside KeyMapper, with no Python, libusb, local server or extra helper to install. The keyboard's protocol was ported from AMG65 Studio (see `THIRD_PARTY_NOTICES.md`).
+KeyMapper detects the LEOBOG AMG65 over its USB cable or its 2.4 GHz receiver and shows a **Display and lighting** section above the keymap. It replaces the separate AMG65 Studio app: everything runs inside KeyMapper, with no Python, libusb, local server or extra helper to install. The keyboard's protocol was ported from AMG65 Studio (see `THIRD_PARTY_NOTICES.md`).
 
 | Group | Tab | What it does | Connection |
 |---|---|---|---|
-| Screen | AI usage | Remaining Claude, Codex and Cursor allowance, each switched on separately, read from the sessions you are already signed in to on this Mac (for Claude, the desktop app's sign-in when it has one, else Claude Code's). Optional activity tracking shows which tool is running or waiting for approval. | — |
+| Display | AI | Remaining Claude, Codex and Cursor allowance, each switched on separately, read from the sessions you are already signed in to on this Mac (for Claude, the desktop app's sign-in when it has one, else Claude Code's). Optional activity tracking shows which tool is running or waiting for approval. | — |
 | | LED display | Streams the usage (overview, rotating or your own text, with effects) to the 63 × 5 LED matrix, with a live preview. | Cable |
 | | LCD and clock | Uploads an image or GIF (up to 130 frames) to the 240 × 135 LCD, keeps the clock in sync, and uploads the LED matrix's own animation or boot animation. | Cable |
-| Light | Effects | The backlight's 20 built-in effects with colour, brightness, speed and direction. | Cable or 2.4 GHz |
-| | Key colours | Paints keys one by one (click or drag across keys). | Cable or 2.4 GHz |
+| Lighting | Effects | The backlight's 20 built-in effects with colour, brightness, speed and direction. | Cable or 2.4 GHz |
+| | Key colors | Paints keys one by one (click or drag across keys). | Cable or 2.4 GHz |
 | Keyboard | Key assignments | The keyboard's own key table: keys with modifiers, media keys and mouse buttons. It works on any computer. | Cable or 2.4 GHz |
 | | Settings | LED screen brightness, sleep, Fn toggle and game mode. | Cable |
 
-- **Confirmed working on the keyboard** (in KeyMapper, or earlier in AMG65 Studio): clock sync, the Static and Breath effects, the LED matrix stream and LED screen brightness. The other effects, key colours, media and mouse assignments, sleep, Fn toggle, game mode and both uploads haven't been tried yet, and the app says so next to each of them.
+- **Confirmed working on the keyboard** (in KeyMapper, or earlier in AMG65 Studio): clock sync, the Steady and Breath effects, the LED matrix stream and LED screen brightness. The other effects, key colours, media and mouse assignments, sleep, Fn toggle, game mode and both uploads haven't been tried yet, and the app says so next to each of them.
 - **Flash memory**: the LCD image, the LED animation and the key table are written to the keyboard's permanent memory and say so before you send them. The first key table sent replaces any assignments saved by other software.
 - **Safety**: if the keyboard rejects or doesn't acknowledge a command, KeyMapper stops writing to it until it is unplugged and plugged in again. **Why?** next to the warning shows the failed step, the keyboard's reply and the time. While AMG65 Studio holds the keyboard, KeyMapper waits and offers **Try again**.
 - **Privacy**: usage is read only for the tools you switch on, in a short-lived helper (`keymapper-usage`), from fixed HTTPS endpoints; nothing is stored except the latest numbers, and no sign-in is ever renewed or written back. Reading the Claude desktop app's or Cursor's sign-in needs a one-time Keychain approval ("Claude Safe Storage", "Cursor Safe Storage") that only your click on **Allow Keychain access** asks for. Activity tracking is off by default. When on, it reads hook events and Codex's session logs on this Mac only. Connecting a tool's hooks writes to its config file (`~/.claude/settings.json`, `~/.codex/hooks.json` or `~/.cursor/hooks.json`) only when you click **Connect hooks**, keeps a backup of the previous file, and can take over from AMG65 Studio's hooks in the same step.
@@ -184,7 +186,7 @@ Resources/
 
 The icon is generated from `Resources/AppIcon.icon` with `actool` at build time: `Assets.car` for macOS 26 and later (the system derives the light, dark, tinted and clear icon styles automatically) and `AppIcon.icns` for older macOS. The document can be opened and edited in Icon Composer, which ships with Xcode.
 
-Translations live in `Sources/KeyMapperCore/Localization/`: UI strings are written in Turkish in the source and marked with `L("…")`, and each language's dictionary uses those Turkish strings as keys. Tests check that every marked string is translated in every language with the same placeholders (`%@`).
+Translations live in `Sources/KeyMapperCore/Localization/`: UI strings are written in Turkish in the source and marked with `L("…")`, and each language's dictionary uses those Turkish strings as keys. Tests check that every marked string is translated in every language with the same placeholders (`%@`). This README is translated the same way: `README.tr.md`, `README.es.md`, `README.ja.md` and `README.zh-Hans.md` follow this English file section by section, so a change here goes into all five.
 
 Data is stored in `~/Library/Application Support/KeyMapper/` (profiles, the VIA definition cache and user definitions).
 
