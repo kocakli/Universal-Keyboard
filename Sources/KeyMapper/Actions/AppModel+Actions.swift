@@ -10,9 +10,14 @@ extension AppModel {
             MainActor.assumeIsolated { self?.fire(id) }
         }
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.accessibilityTrusted = ActionPerformer.isAccessibilityTrusted }
+            MainActor.assumeIsolated {
+                self?.accessibilityTrusted = ActionPerformer.isAccessibilityTrusted
+                // Accessibility may have been granted in System Settings meanwhile.
+                self?.refreshLetterTap()
+            }
         }
         registerHotKeys()
+        setUpLetters()
     }
 
     func registerHotKeys() {
@@ -215,6 +220,10 @@ extension AppModel {
 
     /// Legend of a key while an app tab is selected.
     func appCap(code: UInt16, app: AppChoice, keycodes: KeycodeSet) -> KeyCapModel {
+        if var cap = letterCap(code: code, keycodes: keycodes) {
+            cap.kind = .transparent
+            return cap
+        }
         guard let binding = binding(forUsage: code) else {
             return KeyCapModel(label: keycodes.label(for: code), kind: .transparent, tooltip: L("Bu uygulamada değişmez"))
         }

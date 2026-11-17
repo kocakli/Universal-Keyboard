@@ -978,5 +978,23 @@ extension L10n {
         "çalışıyor": "trabajando",
         "İşaretli efektler bu klavyede denendi.": "Los efectos marcados se han probado en este teclado.",
         "İşlev tuşları": "Teclas de función",
+        // Letter keys
+        "%@ · Shift ile %@": "%@ · con Mayús %@",
+        "Başka bir harf": "Otra letra",
+        "Bir harf yazın (en fazla 8 karakter).": "Escribe una letra (hasta 8 caracteres).",
+        "Diğer diller": "Otros idiomas",
+        "Erişilebilirlik izni olmadan harf tuşları hiçbir şey yazmaz.": "Sin el permiso de Accesibilidad, las teclas de letra no escriben nada.",
+        "Harf tuşları her uygulamada aynı harfi yazar; akıllı tuşa çevrilemez.": "Las teclas de letra escriben la misma letra en todas las apps; no pueden ser teclas inteligentes.",
+        "Harf tuşları yalnızca VIA ve Vial klavyelerde kullanılabilir.": "Las teclas de letra solo funcionan en teclados VIA y Vial.",
+        "Harf: %@": "Letra: %@",
+        "Harf: %@ · Shift ile %@": "Letra: %@ · con Mayús %@",
+        "KeyMapper yazar: %@, Shift ya da Caps Lock ile %@. Erişilebilirlik izni gerekir.": "KeyMapper escribe %@, o %@ con Mayús o Bloq Mayús. Necesita el permiso de Accesibilidad.",
+        "Mac'in klavye düzeninde olmayan harfleri KeyMapper yazar; Shift ya da Caps Lock büyük harfi yazar.": "KeyMapper escribe las letras que no tiene la distribución de teclado del Mac; Mayús o Bloq Mayús escribe la mayúscula.",
+        "Tüm harf yerleri (%@) dolu.": "Los %@ huecos de letra están en uso.",
+        "Türkçe": "Turco",
+        "Kullanılan harf yerleri: %@ / %@": "Huecos de letra en uso: %@ / %@",
+        "%@ harfini kaldırır; ona atanmış tuşlar artık hiçbir şey yazmaz.": "Quita %@; las teclas asignadas a ella no escribirán nada.",
+        "Harfi kaldır: %@": "Quitar letra: %@",
+        "Harf kaldırıldı: %@": "Letra quitada: %@",
     ]
 }

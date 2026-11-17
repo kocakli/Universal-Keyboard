@@ -14,7 +14,7 @@
 2. 从“应用程序”文件夹打开 KeyMapper。它已签名并经过 Apple 公证，因此打开时不会出现安全警告。
 3. KeyMapper 常驻菜单栏（键盘图标），没有程序坞图标；从访达或 Spotlight 再次打开它会调出编辑器。
 
-首次连接 Bluetooth LE 键盘时，macOS 会请求**蓝牙**权限（仅用于读取其电量）；只有当你使用发送组合键或输入文本的操作时，才会请求**辅助功能**权限。显示 Claude 或 Cursor 的用量需要一次性的**钥匙串**授权，且只有在你点按**允许钥匙串访问**之后才会请求（参见[隐私](#带屏幕的键盘-leobog-amg65)）。
+首次连接 Bluetooth LE 键盘时，macOS 会请求**蓝牙**权限（仅用于读取其电量）；只有当你使用发送组合键或输入文本的操作或字母键时，才会请求**辅助功能**权限。显示 Claude 或 Cursor 的用量需要一次性的**钥匙串**授权，且只有在你点按**允许钥匙串访问**之后才会请求（参见[隐私](#带屏幕的键盘-leobog-amg65)）。
 
 如果想自行构建，请参见[安装](#安装)。
 
@@ -37,6 +37,7 @@
 - **导入 / 导出**：支持 Vial `.vil`（从 vial.rocks 保存的文件）、VIA `.json` 布局文件以及 KeyMapper 配置文件。
 - **Vial 解锁**：针对 `QK_BOOT` 等受保护按键的 Vial 解锁流程。
 - **操作**（类似 Logitech Options+ 中按 App 区分的设置）：可将按键设为打开 App、打开网址或文件、运行快捷指令、发送组合键或输入文本。同一个按键可以根据前台 App 执行不同的操作（例如在 Safari 中新建标签页，在 VS Code 中打开命令面板，在其他任何地方打开 Spotlight）。现成的快捷键覆盖约 30 款 App，包括 Claude（批准 / 拒绝）、ChatGPT、Terminal、iTerm2、Warp、Ghostty、Safari、Chrome、Brave、Arc、Firefox、Finder、Mail、Music、VS Code、Cursor、Xcode、Zoom、Teams、Slack、Discord、Notion、Obsidian、Word、Excel、PowerPoint、Photoshop、Final Cut Pro 和 Spotify。
+- **字母键**：让某个按键输入 Mac 键盘布局中没有的字母，例如土耳其语的 ç ğ ı İ ö ş ü，或 ñ、é 和 ß。按 Shift 或大写锁定输入大写字母（ı → I，i → İ）。参见[字母键](#字母键)。
 - **电量**：已连接键盘的电量会显示在菜单栏、边栏和编辑器顶部，电量在 20% 及以下时显示为红色。Apple 键盘的电量通过 macOS 读取，Bluetooth LE 键盘（例如 Cornix）则通过标准的蓝牙电池服务（Battery Service）读取，首次读取时会请求蓝牙权限。分体键盘显示两半中较低的电量。Keychron 的 raw HID 协议没有电量命令，因此通过 USB 连接的 Keychron 不显示电量。
 - **背光**：对于报告了背光、RGB 灯光或 RGB / LED 矩阵的 VIA / Vial 键盘，KeyMapper 会自动识别并提供**灯光**按钮，可调节效果、亮度、速度和颜色。尚未在实际硬件上测试。
 - **带屏幕的键盘**：参见[下文](#带屏幕的键盘-leobog-amg65)。
@@ -73,6 +74,14 @@ KeyMapper 可通过 USB 线缆或 2.4 GHz 接收器识别 LEOBOG AMG65，并在�
 键盘视图的右上角会显示**所有 App** 以及各个 App 的图标；点按 **+** 可添加 App。选中某个 App 后，每个按键都会显示它在该 App 中的功能。点按一个按键并选择该 App 的某个现成快捷键（例如 Photoshop 中的“撤销”、Chrome 中的“切换标签页”）或自定义操作，即可将该按键变为**智能按键**：触发键会写入固件（或 macOS 重映射），新功能在所选 App 中执行，而在其他所有 App 中，KeyMapper 会原样发送该按键之前的功能（字母、快捷键或音量 / 媒体键）。修饰键和层键必须能够按住，因此永远不会被转换为智能按键。
 
 权限：打开 App、网址和快捷指令**无需任何权限**。发送组合键和输入文本需要 macOS 的**辅助功能**权限；只有在使用此类操作时，KeyMapper 才会请求该权限。对于 ad-hoc 签名的构建，macOS 可能会在每次重新构建后重置此权限；如果出现这种情况，请在“系统设置 › 隐私与安全性 › 辅助功能”中移除 KeyMapper，然后重新添加。
+
+## 字母键
+
+U.S. 布局中没有能输入 ğ、ş、ö、ü 或 İ 的按键，而键盘只能发送按键，不能发送字母。对于这些字母，KeyMapper 会自己输入：
+
+1. 在键盘编辑器中选择一个按键，打开面板的**字母**标签页。选择一个字母（土耳其语在前，其后是其他语言），或输入任意其他字母并点按**分配**。已使用的字母列在该标签页底部；移除某个字母即可释放其位置。
+2. KeyMapper 会向该按键写入一个保留代码：带 ⌃⌥⌘ 或 ⌃⌥ 的 F13 或 F16–F20，共 12 个字母。键盘发送该代码时，KeyMapper 会将其丢弃，并在同一位置输入字母，因此快速打字时顺序不会乱。按 Shift 或大写锁定输入大写字母，按住该键会重复输入字母。
+3. 字母键需要**辅助功能**权限（缺少时，**字母**标签页会提供**授予权限**按钮），并且 KeyMapper 需要保持运行。它们仅适用于 VIA 和 Vial 键盘，因为 macOS 层面的重映射无法发送带修饰键的按键；在密码栏中它们不会输入任何内容，因为 macOS 会对其他 App 隐藏那里的按键。
 
 ## 安装
 
@@ -171,7 +180,7 @@ Sources/
     Profiles/           Profiles, .vil / VIA import-export, alphabet layouts
     OSRemap/            Per-device macOS remapping based on hidutil
     Brands/             Manufacturer (VID) database
-    Actions/            Trigger keys, action bindings and per-app presets
+    Actions/            Trigger keys, action bindings, letter keys and per-app presets
     Localization/       UI translations
     Lighting/           VIA / Vial backlight and RGB lighting
     ScreenKeyboards/    LEOBOG AMG65: protocol, uploads (IOUSBHost), key layout, LED matrix renderer

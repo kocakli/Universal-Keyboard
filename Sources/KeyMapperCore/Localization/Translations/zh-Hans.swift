@@ -978,5 +978,23 @@ extension L10n {
         "çalışıyor": "工作中",
         "İşaretli efektler bu klavyede denendi.": "带标记的效果已在此键盘上测试过。",
         "İşlev tuşları": "功能键",
+        // Letter keys
+        "%@ · Shift ile %@": "%@ · 按 Shift 为 %@",
+        "Başka bir harf": "其他字母",
+        "Bir harf yazın (en fazla 8 karakter).": "请输入一个字母（最多 8 个字符）。",
+        "Diğer diller": "其他语言",
+        "Erişilebilirlik izni olmadan harf tuşları hiçbir şey yazmaz.": "没有辅助功能权限时，字母键不会输入任何内容。",
+        "Harf tuşları her uygulamada aynı harfi yazar; akıllı tuşa çevrilemez.": "字母键在所有应用中输入相同的字母，无法设为智能键。",
+        "Harf tuşları yalnızca VIA ve Vial klavyelerde kullanılabilir.": "字母键仅适用于 VIA 和 Vial 键盘。",
+        "Harf: %@": "字母：%@",
+        "Harf: %@ · Shift ile %@": "字母：%@ · 按 Shift 为 %@",
+        "KeyMapper yazar: %@, Shift ya da Caps Lock ile %@. Erişilebilirlik izni gerekir.": "由 KeyMapper 输入 %@，按 Shift 或大写锁定时输入 %@。需要辅助功能权限。",
+        "Mac'in klavye düzeninde olmayan harfleri KeyMapper yazar; Shift ya da Caps Lock büyük harfi yazar.": "KeyMapper 会输入 Mac 键盘布局中没有的字母；按 Shift 或大写锁定输入大写字母。",
+        "Tüm harf yerleri (%@) dolu.": "全部 %@ 个字母位置都已使用。",
+        "Türkçe": "土耳其语",
+        "Kullanılan harf yerleri: %@ / %@": "已用字母位置：%@ / %@",
+        "%@ harfini kaldırır; ona atanmış tuşlar artık hiçbir şey yazmaz.": "移除 %@；分配给它的按键将不再输入任何内容。",
+        "Harfi kaldır: %@": "移除字母：%@",
+        "Harf kaldırıldı: %@": "已移除字母：%@",
     ]
 }

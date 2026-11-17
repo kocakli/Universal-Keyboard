@@ -2,13 +2,14 @@ import KeyMapperCore
 import SwiftUI
 
 enum PickerCategory: String, CaseIterable, Identifiable {
-    case basic, modifiers, navigation, numpad, media, mouse, layers, special, actions, international
+    case basic, letters, modifiers, navigation, numpad, media, mouse, layers, special, actions, international
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .basic: return L("Temel")
+        case .letters: return L("Harfler")
         case .modifiers: return L("Değiştirici")
         case .navigation: return L("Gezinme / F")
         case .numpad: return L("Numpad")
@@ -38,19 +39,27 @@ struct KeycodePicker: View {
     var details: [UInt16: String] = [:]
     /// Starts assigning a new action (open an app, URL, Shortcut, …) to the selected key.
     var onCreateAction: ((KeyAction.Kind) -> Void)?
+    /// Makes the selected key type a letter (ğ, ş, ñ…); the "Harfler" category is hidden without it.
+    var onLetter: ((String) -> Void)?
+    /// Letter keys type nothing without Accessibility; the palette then offers the system prompt.
+    var onGrantAccessibility: (() -> Void)?
+    /// Letters already given a slot; removing one frees its slot.
+    var assignedLetters: [LetterKey] = []
+    var onRemoveLetter: ((LetterKey) -> Void)?
     let onPick: (UInt16) -> Void
 
     @State private var category: PickerCategory = .basic
     @State private var search = ""
     /// Keycode under the pointer; its explanation is shown in the info strip right away.
     @State private var hovered: UInt16?
+    @State private var customLetter = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .center, spacing: 10) {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 4) {
-                        ForEach(categories) { item in
+                        ForEach(shownCategories) { item in
                             Button(item.title) { category = item; search = "" }
                                 .buttonStyle(PillButtonStyle(isOn: category == item && search.isEmpty, style: .inverted))
                         }
@@ -60,6 +69,20 @@ struct KeycodePicker: View {
                     .frame(width: 200)
             }
             if category == .actions, search.isEmpty, let onCreateAction { actionCreator(onCreateAction) }
+            if category == .letters, search.isEmpty, let onLetter {
+                letterPalette(onLetter)
+            } else {
+                codeGrid
+            }
+            infoStrip
+        }
+    }
+
+    private var shownCategories: [PickerCategory] {
+        categories.filter { $0 != .letters || onLetter != nil }
+    }
+
+    private var codeGrid: some View {
             ScrollView {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 56, maximum: 84), spacing: 8)], spacing: 8) {
                     ForEach(codes, id: \.self) { code in
@@ -85,7 +108,89 @@ struct KeycodePicker: View {
                 .padding(2)
             }
             .scrollIndicators(.automatic)
-            infoStrip
+    }
+
+    /// Letters KeyMapper types itself: Turkish first, then other languages, then any letter typed in.
+    private func letterPalette(_ pick: @escaping (String) -> Void) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(L("Mac'in klavye düzeninde olmayan harfleri KeyMapper yazar; Shift ya da Caps Lock büyük harfi yazar."))
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let onGrantAccessibility {
+                    HStack(spacing: 10) {
+                        Image(systemName: "hand.raised.fill").foregroundStyle(Theme.accent)
+                        Text(L("Erişilebilirlik izni olmadan harf tuşları hiçbir şey yazmaz."))
+                            .font(.system(size: 12))
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 8)
+                        Button(L("İzin ver"), action: onGrantAccessibility)
+                            .buttonStyle(SecondaryButtonStyle(height: 28))
+                    }
+                }
+                Text(L("Türkçe")).font(Theme.label).foregroundStyle(Theme.textSecondary)
+                letterGrid(LetterKeys.turkish, pick: pick)
+                Text(L("Diğer diller")).font(Theme.label).foregroundStyle(Theme.textSecondary)
+                letterGrid(LetterKeys.other, pick: pick)
+                HStack(spacing: 8) {
+                    TextField(L("Başka bir harf"), text: $customLetter)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 13))
+                        .padding(.horizontal, 12)
+                        .frame(width: 160, height: 32)
+                        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.ground))
+                        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.line, lineWidth: 1))
+                        .onSubmit { pickCustom(pick) }
+                    Button(L("Ata")) { pickCustom(pick) }
+                        .buttonStyle(SecondaryButtonStyle(height: 32))
+                        .disabled(LetterKey.sanitized(customLetter) == nil)
+                }
+                if !assignedLetters.isEmpty, let onRemoveLetter {
+                    Text(L("Kullanılan harf yerleri: %@ / %@", "\(assignedLetters.count)", "\(LetterKeys.slots.count)"))
+                        .font(Theme.label)
+                        .foregroundStyle(Theme.textSecondary)
+                    FlowLayout(spacing: 6) {
+                        ForEach(assignedLetters) { letter in
+                            Button {
+                                onRemoveLetter(letter)
+                            } label: {
+                                Label(letter.legend, systemImage: "xmark")
+                            }
+                            .buttonStyle(PillButtonStyle(isOn: false, height: 28))
+                            .help(L("%@ harfini kaldırır; ona atanmış tuşlar artık hiçbir şey yazmaz.", letter.legend))
+                            .accessibilityLabel(L("Harfi kaldır: %@", letter.legend))
+                        }
+                    }
+                }
+            }
+            .padding(2)
+        }
+    }
+
+    private func pickCustom(_ pick: (String) -> Void) {
+        guard let letter = LetterKey.sanitized(customLetter) else { return }
+        pick(letter)
+        customLetter = ""
+    }
+
+    private func letterGrid(_ letters: [String], pick: @escaping (String) -> Void) -> some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 56, maximum: 84), spacing: 8)], spacing: 8) {
+            ForEach(letters, id: \.self) { lower in
+                let upper = LetterKey.uppercase(lower)
+                Button {
+                    pick(lower)
+                } label: {
+                    Keycap(kind: .alpha, radius: 9, depth: 6) {
+                        KeyLegend(label: KeyLabel(top: upper == lower ? nil : upper, main: lower), unit: 50, kind: .alpha,
+                                  subColor: Theme.accent)
+                    }
+                    .frame(height: 50)
+                }
+                .buttonStyle(.plain)
+                .help(L("%@ · Shift ile %@", lower, upper))
+                .accessibilityLabel(L("Ata: %@", lower))
+            }
         }
     }
 
@@ -189,6 +294,8 @@ struct KeycodePicker: View {
         }
         switch category {
         case .basic: return group(.basic)
+        // Letters are not keycodes until one is assigned; they have their own palette.
+        case .letters: return []
         case .modifiers: return group(.modifiers)
         case .navigation: return group(.navigation, .function)
         case .numpad: return group(.numpad)

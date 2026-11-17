@@ -978,5 +978,23 @@ extension L10n {
         "çalışıyor": "working",
         "İşaretli efektler bu klavyede denendi.": "Marked effects have been tested on this keyboard.",
         "İşlev tuşları": "Function keys",
+        // Letter keys
+        "%@ · Shift ile %@": "%@ · with Shift %@",
+        "Başka bir harf": "Another letter",
+        "Bir harf yazın (en fazla 8 karakter).": "Type a letter (up to 8 characters).",
+        "Diğer diller": "Other languages",
+        "Erişilebilirlik izni olmadan harf tuşları hiçbir şey yazmaz.": "Without Accessibility permission, letter keys type nothing.",
+        "Harf tuşları her uygulamada aynı harfi yazar; akıllı tuşa çevrilemez.": "Letter keys type the same letter in every app; they can't become smart keys.",
+        "Harf tuşları yalnızca VIA ve Vial klavyelerde kullanılabilir.": "Letter keys work only on VIA and Vial keyboards.",
+        "Harf: %@": "Letter: %@",
+        "Harf: %@ · Shift ile %@": "Letter: %@ · with Shift %@",
+        "KeyMapper yazar: %@, Shift ya da Caps Lock ile %@. Erişilebilirlik izni gerekir.": "KeyMapper types %@, or %@ with Shift or Caps Lock. Needs Accessibility permission.",
+        "Mac'in klavye düzeninde olmayan harfleri KeyMapper yazar; Shift ya da Caps Lock büyük harfi yazar.": "KeyMapper types letters your Mac's keyboard layout doesn't have; Shift or Caps Lock types the capital.",
+        "Tüm harf yerleri (%@) dolu.": "All %@ letter slots are in use.",
+        "Türkçe": "Turkish",
+        "Kullanılan harf yerleri: %@ / %@": "Letter slots in use: %@ / %@",
+        "%@ harfini kaldırır; ona atanmış tuşlar artık hiçbir şey yazmaz.": "Removes %@; keys assigned to it will type nothing.",
+        "Harfi kaldır: %@": "Remove letter: %@",
+        "Harf kaldırıldı: %@": "Letter removed: %@",
     ]
 }

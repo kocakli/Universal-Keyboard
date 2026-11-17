@@ -14,7 +14,7 @@ Apple silicon işlemcili bir Mac ve macOS 15 ya da üstü gerekir.
 2. KeyMapper'ı Uygulamalar klasöründen açın. Apple tarafından imzalanmış ve onaylanmış (notarize) olduğu için güvenlik uyarısı olmadan açılır.
 3. KeyMapper menü çubuğunda (klavye simgesi) çalışır ve Dock'ta simgesi yoktur; Finder'dan ya da Spotlight'tan yeniden açtığınızda editör açılır.
 
-macOS, bir Bluetooth LE klavye ilk kez bağlandığında **Bluetooth** izni (yalnızca pil seviyesini okumak için kullanılır), yalnızca tuş kombinasyonu gönderen ya da metin yazan bir aksiyon kullandığınızda da **Erişilebilirlik** izni ister. Claude veya Cursor kullanımını göstermek için bir kerelik **Anahtar Zinciri** onayı gerekir; bu onay yalnızca **Anahtar Zinciri'ne izin ver** düğmesine tıkladıktan sonra istenir (bkz. [Gizlilik](#ekranlı-klavyeler-leobog-amg65)).
+macOS, bir Bluetooth LE klavye ilk kez bağlandığında **Bluetooth** izni (yalnızca pil seviyesini okumak için kullanılır), yalnızca tuş kombinasyonu gönderen ya da metin yazan bir aksiyon ya da bir harf tuşu kullandığınızda da **Erişilebilirlik** izni ister. Claude veya Cursor kullanımını göstermek için bir kerelik **Anahtar Zinciri** onayı gerekir; bu onay yalnızca **Anahtar Zinciri'ne izin ver** düğmesine tıkladıktan sonra istenir (bkz. [Gizlilik](#ekranlı-klavyeler-leobog-amg65)).
 
 Uygulamayı kendiniz derlemek isterseniz [Kurulum](#kurulum) bölümüne bakın.
 
@@ -37,6 +37,7 @@ Yöntem markaya göre değil, cihazın sunduğu arayüze göre seçilir: QMK raw
 - **İçe / dışa aktarma**: Vial `.vil` (vial.rocks'tan kaydedilen dosyalar), VIA `.json` layout dosyaları ve KeyMapper profilleri.
 - **Vial kilidini açma**: `QK_BOOT` gibi korumalı tuşlar için Vial'in kilit açma akışı.
 - **Aksiyonlar** (Logitech Options+'taki uygulamaya özel ayarlar gibi): bir tuşa uygulama açma, adres ya da dosya açma, kestirme çalıştırma, tuş kombinasyonu gönderme veya metin yazma görevi atayın. Aynı tuş, öndeki uygulamaya göre farklı işler yapabilir (ör. Safari'de yeni sekme, VS Code'da komut paleti, diğer her yerde Spotlight). Hazır kısayollar, aralarında Claude (onayla / reddet), ChatGPT, Terminal, iTerm2, Warp, Ghostty, Safari, Chrome, Brave, Arc, Firefox, Finder, Mail, Music, VS Code, Cursor, Xcode, Zoom, Teams, Slack, Discord, Notion, Obsidian, Word, Excel, PowerPoint, Photoshop, Final Cut Pro ve Spotify'ın da bulunduğu yaklaşık 30 uygulamayı kapsar.
+- **Harf tuşları**: Mac'in klavye düzeninde tuşu olmayan bir harfi, örneğin Türkçe ç ğ ı İ ö ş ü'yü ya da ñ, é ve ß'yi bir tuşa atayın. Shift ya da Caps Lock büyük harfi yazar (ı → I, i → İ). Bkz. [Harf tuşları](#harf-tuşları).
 - **Pil seviyesi**: bağlı klavyelerin şarjı menü çubuğunda, kenar çubuğunda ve editör başlığında görünür; %20 ve altında kırmızıyla gösterilir. Apple klavyeleri macOS üzerinden, Bluetooth LE klavyeler (ör. Cornix) ise standart Bluetooth Battery Service üzerinden okunur; bu, ilk seferde Bluetooth izni ister. Split klavyelerde şarjı daha düşük olan yarı gösterilir. Keychron'un raw HID protokolünde pil komutu olmadığından USB ile bağlı bir Keychron'da pil seviyesi görünmez.
 - **Arka ışık**: arka ışık, RGB ışık ya da RGB / LED matris bildiren VIA / Vial klavyelerde efekt, parlaklık, hız ve renk ayarlarını içeren bir **Işıklar** düğmesi çıkar; ışık desteği otomatik olarak algılanır. Henüz donanımda denenmedi.
 - **Ekranlı klavyeler**: [aşağıya](#ekranlı-klavyeler-leobog-amg65) bakın.
@@ -73,6 +74,14 @@ KeyMapper, LEOBOG AMG65'i USB kablosu ya da 2.4 GHz alıcısı üzerinden algıl
 Klavye görünümünün sağ üstünde **Tüm uygulamalar** ve uygulama simgeleri yer alır; **+** ile uygulama ekleyin. Bir uygulama seçiliyken her tuş, o uygulamada ne yaptığını gösterir. Bir tuşa tıklayıp o uygulamanın hazır kısayollarından birini (ör. Photoshop'ta Geri al, Chrome'da Sekme değiştir) ya da özel bir aksiyonu seçtiğinizde tuş bir **akıllı tuş** hâline gelir: firmware'e (ya da macOS eşlemesine) bir tetik tuşu yazılır, yeni işlev seçili uygulamada çalışır, diğer tüm uygulamalarda ise KeyMapper tuşun önceki işlevini (bir harf, bir kısayol ya da bir ses/medya tuşu) olduğu gibi gönderir. Değiştirici ve katman tuşlarının basılı tutulabilmesi gerektiği için bunlar hiçbir zaman akıllı tuşa çevrilmez.
 
 İzinler: uygulama ve adres açmak ya da kestirme çalıştırmak **izin gerektirmez**. Tuş kombinasyonu göndermek ve metin yazmak macOS'un **Erişilebilirlik** iznini gerektirir; KeyMapper bu izni yalnızca böyle bir aksiyon kullanıldığında ister. Ad-hoc imzalı derlemelerde macOS bu izni her yeniden derlemeden sonra sıfırlayabilir; böyle olursa KeyMapper'ı Sistem Ayarları › Gizlilik ve Güvenlik › Erişilebilirlik'ten kaldırıp yeniden ekleyin.
+
+## Harf tuşları
+
+U.S. düzeninde ğ, ş, ö, ü ve İ'yi yazan bir tuş yoktur; klavye de harf değil, yalnızca tuş gönderebilir. Bu harfleri KeyMapper kendisi yazar:
+
+1. Klavye editöründe bir tuş seçin ve paletin **Harfler** sekmesini açın. Bir harf seçin (önce Türkçe, sonra diğer diller) ya da başka bir harf yazıp **Ata**'ya tıklayın. Kullanılan harfler sekmenin altında listelenir; birini kaldırmak yerini boşaltır.
+2. KeyMapper tuşa ayrılmış bir kod yazar: ⌃⌥⌘ ya da ⌃⌥ ile F13 veya F16–F20; toplam 12 harf. Klavye bu kodu gönderdiğinde KeyMapper onu yutar ve harfi aynı noktada yazar; böylece hızlı yazarken harflerin sırası bozulmaz. Shift ya da Caps Lock büyük harfi yazar, tuşu basılı tutmak harfi tekrarlar.
+3. Harf tuşları için **Erişilebilirlik** izni (eksikse **Harfler** sekmesinde **İzin ver** düğmesi çıkar) ve KeyMapper'ın açık olması gerekir. Yalnızca VIA ve Vial klavyelerde çalışırlar, çünkü macOS düzeyindeki eşleme değiştiricili bir tuş gönderemez. macOS'un tuş vuruşlarını diğer uygulamalardan gizlediği parola alanlarında hiçbir şey yazmazlar.
 
 ## Kurulum
 
@@ -171,7 +180,7 @@ Sources/
     Profiles/           Profiles, .vil / VIA import-export, alphabet layouts
     OSRemap/            Per-device macOS remapping based on hidutil
     Brands/             Manufacturer (VID) database
-    Actions/            Trigger keys, action bindings and per-app presets
+    Actions/            Trigger keys, action bindings, letter keys and per-app presets
     Localization/       UI translations
     Lighting/           VIA / Vial backlight and RGB lighting
     ScreenKeyboards/    LEOBOG AMG65: protocol, uploads (IOUSBHost), key layout, LED matrix renderer

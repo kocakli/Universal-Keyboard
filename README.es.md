@@ -14,7 +14,7 @@ Requiere un Mac con Apple silicon y macOS 15 o posterior.
 2. Abre KeyMapper desde Aplicaciones. Está firmado y notarizado por Apple, así que se abre sin ningún aviso de seguridad.
 3. KeyMapper vive en la barra de menús (icono de teclado) y no tiene icono en el Dock; si vuelves a abrirlo desde el Finder o Spotlight, aparece el editor.
 
-macOS pide permiso de **Bluetooth** la primera vez que se conecta un teclado Bluetooth LE (solo se usa para leer su nivel de batería) y de **Accesibilidad** solo cuando usas una acción que envía una combinación de teclas o escribe texto. Para mostrar el uso de Claude o Cursor hay que aprobar una única vez el acceso al **Llavero**, y solo se solicita después de que hagas clic en **Permitir acceso al llavero** (consulta [Privacidad](#teclados-con-pantalla-leobog-amg65)).
+macOS pide permiso de **Bluetooth** la primera vez que se conecta un teclado Bluetooth LE (solo se usa para leer su nivel de batería) y de **Accesibilidad** solo cuando usas una acción que envía una combinación de teclas o escribe texto, o una tecla de letra. Para mostrar el uso de Claude o Cursor hay que aprobar una única vez el acceso al **Llavero**, y solo se solicita después de que hagas clic en **Permitir acceso al llavero** (consulta [Privacidad](#teclados-con-pantalla-leobog-amg65)).
 
 Si prefieres compilarlo tú mismo, consulta [Instalación](#instalación).
 
@@ -37,6 +37,7 @@ El método se elige según la interfaz que expone el dispositivo, no según su m
 - **Importar / exportar**: `.vil` de Vial (archivos guardados desde vial.rocks), archivos de distribución `.json` de VIA y perfiles de KeyMapper.
 - **Desbloqueo de Vial**: el proceso de desbloqueo de Vial para teclas protegidas como `QK_BOOT`.
 - **Acciones** (como los ajustes por app de Logitech Options+): haz que una tecla abra una app, abra una URL o un archivo, ejecute un Atajo, envíe una combinación de teclas o escriba texto. La misma tecla puede hacer cosas distintas según la app que esté en primer plano (p. ej., una pestaña nueva en Safari, la paleta de comandos en VS Code y Spotlight en cualquier otro sitio). Los atajos predefinidos cubren unas 30 apps, entre ellas Claude (aprobar / denegar), ChatGPT, Terminal, iTerm2, Warp, Ghostty, Safari, Chrome, Brave, Arc, Firefox, Finder, Mail, Music, VS Code, Cursor, Xcode, Zoom, Teams, Slack, Discord, Notion, Obsidian, Word, Excel, PowerPoint, Photoshop, Final Cut Pro y Spotify.
+- **Teclas de letra**: haz que una tecla escriba una letra que la distribución de teclado del Mac no tiene, como las turcas ç ğ ı İ ö ş ü, o ñ, é y ß. Mayús o Bloq Mayús escribe la mayúscula (ı → I, i → İ). Consulta [Teclas de letra](#teclas-de-letra).
 - **Nivel de batería**: la carga de los teclados conectados aparece en la barra de menús, en la barra lateral y en la cabecera del editor, en rojo al 20 % o menos. Los teclados de Apple se leen a través de macOS, y los Bluetooth LE (p. ej., el Cornix), mediante el Battery Service estándar de Bluetooth, que pide permiso de Bluetooth la primera vez. En los teclados partidos se muestra la mitad con menos batería. El protocolo raw HID de Keychron no tiene ningún comando de batería, así que un Keychron conectado por USB no muestra la batería.
 - **Retroiluminación**: los teclados VIA / Vial que informan de retroiluminación, luz RGB o matriz RGB / LED reciben un botón **Iluminación** con efecto, brillo, velocidad y color, detectados automáticamente. Aún no se ha probado en hardware.
 - **Teclados con pantalla**: consulta [más abajo](#teclados-con-pantalla-leobog-amg65).
@@ -73,6 +74,14 @@ KeyMapper detecta el LEOBOG AMG65 por su cable USB o por su receptor de 2,4 GHz 
 En la parte superior derecha de la vista del teclado aparecen **Todas las apps** y los iconos de las apps; añade una app con **+**. Con una app seleccionada, cada tecla muestra lo que hace en esa app. Si haces clic en una tecla y eliges uno de los atajos predefinidos de esa app (p. ej., Deshacer en Photoshop o Cambiar de pestaña en Chrome) o una acción personalizada, la tecla se convierte en una **tecla inteligente**: se escribe una tecla de activación en el firmware (o en la reasignación de macOS), la nueva función se ejecuta en la app seleccionada y, en todas las demás apps, KeyMapper envía sin cambios la función anterior de la tecla (una letra, un atajo o una tecla de volumen/multimedia). Las teclas modificadoras y de capa deben poder mantenerse pulsadas, así que nunca se convierten en teclas inteligentes.
 
 Permisos: abrir apps, URL y Atajos **no requiere ningún permiso**. Enviar combinaciones de teclas y escribir texto requiere el permiso de **Accesibilidad** de macOS; KeyMapper lo pide solo cuando se usa una acción de ese tipo. Con compilaciones firmadas ad hoc, macOS puede restablecer este permiso tras cada recompilación; si ocurre, quita KeyMapper en Ajustes del Sistema › Privacidad y seguridad › Accesibilidad y vuelve a añadirlo.
+
+## Teclas de letra
+
+En la distribución U.S. ninguna tecla escribe ğ, ş, ö, ü ni İ, y un teclado solo puede enviar teclas, no letras. Para esas letras, KeyMapper escribe la letra por sí mismo:
+
+1. En el editor del teclado, selecciona una tecla y abre la pestaña **Letras** de la paleta. Elige una letra (primero las turcas, luego las de otros idiomas) o escribe cualquier otra y haz clic en **Asignar**. Las letras en uso aparecen al final de la pestaña; quitar una libera su hueco.
+2. KeyMapper escribe en la tecla un código reservado: F13 o F16–F20 con ⌃⌥⌘ o ⌃⌥, 12 letras en total. Cuando el teclado envía ese código, KeyMapper lo descarta y escribe la letra en el mismo punto, así que al escribir rápido se mantiene el orden. Mayús o Bloq Mayús escribe la mayúscula, y mantener pulsada la tecla repite la letra.
+3. Las teclas de letra necesitan el permiso de **Accesibilidad** (si falta, la pestaña **Letras** ofrece **Dar permiso**) y que KeyMapper esté abierto. Solo funcionan en teclados VIA y Vial, porque la reasignación a nivel de macOS no puede enviar una tecla con modificadores, y no escriben nada en los campos de contraseña, donde macOS oculta las pulsaciones a otras apps.
 
 ## Instalación
 
@@ -171,7 +180,7 @@ Sources/
     Profiles/           Profiles, .vil / VIA import-export, alphabet layouts
     OSRemap/            Per-device macOS remapping based on hidutil
     Brands/             Manufacturer (VID) database
-    Actions/            Trigger keys, action bindings and per-app presets
+    Actions/            Trigger keys, action bindings, letter keys and per-app presets
     Localization/       UI translations
     Lighting/           VIA / Vial backlight and RGB lighting
     ScreenKeyboards/    LEOBOG AMG65: protocol, uploads (IOUSBHost), key layout, LED matrix renderer

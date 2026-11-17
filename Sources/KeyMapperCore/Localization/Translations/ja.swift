@@ -978,5 +978,23 @@ extension L10n {
         "çalışıyor": "実行中",
         "İşaretli efektler bu klavyede denendi.": "マークの付いたエフェクトはこのキーボードで確認済みです。",
         "İşlev tuşları": "ファンクションキー",
+        // Letter keys
+        "%@ · Shift ile %@": "%@・Shift で %@",
+        "Başka bir harf": "ほかの文字",
+        "Bir harf yazın (en fazla 8 karakter).": "文字を入力してください（8 文字まで）。",
+        "Diğer diller": "ほかの言語",
+        "Erişilebilirlik izni olmadan harf tuşları hiçbir şey yazmaz.": "アクセシビリティの許可がないと、文字キーは何も入力しません。",
+        "Harf tuşları her uygulamada aynı harfi yazar; akıllı tuşa çevrilemez.": "文字キーはどのアプリでも同じ文字を入力するため、スマートキーにはできません。",
+        "Harf tuşları yalnızca VIA ve Vial klavyelerde kullanılabilir.": "文字キーは VIA と Vial のキーボードでのみ使えます。",
+        "Harf: %@": "文字: %@",
+        "Harf: %@ · Shift ile %@": "文字: %@・Shift で %@",
+        "KeyMapper yazar: %@, Shift ya da Caps Lock ile %@. Erişilebilirlik izni gerekir.": "KeyMapper が %@ を入力します（Shift または Caps Lock で %@）。アクセシビリティの許可が必要です。",
+        "Mac'in klavye düzeninde olmayan harfleri KeyMapper yazar; Shift ya da Caps Lock büyük harfi yazar.": "Mac のキーボード配列にない文字を KeyMapper が入力します。Shift または Caps Lock で大文字になります。",
+        "Tüm harf yerleri (%@) dolu.": "%@ 個の文字枠はすべて使用中です。",
+        "Türkçe": "トルコ語",
+        "Kullanılan harf yerleri: %@ / %@": "使用中の文字枠: %@ / %@",
+        "%@ harfini kaldırır; ona atanmış tuşlar artık hiçbir şey yazmaz.": "%@ を削除します。割り当て済みのキーは何も入力しなくなります。",
+        "Harfi kaldır: %@": "文字を削除: %@",
+        "Harf kaldırıldı: %@": "文字を削除しました: %@",
     ]
 }
