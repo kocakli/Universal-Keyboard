@@ -5,9 +5,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 APP="build/KeyMapper.app"
-VERSION="0.2.0"
+VERSION="0.3.0"
 # Raise with every release so macOS and the About window can tell builds apart.
-BUILD="2"
+BUILD="3"
 
 swift build -c release --product KeyMapper
 swift build -c release --product kmctl
