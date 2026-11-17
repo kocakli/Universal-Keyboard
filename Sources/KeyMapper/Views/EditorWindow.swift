@@ -433,7 +433,9 @@ private struct FirmwareEditor: View {
                     Panel {
                         KeycodePicker(keycodes: state.keycodes, layerCount: state.layerCount, categories: PickerCategory.allCases,
                                       annotations: model.actionNamesByUsage, details: model.actionDetailsByUsage,
-                                      onCreateAction: startAction) { assign($0) }
+                                      onCreateAction: startAction, onLetter: assignLetter,
+                                      onGrantAccessibility: model.accessibilityTrusted ? nil : { ActionPerformer.requestAccessibility() },
+                                      assignedLetters: model.letterKeys, onRemoveLetter: { model.removeLetter($0) }) { assign($0) }
                             // Stays hoverable without a selection so descriptions can be read first.
                             .opacity(selection == nil ? 0.6 : 1)
                     }
@@ -616,7 +618,10 @@ private struct FirmwareEditor: View {
                     VStack(alignment: .leading, spacing: 3) {
                         if let selection, let code = currentCode {
                             Eyebrow(text: L("Seçili tuş · %@", "\(describe(selection))"))
-                            if let binding = model.binding(forUsage: code) {
+                            if let letter = model.letterKey(forCode: code, keycodes: state.keycodes) {
+                                Text(L("Harf: %@", letter.legend)).font(.system(size: 17, weight: .semibold)).lineLimit(2)
+                                Text(state.keycodes.name(for: code)).font(Theme.mono(12)).foregroundStyle(Theme.textTertiary).textSelection(.enabled)
+                            } else if let binding = model.binding(forUsage: code) {
                                 Text(binding.defaultAction?.summary ?? binding.name).font(.system(size: 17, weight: .semibold)).lineLimit(2)
                                 Button(L("Aksiyonu düzenle"), action: editAction)
                                     .buttonStyle(SecondaryButtonStyle(height: 26))
@@ -633,7 +638,8 @@ private struct FirmwareEditor: View {
                 }
 
                 if let code = currentCode {
-                    Text(model.actionDetailsByUsage[code] ?? state.keycodes.explanation(for: code))
+                    Text(model.letterKey(forCode: code, keycodes: state.keycodes).map(model.letterDetail)
+                         ?? model.actionDetailsByUsage[code] ?? state.keycodes.explanation(for: code))
                         .font(.system(size: 12))
                         .foregroundStyle(Theme.textSecondary)
                         .lineLimit(2)
@@ -744,6 +750,19 @@ private struct FirmwareEditor: View {
         Task { await model.assign(code, device: device, layer: layer, slot: selection) }
     }
 
+    private func assignLetter(_ letter: String) {
+        guard let selection else {
+            model.errorMessage = L("Klavyeden bir tuş seçin")
+            return
+        }
+        let keycodes = state.keycodes
+        Task {
+            if let code = await model.assignLetter(letter, device: device, layer: layer, slot: selection) {
+                expression = keycodes.name(for: code)
+            }
+        }
+    }
+
     private func subColor(for code: UInt16) -> Color {
         if case .layerTap = state.keycodes.decode(code) { return Theme.layerText }
         return Theme.accent
@@ -772,6 +791,7 @@ private struct FirmwareEditor: View {
             return KeyCapModel(label: KeyLabel(main: ""), kind: .empty)
         }
         if let app { return model.appCap(code: code, app: app, keycodes: state.keycodes) }
+        if let letterCap = model.letterCap(code: code, keycodes: state.keycodes) { return letterCap }
         if let actionCap = model.actionCap(code: code) { return actionCap }
         var label = state.keycodes.label(for: code)
         if let action = model.actionNamesByUsage[code] { label.sub = action }

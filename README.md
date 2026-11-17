@@ -14,7 +14,7 @@ Requires a Mac with Apple silicon and macOS 15 or later.
 2. Open KeyMapper from Applications. It is signed and notarized by Apple, so it opens without a security warning.
 3. KeyMapper lives in the menu bar (keyboard icon) and has no Dock icon; opening it again from Finder or Spotlight brings up the editor.
 
-macOS asks for **Bluetooth** permission the first time a Bluetooth LE keyboard is connected (used only to read its battery level) and for **Accessibility** only when you use an action that sends a key combination or types text. Showing Claude or Cursor usage needs a one-time **Keychain** approval, asked only after you click **Allow Keychain access** (see [Privacy](#keyboards-with-a-screen-leobog-amg65)).
+macOS asks for **Bluetooth** permission the first time a Bluetooth LE keyboard is connected (used only to read its battery level) and for **Accessibility** only when you use an action that sends a key combination or types text, or a letter key. Showing Claude or Cursor usage needs a one-time **Keychain** approval, asked only after you click **Allow Keychain access** (see [Privacy](#keyboards-with-a-screen-leobog-amg65)).
 
 To build it yourself instead, see [Installation](#installation).
 
@@ -36,7 +36,8 @@ The method is chosen from the interface the device exposes, not from its brand: 
 - **Profiles**: save the current layout as a profile and restore it from the menu bar. Only the keys that differ are written.
 - **Import / export**: Vial `.vil` (files saved from vial.rocks), VIA `.json` layout files and KeyMapper profiles.
 - **Vial unlock**: the Vial unlock flow for protected keys such as `QK_BOOT`.
-- **Actions** (like the per-app settings in Logitech Options+): assign a key to open an app, open a URL or file, run a Shortcut, send a key combination or type text. The same key can do different things depending on the frontmost app (e.g. a new tab in Safari, the command palette in VS Code, Spotlight everywhere else). Ready-made shortcuts cover about 30 apps, including Claude (approve / deny), ChatGPT, Terminal, iTerm2, Warp, Ghostty, Safari, Chrome, Brave, Arc, Firefox, Finder, Mail, Music, VS Code, Cursor, Xcode, Zoom, Teams, Slack, Discord, Notion, Obsidian, Word, Excel, PowerPoint, Photoshop, Final Cut Pro and Spotify.
+- **Actions** (like the per-app settings in Logitech Options+): assign a key to open an app, open a URL or file, run a Shortcut, send a key combination or type text. The same key can do different things depending on the frontmost app (e.g. a new tab in Safari, the command palette in VS Code, Spotlight everywhere else). Ready-made shortcuts cover about 30 apps, including Claude (approve / deny), ChatGPT, Terminal, iTerm2, Warp, Ghostty, Safari, Chrome, Brave, Arc, Firefox, Finder, Mail, Music, VS Code, Cursor, Xcode, Zoom, Teams, Slack, Discord, Notion, Obsidian, Word, Excel, PowerPoint, Photoshop, Final Cut Pro and Spotify. A shortcut such as ⌥0 can start an action too, from any keyboard.
+- **Letter keys**: make a key type a letter your Mac's keyboard layout has no key for, such as Turkish ç ğ ı İ ö ş ü, or ñ, é and ß. Shift or Caps Lock types the capital (ı → I, i → İ). See [Letter keys](#letter-keys).
 - **Battery level**: the charge of connected keyboards appears in the menu bar, the sidebar and the editor header, in red at 20 % and below. Apple keyboards are read through macOS, Bluetooth LE keyboards (e.g. the Cornix) through the standard Bluetooth Battery Service, which asks for Bluetooth permission the first time. Split keyboards show the lower half. Keychron's raw HID protocol has no battery command, so a Keychron connected over USB shows no battery.
 - **Backlight**: VIA / Vial keyboards that report a backlight, RGB light or RGB / LED matrix get a **Lighting** button with effect, brightness, speed and colour, detected automatically. Not yet tried on hardware.
 - **Keyboards with a screen**: see [below](#keyboards-with-a-screen-leobog-amg65).
@@ -67,12 +68,21 @@ KeyMapper detects the LEOBOG AMG65 over its USB cable or its 2.4 GHz receiver an
 1. Every action uses a trigger key: F16–F20 first, then F13, and F14/F15 last (macOS uses F14/F15 for screen brightness). Regular keyboards don't have these keys, so they don't clash with anything.
 2. In the keyboard editor, select a key and pick **Open app**, **Open URL / file**, **Run Shortcut**, **Send key combination**, **Type text** or **Media / system key** directly from the palette's **Apps & actions** tab. KeyMapper reserves a free trigger key, binds the action to it and writes it to the key (to firmware on VIA/Vial, as a macOS remap on other keyboards). Keys that open an app show the app's icon; change a key's action with **Edit action** on the selected key's card.
 3. KeyMapper catches the trigger key through the macOS global hotkey API (Carbon `RegisterEventHotKey`), so the key never reaches the frontmost app. If the frontmost app has a rule, that rule runs; otherwise the default action runs.
+4. An action can also start from a shortcut pressed on any keyboard, for example ⌥0 for **Volume −** and ⌥9 for **Volume +**. In **Actions**, click the action's trigger key, choose **Record shortcut…** and press the shortcut. It needs ⌘, ⌥ or ⌃, and the frontmost app no longer receives it (⌥0 stops typing º). Holding a volume or brightness shortcut keeps stepping, like the real keys. Nothing is written to the keyboard, so it also works on the Magic Keyboard; KeyMapper has to be running.
 
 ### App tabs (like Logi Options+)
 
 The top right of the keyboard view shows **All apps** and app icons; add an app with **+**. With an app selected, each key shows what it does in that app. Clicking a key and choosing one of that app's ready-made shortcuts (e.g. Undo in Photoshop, Switch tab in Chrome) or a custom action turns the key into a **smart key**: a trigger key is written to firmware (or to the macOS remap), the new function runs in the selected app, and in every other app KeyMapper sends the key's previous function unchanged (a letter, a shortcut or a volume/media key). Modifier and layer keys must stay holdable, so they are never turned into smart keys.
 
 Permissions: opening apps, URLs and Shortcuts **needs no permission**. Sending key combinations and typing text needs the macOS **Accessibility** permission; KeyMapper asks for it only when such an action is used. With ad-hoc signed builds macOS may reset this permission after every rebuild; if that happens, remove KeyMapper in System Settings › Privacy & Security › Accessibility and add it again.
+
+## Letter keys
+
+On the U.S. layout no key types ğ, ş, ö, ü or İ, and a keyboard can only send keys, not letters. For such letters KeyMapper types the letter itself:
+
+1. In the keyboard editor, select a key and open the palette's **Letters** tab. Pick a letter (Turkish first, then other languages), or type any other one and click **Assign**. Letters in use are listed at the bottom of the tab; removing one frees its slot.
+2. KeyMapper writes a reserved code to the key: F13 or F16–F20 with ⌃⌥⌘ or ⌃⌥, 12 letters in all. When the keyboard sends that code, KeyMapper drops it and types the letter at the same point, so fast typing keeps its order. Shift or Caps Lock types the capital, and holding the key repeats the letter.
+3. Letter keys need the **Accessibility** permission (the **Letters** tab offers **Grant permission** when it is missing) and KeyMapper running. They work on VIA and Vial keyboards only, since macOS-level remapping can't send a key with modifiers, and they type nothing in password fields, where macOS hides keystrokes from other apps.
 
 ## Installation
 
@@ -171,7 +181,7 @@ Sources/
     Profiles/           Profiles, .vil / VIA import-export, alphabet layouts
     OSRemap/            Per-device macOS remapping based on hidutil
     Brands/             Manufacturer (VID) database
-    Actions/            Trigger keys, action bindings and per-app presets
+    Actions/            Trigger keys, action bindings, letter keys and per-app presets
     Localization/       UI translations
     Lighting/           VIA / Vial backlight and RGB lighting
     ScreenKeyboards/    LEOBOG AMG65: protocol, uploads (IOUSBHost), key layout, LED matrix renderer

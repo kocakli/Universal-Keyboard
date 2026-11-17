@@ -19,6 +19,14 @@ public enum SystemKey: String, Codable, CaseIterable, Sendable, Identifiable {
         }
     }
 
+    /// Volume and brightness keep stepping while their trigger is held, like the real keys.
+    public var repeatsWhileHeld: Bool {
+        switch self {
+        case .volumeUp, .volumeDown, .brightnessUp, .brightnessDown: return true
+        case .mute, .playPause, .next, .previous: return false
+        }
+    }
+
     /// NX_KEYTYPE_* value used in system-defined events.
     public var nxKeyType: Int32 {
         switch self {
@@ -74,6 +82,9 @@ public enum MacKeyCodes {
 public enum SmartKeys {
     /// Why a key cannot become a smart key, or nil when it can.
     public static func refusal(for code: UInt16, keycodes: KeycodeSet) -> String? {
+        if LetterKeys.slot(forCode: code, keycodes: keycodes) != nil {
+            return L("Harf tuşları her uygulamada aynı harfi yazar; akıllı tuşa çevrilemez.")
+        }
         if TriggerKey.forUsage(code) != nil { return nil }
         switch keycodes.decode(code) {
         case .named(0x00), .named(0x01): return nil

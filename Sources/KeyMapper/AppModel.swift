@@ -88,6 +88,11 @@ final class AppModel {
     var extraAppTabs: [String: [AppChoice]] = AppModel.loadExtraAppTabs()
     var accessibilityTrusted = ActionPerformer.isAccessibilityTrusted
     @ObservationIgnored let hotKeys = HotKeyCenter()
+    /// Repeats a volume / brightness action while its trigger is held.
+    @ObservationIgnored var actionRepeat: Timer?
+    /// Letters KeyMapper types itself (ğ, ş, ñ…) and the event tap that types them.
+    var letterKeys: [LetterKey] = []
+    @ObservationIgnored let letterTap = LetterKeyTap()
 
     @ObservationIgnored private(set) var sessions: [String: KeyboardSession] = [:]
     @ObservationIgnored private var loadTasks: [String: Task<Void, Never>] = [:]

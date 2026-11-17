@@ -5,6 +5,8 @@ import SwiftUI
 struct ActionsView: View {
     @Environment(AppModel.self) private var model
     @State private var editing: EditTarget?
+    /// All F-keys are taken: a new action starts from a recorded shortcut.
+    @State private var recordingNew = false
 
     /// Which action is being edited in the sheet.
     struct EditTarget: Identifiable {
@@ -63,12 +65,14 @@ struct ActionsView: View {
             .toggleStyle(.switch)
             .tint(Theme.accent)
             Button {
-                model.addBinding()
+                if ActionStore.nextFreeTrigger(in: model.bindings) == nil { recordingNew = true } else { model.addBinding() }
             } label: {
                 Label(L("Yeni aksiyon"), systemImage: "plus")
             }
             .buttonStyle(PrimaryButtonStyle())
-            .disabled(ActionStore.nextFreeTrigger(in: model.bindings) == nil)
+        }
+        .sheet(isPresented: $recordingNew) {
+            TriggerRecorderSheet(binding: nil) { recordingNew = false }
         }
     }
 
@@ -92,7 +96,7 @@ struct ActionsView: View {
 
     private var howTo: some View {
         HStack(alignment: .top, spacing: 18) {
-            step("1", L("Tetik tuşu"), L("Her aksiyon F16–F20 veya F13 gibi normal klavyelerde olmayan bir tuşu kullanır; KeyMapper bu tuşu yakalar, öndeki uygulama görmez."))
+            step("1", L("Tetik tuşu"), L("Her aksiyon F16–F20 veya F13 gibi normal klavyelerde olmayan bir tuşu ya da ⌥0 gibi bir kısayolu kullanır; KeyMapper onu yakalar, öndeki uygulama görmez."))
             step("2", L("Klavyeye ata"), L("Klavye editöründe bir tuş seçip paletin \"Uygulama ve aksiyon\" sekmesinden aksiyonu doğrudan atayın; tetik tuşunu KeyMapper ayarlar (VIA/Vial'de firmware'e, diğer klavyelerde macOS eşlemesi olarak)."))
             step("3", L("Uygulamaya göre"), L("Varsayılan işlemi ve belirli uygulamalar öndeyken çalışacak farklı işlemleri seçin."))
         }
@@ -142,6 +146,7 @@ private struct BindingCard: View {
     let binding: ActionBinding
     let edit: (ActionsView.EditTarget) -> Void
     @State private var name = ""
+    @State private var recordingTrigger = false
 
     var body: some View {
         Panel {
@@ -196,6 +201,9 @@ private struct BindingCard: View {
             }
         }
         .onAppear { name = binding.name }
+        .sheet(isPresented: $recordingTrigger) {
+            TriggerRecorderSheet(binding: binding) { recordingTrigger = false }
+        }
     }
 
     private func rename() {
@@ -215,10 +223,13 @@ private struct BindingCard: View {
                 }
                 .disabled(inUse)
             }
+            Divider()
+            Button(L("Kısayol kaydet…")) { recordingTrigger = true }
         } label: {
             Keycap(kind: .layer, isSelected: false, radius: 12, depth: 8) {
                 VStack(spacing: 1) {
                     Text(binding.trigger.display).font(Theme.rounded(15)).foregroundStyle(Theme.layerText)
+                        .lineLimit(1).minimumScaleFactor(0.5).padding(.horizontal, 4)
                     Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold)).foregroundStyle(Theme.textTertiary)
                 }
             }
@@ -331,6 +342,7 @@ private struct GlobeBadge: View {
 // MARK: - Action editor
 
 struct ActionEditorSheet: View {
+    @Environment(AppModel.self) private var model
     let target: ActionsView.EditTarget
     let save: (KeyAction?) -> Void
     let cancel: () -> Void
@@ -399,7 +411,7 @@ struct ActionEditorSheet: View {
                     .keyboardShortcut(.cancelAction)
                 Button(L("Kaydet")) { save(currentAction) }
                     .buttonStyle(PrimaryButtonStyle())
-                    .disabled(currentAction == nil)
+                    .disabled(currentAction == nil || sentTrigger != nil)
             }
         }
         .padding(22)
@@ -477,10 +489,21 @@ struct ActionEditorSheet: View {
                 }
                 .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
             }
-            Text(L("Kaydet'e tıklayıp göndermek istediğiniz kısayola basın (ör. ⌘⇧P)."))
-                .font(.system(size: 12))
-                .foregroundStyle(Theme.textSecondary)
+            if let sentTrigger {
+                Text(L("%@ bir aksiyonun tetiği; gönderilemez.", sentTrigger.display))
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.error)
+            } else {
+                Text(L("Kaydet'e tıklayıp göndermek istediğiniz kısayola basın (ör. ⌘⇧P)."))
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.textSecondary)
+            }
         }
+    }
+
+    /// Sending an action's trigger would start that action again.
+    private var sentTrigger: KeyCombo? {
+        currentAction.flatMap { TriggerRules.sentTrigger($0, triggers: model.bindings.map(\.trigger)) }
     }
 
     private func field(_ prompt: String, text: Binding<String>) -> some View {
@@ -518,6 +541,61 @@ struct ActionEditorSheet: View {
         case let .typeText(value): text = value
         case let .systemKey(value): systemKey = value
         }
+    }
+}
+
+/// Records a shortcut such as ⌥0 as an action's trigger, or as the trigger of a new action.
+struct TriggerRecorderSheet: View {
+    @Environment(AppModel.self) private var model
+    /// nil: the trigger of a new action.
+    let binding: ActionBinding?
+    let done: () -> Void
+    @State private var combo: KeyCombo?
+
+    private var refusal: String? {
+        guard let combo else { return nil }
+        let others = model.bindings.filter { $0.id != binding?.id }.map(\.trigger)
+        return TriggerRules.refusal(for: combo, others: others, sent: model.bindings.flatMap(\.sentKeystrokes))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(L("Kısayol tetiği")).font(.system(size: 18, weight: .semibold))
+            Text(L("Kutuya tıklayıp aksiyonu başlatacak kısayola basın (ör. ⌥0). Her klavyede çalışır; KeyMapper kısayolu yakalar, öndeki uygulama artık görmez."))
+                .font(.system(size: 12))
+                .foregroundStyle(Theme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            KeyRecorder(combo: $combo)
+            if let refusal {
+                Text(refusal).font(.system(size: 12)).foregroundStyle(Theme.error).fixedSize(horizontal: false, vertical: true)
+            }
+            HStack {
+                Spacer()
+                Button(L("Vazgeç"), action: done)
+                    .buttonStyle(SecondaryButtonStyle())
+                    .keyboardShortcut(.cancelAction)
+                Button(L("Kaydet"), action: save)
+                    .buttonStyle(PrimaryButtonStyle())
+                    .disabled(combo == nil || refusal != nil)
+            }
+        }
+        .padding(22)
+        .frame(width: 460)
+        .foregroundStyle(Theme.text)
+        // An action already on the pressed shortcut would fire instead of being recorded.
+        .onAppear { model.pauseHotKeys() }
+        .onDisappear { model.registerHotKeys() }
+    }
+
+    private func save() {
+        guard let combo, refusal == nil else { return }
+        if var binding {
+            binding.trigger = combo
+            model.update(binding)
+        } else {
+            model.addBinding(trigger: combo)
+        }
+        done()
     }
 }
 
