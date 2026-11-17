@@ -1,13 +1,16 @@
 import AppKit
 import KeyMapperCore
 
-/// Action bindings: trigger keys (F13–F20) that open apps, run shortcuts or send
-/// keystrokes, with per-app overrides (like Logitech Options+ app-specific settings).
+/// Action bindings: trigger keys (F13–F20) or shortcuts (⌥0 …) that open apps, run shortcuts or
+/// send keystrokes, with per-app overrides (like Logitech Options+ app-specific settings).
 extension AppModel {
     func setUpActions() {
         bindings = ActionStore.shared.load()
         hotKeys.onPress = { [weak self] id in
             MainActor.assumeIsolated { self?.fire(id) }
+        }
+        hotKeys.onRelease = { [weak self] _ in
+            MainActor.assumeIsolated { self?.stopActionRepeat() }
         }
         NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated {
@@ -21,6 +24,7 @@ extension AppModel {
     }
 
     func registerHotKeys() {
+        stopActionRepeat()
         if actionsEnabled {
             refusedBindings = Set(hotKeys.register(bindings))
         } else {
@@ -35,27 +39,74 @@ extension AppModel {
         registerHotKeys()
     }
 
+    /// Hot keys are off while a shortcut is being recorded, so an existing action doesn't fire instead.
+    func pauseHotKeys() {
+        stopActionRepeat()
+        hotKeys.unregisterAll()
+    }
+
     private func fire(_ id: UUID) {
+        stopActionRepeat()
         guard let binding = bindings.first(where: { $0.id == id }) else { return }
         let frontmost = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         guard let action = binding.action(frontmostBundleID: frontmost) else { return }
+        if let combo = TriggerRules.sentTrigger(action, triggers: bindings.filter(\.isEnabled).map(\.trigger)) {
+            errorMessage = L("%@: %@ bir aksiyonun tetiği olduğu için gönderilmedi.", binding.name, combo.display)
+            return
+        }
         do {
             try ActionPerformer.perform(action)
+            if action.repeatsWhileHeld { startActionRepeat(action, trigger: binding.trigger) }
         } catch {
             errorMessage = "\(binding.name): \(error.localizedDescription)"
             accessibilityTrusted = ActionPerformer.isAccessibilityTrusted
         }
     }
 
+    /// Hot keys fire once per press, so a held volume / brightness trigger is repeated here at the
+    /// system key repeat rate until it is let go.
+    private func startActionRepeat(_ action: KeyAction, trigger: KeyCombo) {
+        // Also stop when the key or one of its modifiers is let go, or after a while, should a release be missed.
+        let deadline = Date().addingTimeInterval(10)
+        var modifiers: CGEventFlags = []
+        if trigger.modifiers.contains(.command) { modifiers.insert(.maskCommand) }
+        if trigger.modifiers.contains(.option) { modifiers.insert(.maskAlternate) }
+        if trigger.modifiers.contains(.control) { modifiers.insert(.maskControl) }
+        if trigger.modifiers.contains(.shift) { modifiers.insert(.maskShift) }
+        let held = { CGEventSource.keyState(.hidSystemState, key: CGKeyCode(trigger.keyCode))
+            && CGEventSource.flagsState(.hidSystemState).contains(modifiers) }
+        actionRepeat = Timer.scheduledTimer(withTimeInterval: NSEvent.keyRepeatDelay, repeats: false) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.actionRepeat = Timer.scheduledTimer(withTimeInterval: max(NSEvent.keyRepeatInterval, 0.03), repeats: true) { [weak self] _ in
+                    MainActor.assumeIsolated {
+                        guard let self else { return }
+                        guard Date() < deadline, held() else {
+                            self.stopActionRepeat()
+                            return
+                        }
+                        try? ActionPerformer.perform(action)
+                    }
+                }
+            }
+        }
+    }
+
+    func stopActionRepeat() {
+        actionRepeat?.invalidate()
+        actionRepeat = nil
+    }
+
     // MARK: Editing
 
+    /// Adds an action on the next free F-key, or on `trigger` (a recorded shortcut such as ⌥0).
     @discardableResult
-    func addBinding() -> ActionBinding? {
-        guard let trigger = ActionStore.nextFreeTrigger(in: bindings) else {
+    func addBinding(trigger: KeyCombo? = nil) -> ActionBinding? {
+        guard let trigger = trigger ?? ActionStore.nextFreeTrigger(in: bindings)?.combo else {
             errorMessage = L("Tüm tetik tuşları (F13–F20) kullanımda.")
             return nil
         }
-        let binding = ActionBinding(name: L("Aksiyon %@", "\(bindings.count + 1)"), trigger: trigger.combo)
+        let binding = ActionBinding(name: L("Aksiyon %@", "\(bindings.count + 1)"), trigger: trigger)
         bindings.append(binding)
         persistBindings()
         return binding

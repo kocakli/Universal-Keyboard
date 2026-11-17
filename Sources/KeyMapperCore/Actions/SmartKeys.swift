@@ -19,6 +19,14 @@ public enum SystemKey: String, Codable, CaseIterable, Sendable, Identifiable {
         }
     }
 
+    /// Volume and brightness keep stepping while their trigger is held, like the real keys.
+    public var repeatsWhileHeld: Bool {
+        switch self {
+        case .volumeUp, .volumeDown, .brightnessUp, .brightnessDown: return true
+        case .mute, .playPause, .next, .previous: return false
+        }
+    }
+
     /// NX_KEYTYPE_* value used in system-defined events.
     public var nxKeyType: Int32 {
         switch self {

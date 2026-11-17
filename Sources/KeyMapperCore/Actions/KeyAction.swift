@@ -118,6 +118,12 @@ public enum KeyAction: Codable, Hashable, Sendable {
 
     public var needsAccessibility: Bool { kind.needsAccessibility }
 
+    /// Runs again while the trigger is held (volume and brightness steps).
+    public var repeatsWhileHeld: Bool {
+        if case let .systemKey(key) = self { return key.repeatsWhileHeld }
+        return false
+    }
+
     /// Short legend for a keycap.
     public var capTitle: String {
         switch self {

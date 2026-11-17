@@ -36,7 +36,7 @@
 - **配置文件**：将当前布局保存为配置文件，并可从菜单栏恢复。只写入有差异的按键。
 - **导入 / 导出**：支持 Vial `.vil`（从 vial.rocks 保存的文件）、VIA `.json` 布局文件以及 KeyMapper 配置文件。
 - **Vial 解锁**：针对 `QK_BOOT` 等受保护按键的 Vial 解锁流程。
-- **操作**（类似 Logitech Options+ 中按 App 区分的设置）：可将按键设为打开 App、打开网址或文件、运行快捷指令、发送组合键或输入文本。同一个按键可以根据前台 App 执行不同的操作（例如在 Safari 中新建标签页，在 VS Code 中打开命令面板，在其他任何地方打开 Spotlight）。现成的快捷键覆盖约 30 款 App，包括 Claude（批准 / 拒绝）、ChatGPT、Terminal、iTerm2、Warp、Ghostty、Safari、Chrome、Brave、Arc、Firefox、Finder、Mail、Music、VS Code、Cursor、Xcode、Zoom、Teams、Slack、Discord、Notion、Obsidian、Word、Excel、PowerPoint、Photoshop、Final Cut Pro 和 Spotify。
+- **操作**（类似 Logitech Options+ 中按 App 区分的设置）：可将按键设为打开 App、打开网址或文件、运行快捷指令、发送组合键或输入文本。同一个按键可以根据前台 App 执行不同的操作（例如在 Safari 中新建标签页，在 VS Code 中打开命令面板，在其他任何地方打开 Spotlight）。现成的快捷键覆盖约 30 款 App，包括 Claude（批准 / 拒绝）、ChatGPT、Terminal、iTerm2、Warp、Ghostty、Safari、Chrome、Brave、Arc、Firefox、Finder、Mail、Music、VS Code、Cursor、Xcode、Zoom、Teams、Slack、Discord、Notion、Obsidian、Word、Excel、PowerPoint、Photoshop、Final Cut Pro 和 Spotify。⌥0 这样的快捷键也可以从任何键盘启动操作。
 - **字母键**：让某个按键输入 Mac 键盘布局中没有的字母，例如土耳其语的 ç ğ ı İ ö ş ü，或 ñ、é 和 ß。按 Shift 或大写锁定输入大写字母（ı → I，i → İ）。参见[字母键](#字母键)。
 - **电量**：已连接键盘的电量会显示在菜单栏、边栏和编辑器顶部，电量在 20% 及以下时显示为红色。Apple 键盘的电量通过 macOS 读取，Bluetooth LE 键盘（例如 Cornix）则通过标准的蓝牙电池服务（Battery Service）读取，首次读取时会请求蓝牙权限。分体键盘显示两半中较低的电量。Keychron 的 raw HID 协议没有电量命令，因此通过 USB 连接的 Keychron 不显示电量。
 - **背光**：对于报告了背光、RGB 灯光或 RGB / LED 矩阵的 VIA / Vial 键盘，KeyMapper 会自动识别并提供**灯光**按钮，可调节效果、亮度、速度和颜色。尚未在实际硬件上测试。
@@ -68,6 +68,7 @@ KeyMapper 可通过 USB 线缆或 2.4 GHz 接收器识别 LEOBOG AMG65，并在�
 1. 每个操作都使用一个触发键：优先使用 F16–F20，其次是 F13，最后才是 F14/F15（macOS 将 F14/F15 用于屏幕亮度）。普通键盘没有这些按键，因此不会与任何功能冲突。
 2. 在键盘编辑器中选择一个按键，然后直接在面板的 **App 与操作**标签页中选择**打开 App**、**打开网址 / 文件**、**运行快捷指令**、**发送组合键**、**输入文本**或**媒体 / 系统按键**。KeyMapper 会预留一个空闲的触发键，将操作绑定到该触发键，并将其写入按键（VIA/Vial 键盘写入固件，其他键盘则作为 macOS 重映射）。用于打开 App 的按键会显示该 App 的图标；要更改按键的操作，请在所选按键的卡片上使用**编辑操作**。
 3. KeyMapper 通过 macOS 全局热键 API（Carbon `RegisterEventHotKey`）捕获触发键，因此该按键永远不会传到前台 App。如果前台 App 有对应的规则，就执行该规则；否则执行默认操作。
+4. 操作也可以由在任何键盘上按下的快捷键启动，例如用 ⌥0 执行 **音量 −**、用 ⌥9 执行 **音量 +**。在 **操作** 中点按该操作的触发键，选择 **录制快捷键…**，然后按下快捷键。快捷键必须包含 ⌘、⌥ 或 ⌃，且前台 App 将不再收到它（⌥0 将不再输入 º）。按住音量或亮度快捷键会像真实按键一样持续逐级调整。由于不会向键盘写入任何内容，Magic Keyboard 上也能使用；KeyMapper 需要保持运行。
 
 ### App 标签页 (类似 Logi Options+)
 

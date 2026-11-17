@@ -7,6 +7,8 @@ import KeyMapperCore
 /// permission is needed, and the trigger key is consumed so the frontmost app never sees it.
 final class HotKeyCenter {
     var onPress: ((UUID) -> Void)?
+    /// The trigger was let go (hot keys fire once per press; key repeat doesn't fire them again).
+    var onRelease: ((UUID) -> Void)?
 
     private var references: [EventHotKeyRef] = []
     private var bindingIDs: [UInt32: UUID] = [:]
@@ -14,7 +16,8 @@ final class HotKeyCenter {
     private static let signature: OSType = 0x4B4D_4150 // "KMAP"
 
     init() {
-        var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        var specs = [EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed)),
+                     EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyReleased))]
         let context = Unmanaged.passUnretained(self).toOpaque()
         InstallEventHandler(GetEventDispatcherTarget(), { _, event, context in
             guard let event, let context else { return OSStatus(eventNotHandledErr) }
@@ -22,9 +25,10 @@ final class HotKeyCenter {
             let status = GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
                                            nil, MemoryLayout<EventHotKeyID>.size, nil, &hotKeyID)
             guard status == noErr else { return status }
-            Unmanaged<HotKeyCenter>.fromOpaque(context).takeUnretainedValue().fire(hotKeyID.id)
+            let center = Unmanaged<HotKeyCenter>.fromOpaque(context).takeUnretainedValue()
+            center.fire(hotKeyID.id, released: GetEventKind(event) == UInt32(kEventHotKeyReleased))
             return noErr
-        }, 1, &spec, context, &handler)
+        }, specs.count, &specs, context, &handler)
     }
 
     deinit {
@@ -59,9 +63,9 @@ final class HotKeyCenter {
         bindingIDs.removeAll()
     }
 
-    private func fire(_ id: UInt32) {
+    private func fire(_ id: UInt32, released: Bool) {
         guard let bindingID = bindingIDs[id] else { return }
-        onPress?(bindingID)
+        if released { onRelease?(bindingID) } else { onPress?(bindingID) }
     }
 
     static func carbonModifiers(_ modifiers: KeyCombo.Modifiers) -> UInt32 {
